@@ -3,7 +3,6 @@ import json
 import requests
 from datetime import datetime
 
-from env.utility.helps import Bob
 from env.utility.file_management import File_Management
 
 async def main(context=None):

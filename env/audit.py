@@ -28,9 +28,9 @@ from env.modules.tenant import main as Tenant
 from env.modules.workspaces import main as Workspaces
 
 from datetime import datetime, timedelta
-from env.utility.helps import Bob
 from env.utility.file_management import File_Management
 from env.context import Context
+import re
 
 content = None
 
@@ -128,17 +128,21 @@ class Audits:
         # Run tasks concurrently using asyncio.gather()
         # results = await asyncio.gather(*tasks)
 
+        def remove_carriage_returns(string):
+            return re.sub(r'\r', '', string)
 
         async def task(name, work_queue, content):
             timer = Timer(text=f"Task {name} elapsed time: {{:.1f}}")
             while not work_queue.empty():
                 module = await work_queue.get()
                 
-                print(f"Task {name} is now running {module.__doc__}")
+                print(f"Task {remove_carriage_returns(module.__doc__)} is now running")
                 timer.start()
                 await module(content)
                 timer.stop()
 
+
+                # Remove all carriage returns from a string
 
         with Timer(text="\nTotal elapsed time: {:.1f}"):
             await asyncio.gather(
