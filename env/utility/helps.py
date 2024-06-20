@@ -15,7 +15,7 @@ import tempfile
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 
-class Bob:
+class Bob():
 
     def __init__(self):
         self.app_settings = dotenv_values("env/.env")

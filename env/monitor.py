@@ -22,7 +22,9 @@ from env.modules.roles import main as Roles
 from datetime import datetime, timedelta
 from env.utility.helps import Bob
 from env.utility.file_management import File_Management
+from env.context import Context
 
+content = None
 
 async def tasker(name, work_queue):
     while not work_queue.empty():
@@ -31,14 +33,14 @@ async def tasker(name, work_queue):
         await module()
         work_queue.task_done()
 
-async def task(name, work_queue):
+async def task(name, work_queue, content):
     timer = Timer(text=f"Task {name} elapsed time: {{:.1f}}")
     while not work_queue.empty():
         module = await work_queue.get()
         
         print(f"Task {name} running {module.__name__}")
         timer.start()
-        await module()
+        await module(content)
         timer.stop()
 
 
@@ -55,10 +57,9 @@ def is_function_due(cron_syntax, last_run):
     else:
         return False
 
-
-
-async def Monitor():
+async def main(context=Context):
     # Your code here
+    
     bob = Bob()
     fm = File_Management()
     settings = bob.get_settings()
@@ -102,12 +103,11 @@ async def Monitor():
         print(f"Error: {e}")
         return
 
-
-    print(f"what is the state {current_state}")
-
     # get the modules selected in the configuration for the application
-    modules = settings.get("ApplicationModules").replace(" ","").split(",")
-    # print(f"what are the modules {modules}")
+    # modules = settings.get("ApplicationModules").replace(" ","").split(",")
+    modules = context.get_ApplicationModules().replace(" ","").split(",")
+    
+    print(f"what are the modules {modules}")
     run_jobs = []
 
 
@@ -122,7 +122,7 @@ async def Monitor():
                 run = current_state.get(f"{module.lower()}").get("lastRun")
 
             last_run = bob.convert_dt_str(run)    
-            if is_function_due(cron,last_run):
+            if not is_function_due(cron,last_run):
                 logging.info(f"The following module added to the run queue {module}")
                 run_jobs.append(module)
         except:
@@ -135,10 +135,15 @@ async def Monitor():
         print("No jobs to run")
         return
 
-    classes = [globals()[module] for module in run_jobs]
 
-    for module in classes:
-        await work_queue.put(module)
+    try:
+        classes = [globals()[module] for module in run_jobs]
+
+        for module in classes:
+            await work_queue.put(module)
+    except Exception as e:
+        print(f"Error: {e}")
+        return
     
 
     # tasks = await create_module_tasks(dynamic_modules)
@@ -150,12 +155,12 @@ async def Monitor():
     with Timer(text="\nTotal elapsed time: {:.1f}"):
         await asyncio.gather(
             asyncio.create_task(task("Activity", work_queue)),
-            asyncio.create_task(task("Apps", work_queue)),
-            asyncio.create_task(task("Catalog", work_queue)),
-            asyncio.create_task(task("Graph", work_queue)),
-            asyncio.create_task(task("Tenant", work_queue)),
-            asyncio.create_task(task("Gateway", work_queue)),
-            asyncio.create_task(task("Refresh History", work_queue))
+            # asyncio.create_task(task("Apps", work_queue)),
+            # asyncio.create_task(task("Catalog", work_queue)),
+            # asyncio.create_task(task("Graph", work_queue)),
+            # asyncio.create_task(task("Tenant", work_queue)),
+            # asyncio.create_task(task("Gateway", work_queue)),
+            # asyncio.create_task(task("Refresh History", work_queue))
         )
 
 
@@ -175,6 +180,6 @@ async def Monitor():
 
 
 if __name__ == "__main__":
-    if platform.system() == "Windows":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    asyncio.run(Monitor())
+    # if platform.system() == "Windows":
+        # asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+    asyncio.run(main())

@@ -10,17 +10,15 @@ from env.utility.file_management import File_Management
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 ##### INTIALIZE THE CONFIGURATION #####
-bob = Bob()
-settings = bob.get_settings()
-headers =  bob.get_context()
-
 fm = File_Management()
 
 
 ##### INTIALIZE THE CONFIGURATION #####
 
-async def get_capacity(url:str, pageCount:int):
-    response = await bob.invokeAPI(url, headers=headers)
+async def get_capacity(url:str, pageCount:int, context=None):
+    headers = context.get_context()
+
+    response = await context.invokeAPI(url, headers=headers)
     pivotDate = datetime.now()
 
     content = response.get("value")
@@ -42,13 +40,19 @@ async def get_capacity(url:str, pageCount:int):
 
 
 
-async def main():
+async def main(context=None):
+    """
+    Capacities
+    """
+
+    fm.content(context)
+
     logging.info('Started')
 
     url = "admin/capacities"
     # url = "https://api.powerbi.com/v1.0/myorg/admin/capacities"
 
-    await get_capacity(url=url,pageCount=1)
+    await get_capacity(url=url,pageCount=1, context=context)
 
 
 

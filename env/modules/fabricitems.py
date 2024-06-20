@@ -5,23 +5,25 @@ import random
 import time
 
 from datetime import datetime, timedelta
-from ..utility.helps import Bob
 from env.utility.file_management import File_Management
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 ##### INTIALIZE THE CONFIGURATION #####
-bob = Bob()
-settings = bob.get_settings()
-headers =  bob.get_context()
 
 fm = File_Management()
 
 
 ##### INTIALIZE THE CONFIGURATION #####
 
-async def main():
+async def main(context=None):
+    """
+    Fabric Items
+    """
+
     logging.info('Started')
-    
+
+    headers = context.get_context()
+    fm.content(context)    
     try:
         config = await fm.read(file_name="state.yaml")
     except Exception as e:
@@ -44,7 +46,7 @@ async def main():
     today = datetime.now()
     async def get_data(url,pageIndex=1):
         pageIndex = str(pageIndex).zfill(5)
-        response = await bob.invokeAPI(url, headers=headers)
+        response = await context.invokeAPI(url, headers=headers)
         Path = f"items/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
         await fm.save(path=Path, file_name=f"fabricitems_{pageIndex}.json",content=response.get("itemEntities"))
 

@@ -8,7 +8,8 @@ from codetiming import Timer
 import sys
 
 from datetime import datetime, timedelta
-from env.utility.helps import Bob
+# from env.utility.helps import Bob
+from env.context import Context
 from env.utility.file_management import File_Management
 
 ####### CATALOG PRECONFIGURATION #######
@@ -26,101 +27,23 @@ getInfoInnerBatchCount = 100
 runsInParallel = 16       
 
 
-####### CATALOG PRECONFIGURATION #######
-##################### INTIALIZE THE CONFIGURATION #####################
-
-bob = Bob()
-settings = bob.get_settings()
-
-# get POWER BI context
-headers = bob.get_context()
-
-lakehouse_catalog = f"{settings['LakehouseName']}.Lakehouse.Files/catalog/"
-
-sp = json.loads(settings['ServicePrincipal'])
-
-##################### INTIALIZE THE CONFIGURATION #####################
-
 def RunFullScan(value=False):
     FullScan = value
 
-async def get_workspace_info(workspace_groups, FullScan=False,fileIndex=0):
-    workspaceScanResults = []
-    
-    
-    body = {
-        "workspaces":workspace_groups
-    }
+async def main(context=None):
+    """
+    Catalog Scans (Catalog meta data)
+    """
 
-    #print(f"Scanning workspaces: {body}")
-    rest_api = "admin/workspaces/getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True"
-    result = await bob.invokeAPI(rest_api=rest_api, headers=headers, json=body) 
-
-    if "ERROR" in result:
-        print(f"Error: {result}")
-    else:
-        workspaceScanResults.append(result)
-        
-        for workspaceScanResult in workspaceScanResults:
-
-            while(workspaceScanResult.get("status") in ["Running", "NotStarted"]):
-            
-                #print(f"Waiting for scan results, sleeping for {scanStatusSleepSeconds} seconds...")
-                #time.sleep(scanStatusSleepSeconds)
-
-                try:
-                    rest_api = f"admin/workspaces/scanStatus/{workspaceScanResult.get('id')}"
-                    result = await bob.invokeAPI(rest_api=rest_api, headers=headers)
-                except Exception as e:
-                    print(f"Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
-                    await asyncio.sleep(throttleErrorSleepSeconds)
-
-
-                if "ERROR" in result:
-                    print(f"Error: {result}")
-                else:
-                    workspaceScanResult["status"] = result.get("status")
-
-            if "Succeeded" in workspaceScanResult["status"]:
-                id = workspaceScanResult.get("id")
-
-                rest_api = f"admin/workspaces/scanResult/{id}"
-                scanResult = await bob.invokeAPI(rest_api=rest_api, headers=headers)
-
-                # TODO: create a better check on whether scan results were returned or error thrown
-                if "ERRORs" in scanResult:
-                    print(f"Error: Did not get scan results for workspace {id}")
-                else:
-
-                    today = datetime.now()
-                    fm = File_Management()
-                    path = f"catalog/scans/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
-                    #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=path)
-                    try:
-                        if FullScan:
-                            file_name=f"scanResults.fullscan.json"
-                        else:
-                            file_name=f"scanResults.json"
-                        
-                        index = str(fileIndex).zfill(5)
-                        file_name = f"{today.strftime('%Y%m%d')}_{index}.{file_name}"
-
-                        await fm.save(path=path, file_name=file_name, content=scanResult)
-                        
-                        #await FF.write_json_to_file(directory_client=dc, file_name="scanResults.json", json_data=scanResult)
-                    except TypeError as e:
-                        print(f"Please fix the async to handle the Error: {e} -- is this the issue")
-
-
-async def get_workspace_info_wrapper(subgroup, FullScan=False, fileIndex=0):
-    await get_workspace_info(workspace_groups=subgroup, FullScan=FullScan, fileIndex=fileIndex)
-
-
-async def main():
+    context = context
     FullScan = False
     allWorkspaces = False
 
     fm = File_Management()
+
+    fm.content(context)
+    headers = context.get_context()
+
     try:
         state = await fm.read(file_name="state.yaml")
     except Exception as e:
@@ -134,8 +57,8 @@ async def main():
     # if args.base:
     #     allWorkspaces = True
 
-    getModifiedWorkspacesParams = settings.get("CatalogGetModifiedParameters")
-    getInfoDetails = settings.get("CatalogGetInfoParameters")
+    getModifiedWorkspacesParams = context.CatalogGetModifiedParameters
+    getInfoDetails = context.CatalogGetInfoParameters
 
     if isinstance(state, str):
         LastRun = json.loads(state).get("catalog").get("lastRun")
@@ -151,8 +74,8 @@ async def main():
         LastFullScan = datetime.now() - timedelta(days=30)
         FullScan = True     
 
-    lastRun_tm = bob.convert_dt_str(LastRun)
-    lastFullScan_tm = bob.convert_dt_str(LastFullScan)
+    lastRun_tm = context.convert_dt_str(LastRun)
+    lastFullScan_tm = context.convert_dt_str(LastFullScan)
 
     # pivotScan = lastRun_tm + timedelta(days=-30)
     # pivotFullScan = lastFullScan_tm + timedelta(days=-30)    
@@ -170,7 +93,8 @@ async def main():
         rest_api = f"admin/workspaces/modified"
     else:
         rest_api = f"admin/workspaces/modified?modifiedSince={LastRun}T00:00:00.0000000Z&{getModifiedWorkspacesParams}"
-    result = await bob.invokeAPI(rest_api=rest_api, headers=headers)
+    result = await context.invokeAPI(rest_api=rest_api, headers=headers)
+
     workspaces = list()
 
     # print(f"catalog results for workspaces {result}")
@@ -225,14 +149,83 @@ async def main():
     # put all groups into the queue
     # build in a sleep for 10 seconds every 15 groups
     # to avoid throttling
+
+    async def get_workspace_info(workspace_groups, FullScan=False,fileIndex=0, headers=None):
+        workspaceScanResults = []
+        
+        
+        body = {
+            "workspaces":workspace_groups
+        }
+
+        rest_api = "admin/workspaces/getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True"
+        result = await context.invokeAPI(rest_api=rest_api, headers=headers, json=body) 
+
+        if "ERROR" in result:
+            print(f"Error: {result}")
+        else:
+            workspaceScanResults.append(result)
             
+            for workspaceScanResult in workspaceScanResults:
+
+                while(workspaceScanResult.get("status") in ["Running", "NotStarted"]):
+                
+                    #print(f"Waiting for scan results, sleeping for {scanStatusSleepSeconds} seconds...")
+                    #time.sleep(scanStatusSleepSeconds)
+
+                    try:
+                        rest_api = f"admin/workspaces/scanStatus/{workspaceScanResult.get('id')}"
+                        result = await context.invokeAPI(rest_api=rest_api, headers=headers)
+                        
+                    except Exception as e:
+                        print(f"Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
+                        await asyncio.sleep(throttleErrorSleepSeconds)
+
+
+                    if "ERROR" in result:
+                        print(f"Error: {result}")
+                    else:
+                        workspaceScanResult["status"] = result.get("status")
+
+                if "Succeeded" in workspaceScanResult["status"]:
+                    id = workspaceScanResult.get("id")
+
+                    rest_api = f"admin/workspaces/scanResult/{id}"
+                    scanResult = await context.invokeAPI(rest_api=rest_api, headers=headers)
+
+                    # TODO: create a better check on whether scan results were returned or error thrown
+                    if "ERRORs" in scanResult:
+                        print(f"Error: Did not get scan results for workspace {id}")
+                    else:
+
+                        today = datetime.now()
+                        fm = File_Management()
+                        path = f"catalog/scans/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
+                        #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=path)
+                        try:
+                            if FullScan:
+                                file_name=f"scanResults.fullscan.json"
+                            else:
+                                file_name=f"scanResults.json"
+                            
+                            index = str(fileIndex).zfill(5)
+                            file_name = f"{today.strftime('%Y%m%d')}_{index}.{file_name}"
+                            
+                            fm.content(context)
+                            await fm.save(path=path, file_name=file_name, content=scanResult)
+                            
+                            #await FF.write_json_to_file(directory_client=dc, file_name="scanResults.json", json_data=scanResult)
+                        except TypeError as e:
+                            print(f"Please fix the async to handle the Error: {e} -- is this the issue")
+
+
     counter = 0
     while not work_queue.empty():
         counter += 1
         subgroup = await work_queue.get()
         try:
             if len(subgroup) > 0:
-                await get_workspace_info_wrapper(subgroup=subgroup, FullScan=FullScan,fileIndex=counter)
+                await get_workspace_info(workspace_groups=subgroup, FullScan=FullScan,fileIndex=counter, headers=headers)
         # Try to catch any 429 errors
         except Exception as e:
             print(f"Error: {e} - sleeping for {scanStatusSleepSeconds} seconds")

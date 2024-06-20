@@ -5,7 +5,6 @@ import asyncio
 import time
 import requests
 
-from ..utility.helps import Bob
 from env.utility.file_management import File_Management
 from datetime import datetime, timedelta
 
@@ -17,16 +16,19 @@ reset  = True
 
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
-async def main():
+async def main(context=None):
+    """
+    Tenant Settings
+    """
     logging.info('Started')
 ##################### INTIALIZE THE CONFIGURATION #####################
-    bob = Bob()
+    
     # get POWER BI context and settings -- this call must be synchronous
-    settings = bob.get_settings()
-    headers = bob.get_context(tenant=True)
+    
+    headers = context.get_context(tenant=True)
     headers['Content-Type'] = 'application/json'
 
-    sp = json.loads(settings['ServicePrincipal'])
+    sp = context.ServicePrincipal
 
     today = datetime.now()
 
@@ -41,6 +43,7 @@ async def main():
     url = "https://api.fabric.microsoft.com/v1/admin/tenantsettings"
     
     fm = File_Management()
+    fm.content(context=context)
 
     response = requests.get(url=url, headers=headers)
     if response.status_code == 200:

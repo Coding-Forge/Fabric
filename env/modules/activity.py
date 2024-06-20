@@ -3,17 +3,14 @@ import json
 import logging
 
 from datetime import datetime, timedelta
-from env.utility.helps import Bob
 from env.utility.file_management import File_Management
+from env.context import Context
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 ##### INTIALIZE THE CONFIGURATION #####
-bob = Bob()
-settings = bob.get_settings()
-headers =  bob.get_context()
 
 fm = File_Management()
-
+context = Context()
 
 ##### INTIALIZE THE CONFIGURATION #####
 
@@ -28,7 +25,7 @@ async def record_audits(path, audit, pivotDate, pageIndex=1):
 async def activity_events(url=None, headers=None, pivotDate=None, pageIndex=1):
     audits = list()
 
-    result = await bob.invokeAPI(rest_api=url, headers=headers)
+    result = await context.invokeAPI(rest_api=url, headers=headers)
 
     # check the https response code for 200
     if "ERROR" in result:
@@ -39,10 +36,8 @@ async def activity_events(url=None, headers=None, pivotDate=None, pageIndex=1):
         if result.get("activityEventEntities"):
             audits.append(result.get("activityEventEntities"))
 
-            logging.info(f"Audits found: {audits}")
-
         # create the folder structure for the output path
-        lakehousePath = f"activity/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/"
+        lakehousePath = f"activity/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
 
         # do a for loop until all json arrays in audits are read and written to storage
         for audit in audits:
@@ -67,15 +62,17 @@ async def activity_events(url=None, headers=None, pivotDate=None, pageIndex=1):
 
 
 
-async def main():
-    logging.info('Started')
+async def main(in_context=None):
+    """
+    Activity    
+    """
     
 
+    context = in_context
+    fm.content(context)
 
-    fm = File_Management()
     try:
         config = await fm.read(file_name="state.yaml")
-        print(f"Config: {config}")
     except Exception as e:
         print(f"Error: {e}")
 
@@ -85,7 +82,7 @@ async def main():
         lastRun = config.get("activity").get("lastRun")
 
     # if lastRun is recorded then proceed from there
-    lastRun_tm = bob.convert_dt_str(lastRun)
+    lastRun_tm = context.convert_dt_str(lastRun)
     pivotDate = lastRun_tm.replace(hour=0, minute=0, second=0, microsecond=0)
     # Your code here
 
@@ -95,13 +92,13 @@ async def main():
             pageIndex = 1
             flagNoActivity = True
 
+            headers = context.get_context()
+
             # keep the start and end time within a 24 hour period by adding 24 hours and removing 1 second 
             nextDate = (pivotDate + timedelta(hours=24)) + timedelta(seconds=-1)
             rest_api = f"admin/activityevents?startDateTime='{pivotDate.strftime('%Y-%m-%dT%H:%M:%SZ')}'&endDateTime='{nextDate.strftime('%Y-%m-%dT%H:%M:%SZ')}'"
 
-            logging.info(f"Rest API: {rest_api}")
             continuationUri=""
-
             result = None
             innerLoop = True
             # python does not have a do while so this is the best way 

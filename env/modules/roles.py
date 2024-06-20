@@ -4,18 +4,13 @@ import json
 import logging
 import random
 import time
+from time import sleep
 
 from datetime import datetime, timedelta
-from env.utility.helps import Bob
 from env.utility.file_management import File_Management
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 ##### INTIALIZE THE CONFIGURATION #####
-bob = Bob()
-settings = bob.get_settings()
-headers =  bob.get_context()
-
-fm = File_Management()
 
 
 ##### INTIALIZE THE CONFIGURATION #####
@@ -23,8 +18,16 @@ fm = File_Management()
 
 
 
-async def main():
+async def main(context=None):
+    """
+    Roles
+    """
     logging.info('Started')
+
+    headers =  context.get_context()
+    fm = File_Management()
+    fm.content(context=context)
+
 
     response = requests.get("https://api.fabric.microsoft.com/v1/admin/workspaces", headers=headers)
     if response.ok:
@@ -41,7 +44,6 @@ async def main():
     workspace_lst = list()
 
     ceiling = len(items)
-    print(ceiling)
     cnt = 0
     for item in items:
         cnt+=1
@@ -59,8 +61,8 @@ async def main():
             else:
                 if response.status_code==429:
                     result = response.json()
-                    print(f"you must wait { int(result.get('message').split('.')[1].split(' ')[3])/60} minutes")
-                    break
+                    print(f"Request limit reached. You must wait { int(result.get('message').split('.')[1].split(' ')[3])/60} minutes for the next request")
+                    sleep(int(result.get('message').split('.')[1].split(' ')[3]))
 
     pivotDate = datetime.now()
     content = workspace_lst

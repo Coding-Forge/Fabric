@@ -7,7 +7,6 @@ import requests
 
 #from ..utility.fab2 import File_Table_Management
 from env.utility.file_management import File_Management
-from ..utility.helps import Bob
 from datetime import datetime, timedelta
 
 ####### CATALOG PRECONFIGURATION #######
@@ -22,21 +21,26 @@ reset  = True
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 
-async def main():
+async def main(context=None):
+    """
+    Graph
+    """
+
     logging.info('Started')
 ##################### INTIALIZE THE CONFIGURATION #####################
-    bob = Bob()
     # get POWER BI context and settings -- this call must be synchronous
-    settings = bob.get_settings()
-    headers = bob.get_context(graph=True)
+    fm = File_Management()
+    fm.content(context=context)
+
+    headers = context.get_context(graph=True)
     headers['Content-Type'] = 'application/json'
 
-    sp = json.loads(settings['ServicePrincipal'])
+    sp = context.ServicePrincipal
 
     today = datetime.now()
 
     lakehouse_catalog = f"graph/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
-    Groups = bool(settings.get("GraphExtractGroups"))
+    Groups = bool(context.GraphExtractGroups)
     
 ##################### INTIALIZE THE CONFIGURATION #####################
 
@@ -66,8 +70,6 @@ async def main():
                 }
             }
         )
-
-    fm = File_Management()
 
     for call in graphCalls:
         for key, value in call.items():

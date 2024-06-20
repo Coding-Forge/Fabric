@@ -80,7 +80,6 @@ class File_Table_Management:
             local_file.close()
 
     async def read(self, path:str, file_name: str):
-        print(f"Reading file {file_name}")
         dc = self.fsc.get_directory_client(path)
         file_client = dc.get_file_client(file_name)
         download = file_client.download_file()

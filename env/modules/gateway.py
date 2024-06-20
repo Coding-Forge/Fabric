@@ -6,12 +6,13 @@ from datetime import datetime
 from env.utility.helps import Bob
 from env.utility.file_management import File_Management
 
-async def main():
-    bob = Bob()
-    settings = bob.get_settings()
-    headers = bob.get_context()
+async def main(context=None):
+    """
+    Gateways
+    """
+    
+    headers = context.get_context()
     headers['content-type'] = 'application/json'
-    # headers['content-type'] = 'application/json; odata.metadata=minimal'
     headers['pragma'] = 'no-cache'
 
     
@@ -26,6 +27,7 @@ async def main():
         gateways.append(gateway.get("id"))
 
     fm = File_Management()
+    fm.content(context=context)
 
     today = datetime.today()
     path = f'gateways/{today.strftime("%Y")}/{today.strftime("%m")}/{today.strftime("%d")}/'

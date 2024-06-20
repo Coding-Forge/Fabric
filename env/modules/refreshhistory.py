@@ -7,7 +7,6 @@ import requests
 
 #from ..utility.fab2 import File_Table_Management
 from env.utility.file_management import File_Management
-from ..utility.helps import Bob
 from datetime import datetime, timedelta
 
 ####### Refresh History PRECONFIGURATION #######
@@ -16,16 +15,18 @@ today = datetime.now()
 
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
-async def main():
+async def main(context=None):
+    """
+    Refresh history
+    """
     logging.info('Started')
 ##################### INTIALIZE THE CONFIGURATION #####################
-    bob = Bob()
     # get POWER BI context and settings -- this call must be synchronous
-    settings = bob.get_settings()
-    headers = bob.get_context(tenant=True)
+    
+    headers = context.get_context(tenant=True)
     #headers['Content-Type'] = 'application/json'
 
-    sp = json.loads(settings['ServicePrincipal'])
+    sp = context.ServicePrincipal
 
     today = datetime.now()
 
@@ -38,9 +39,10 @@ async def main():
     rest_api = "admin/groups?$expand=datasets&$top=5000"
 
     fm = File_Management()
+    fm.content(context)
 
     # get a list of workspaces with datasets that have are refreshable
-    result = await bob.invokeAPI(rest_api=rest_api, headers=headers)
+    result = await context.invokeAPI(rest_api=rest_api, headers=headers)
     
     if "ERROR" in result:
         print(f"Error: {result}")
@@ -57,7 +59,7 @@ async def main():
                 if dataset['isRefreshable']==True and dataset['addRowsAPIEnabled']==False:
                     rest_api = f"groups/{item['id']}/datasets/{dataset['id']}/refreshes"
                     try:
-                        refreshes = await bob.invokeAPI(rest_api=rest_api, headers=headers)
+                        refreshes = await context.invokeAPI(rest_api=rest_api, headers=headers)
                         for refresh in refreshes['value']:
                             if len(refresh)>0:
                                 resfresh_history.append(refresh)

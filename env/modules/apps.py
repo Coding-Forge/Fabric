@@ -5,8 +5,6 @@ import asyncio
 import time
 
 #from ..utility.fab2 import File_Table_Management
-from ..utility.helps import Bob
-
 from env.utility.file_management import File_Management
 from datetime import datetime, timedelta
 
@@ -22,16 +20,19 @@ reset  = True
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 
-async def main():
+async def main(context=None):
+    """
+    Catalog Snapshots (Published Apps)
+    """
+
     logging.info('Started')
 ##################### INTIALIZE THE CONFIGURATION #####################
-    bob = Bob()
     # get POWER BI context and settings -- this call must be synchronous
         
-    settings = bob.get_settings()
-    headers = bob.get_context()
-    
-    sp = json.loads(settings['ServicePrincipal'])
+
+    headers = context.get_context()
+
+    sp = context.ServicePrincipal
     
 
     lakehouse_catalog = f"catalog/"
@@ -40,6 +41,8 @@ async def main():
 
     # replacing get_st8te
     fm = File_Management()
+    fm.content(context)
+
     try:
         state = await fm.read(file_name="state.yaml")
     except Exception as e:
@@ -59,8 +62,8 @@ async def main():
     if LastFullScan is None:
         LastFullScan = datetime.now()        
 
-    lastRun_tm = bob.convert_dt_str(LastRun)
-    lastFullScan_tm = bob.convert_dt_str(LastFullScan)
+    lastRun_tm = context.convert_dt_str(LastRun)
+    lastFullScan_tm = context.convert_dt_str(LastFullScan)
 
     pivotScan = lastRun_tm + timedelta(days=-30)
     pivotFullScan = lastFullScan_tm + timedelta(days=-30)    
@@ -78,7 +81,7 @@ async def main():
 
     rest_api = "admin/apps?$top=5000&$skip=0"
     try:
-        result = await bob.invokeAPI(rest_api=rest_api, headers=headers)
+        result = await context.invokeAPI(rest_api=rest_api, headers=headers)
     except Exception as e:
         print(f"Error: {e} - {result}")
     
@@ -102,7 +105,6 @@ async def main():
         #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=lakehouse_dir)
 
         try:
-            fm = File_Management()
 
             #only grab the value section from result
             info=result.get("value")

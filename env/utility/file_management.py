@@ -2,27 +2,25 @@ import json
 from env.utility.fabric import File_Table_Management
 from env.utility.blob import Blob_File_Management
 from env.utility.local import Local_File_Management
-from env.utility.helps import Bob
+# from env.utility.helps import Bob
 
 
 
 class File_Management(File_Table_Management, Blob_File_Management, Local_File_Management):
 
     def __init__(self):
-        self.bob = Bob()
-        self.settings = self.bob.get_settings()
+        # self.bob = Bob()
+        # self.settings = "lakehouse"
+        self.bfm = Blob_File_Management()
+        self.lfm = Local_File_Management()
+        self.ftm = File_Table_Management()
+        self._settings = None
+        pass
 
-        if self.settings['StorageAccountContainerName']:
-            self.bfm = Blob_File_Management()
-            self.storage_location = "blob"
-        elif self.settings["OutputPath"]:
-            self.storage_location = "local"
-            self.lfm = Local_File_Management(self.settings['OutputPath'])
-        else:
-            self.storage_location = "lakehouse"
-            self.ftm = File_Table_Management()
-            self.PathInLakehouse = self.settings['PathInLakehouse'] 
-            
+
+    def content(self, context):
+        self._settings = context
+        
 
     async def save(self, path:str, file_name:str, content):
         """
@@ -30,6 +28,10 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
         param: file_name is the name of the file to be saved
         param: content is a dictionary that is converted to bytes and saved as the path and file name
         """
+
+        if not self._settings:
+            print("No settings found, make sure to pass in or set the settings object")
+            return
 
         try:
 
@@ -40,8 +42,8 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                 content = content.encode('utf-8')
 
         #save file to storage
-            if self.storage_location == "blob":
-                root = self.settings['StorageAccountContainerRootPath']
+            if self._settings.StorageAccountContainerName:
+                root = self._settings.StorageAccountContainerRootPath
                 if root:
                     path = f"{root}/{path}{file_name}"
                 else:
@@ -49,13 +51,10 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                     
                 #print(path)
                 await self.bfm.write_to_file(blob_name=path, content=content)
-            elif self.storage_location == "local":
+            elif self._settings.OutputPath:
                 await self.lfm.save(path=path, file_name=file_name, content=content)    
-            elif self.storage_location == "lakehouse":
-                #TODO: create a directory
-                #TODO: upload/stream to location
-
-                path = f"{self.settings['LakehouseName']}.Lakehouse/Files/{self.PathInLakehouse}/{path}"   
+            elif self._settings.LakehouseName:
+                path = f"{self._settings.LakehouseName}.Lakehouse/Files/{self._settings.PathInLakehouse}/{path}"   
                 path = path.replace("//","/")
                 
                 await self.ftm.write_json_to_file(path=path, file_name=file_name, json_data=content)
@@ -75,8 +74,9 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
         Return: returns a file
         """
         try:
-            if self.storage_location == "blob":
-                root = self.settings['StorageAccountContainerRootPath']
+
+            if self._settings.StorageAccountContainerName:
+                root = self._settings.StorageAccountContainerRootPath
                 if root:
                     path = f"{root}/{path}{file_name}"
                 else:
@@ -84,13 +84,14 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
 
                 content = await self.bfm.read_from_file(blob_name=path)
                 
-            elif self.storage_location == "local":
+            elif self._settings.OutputPath:
                 await self.lfm.save(path=path, file_name=file_name, content=content)    
-            elif self.storage_location == "lakehouse":
+            
+            elif self._settings.LakehouseName:
                 #TODO: create a directory
                 #TODO: upload/stream to location
                 
-                path = f"{self.settings['LakehouseName']}.Lakehouse/Files/{self.PathInLakehouse}/{path}"   
+                path = f"{self._settings.LakehouseName}.Lakehouse/Files/{self._settings.PathInLakehouse}/{path}"   
                 path = path.replace("//","/")
                 content = await self.ftm.read(file_name=file_name, path=path)
                 content = content.decode('utf-8')

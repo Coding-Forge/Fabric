@@ -5,9 +5,7 @@ import asyncio
 import time
 import requests
 
-#from ..utility.fab2 import File_Table_Management
 from env.utility.file_management import File_Management
-from env.utility.helps import Bob
 from datetime import datetime, timedelta
 
 ####### Refresh History PRECONFIGURATION #######
@@ -16,16 +14,20 @@ today = datetime.now()
 
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
-async def main():
+async def main(context=None):
+    """
+    Refreshables
+    """
     logging.info('Started')
 ##################### INTIALIZE THE CONFIGURATION #####################
-    bob = Bob()
-    # get POWER BI context and settings -- this call must be synchronous
-    settings = bob.get_settings()
-    headers = bob.get_context(tenant=True)
-    #headers['Content-Type'] = 'application/json'
+    
+    fm = File_Management()
+    fm.content(context=context)
 
-    sp = json.loads(settings['ServicePrincipal'])
+    # get POWER BI context and settings -- this call must be synchronous
+    headers = context.get_context(tenant=True)
+
+    sp = context.ServicePrincipal
 
     today = datetime.now()
 
@@ -37,10 +39,8 @@ async def main():
     # GET https://api.powerbi.com/v1.0/myorg/admin/capacities/refreshables?$expand=capacity,group
     rest_api = "admin/capacities/refreshables?$expand=capacity,group"
 
-    fm = File_Management()
-
     # get a list of workspaces with datasets that have are refreshable
-    result = await bob.invokeAPI(rest_api=rest_api, headers=headers)
+    result = await context.invokeAPI(rest_api=rest_api, headers=headers)
     
     if "ERROR" in result:
         print(f"Error: {result}")
