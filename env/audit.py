@@ -218,9 +218,18 @@ class Audits:
             }
         }
 
-        await fm.save("", "state.yaml", current_state)
+        await self.fm.save("", "state.yaml", current_state)
         return current_state
     
+    def set_WorkspaceName(self, WorkspaceName):
+        self.context.set_WorkspaceName(WorkspaceName)
+
+    def set_StorageAccountConnStr(self, StorageAccountConnStr):
+        self.context.set_StorageAccountConnStr(StorageAccountConnStr)
+    
+    def set_storage_url(self, storage_url):
+        self.context.set_storage_url(storage_url)
+
     def set_Domains_cron(self, Domains_cron):    
         self.context.set_Domains_cron(Domains_cron)
 
