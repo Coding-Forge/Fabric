@@ -129,7 +129,7 @@ class Audits:
         # results = await asyncio.gather(*tasks)
 
         def remove_carriage_returns(string):
-            return re.sub(r'\r', '', string)
+            return re.sub(r'\r', '', string.strip())
 
         async def task(name, work_queue, content):
             timer = Timer(text=f"Task {name} elapsed time: {{:.1f}}")
