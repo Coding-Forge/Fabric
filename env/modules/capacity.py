@@ -5,7 +5,6 @@ import random
 import time
 
 from datetime import datetime, timedelta
-from env.utility.helps import Bob
 from env.utility.file_management import File_Management
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
