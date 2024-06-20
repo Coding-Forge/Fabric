@@ -1,5 +1,5 @@
 adal==1.2.7
-aiohttp==3.9.3
+aiohttp==3.9.4
 azure-core==1.30.0
 azure-identity==1.15.0
 azure-functions==1.19.0

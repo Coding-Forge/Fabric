@@ -25,10 +25,22 @@ class Context:
         self.Tenant_cron = None
         self.Workspaces_cron = None
         self.ApplicationModules = None
+        self.storage_url = None
+        self.StorageAccountConnStr = None
         self.StorageAccountContainerName = None
         self.StorageAccountContainerRootPath = None
         self.OutputPath = None
         self.GraphExtractGroups = None
+        self.WorkspaceName = None
+
+    def set_WorkspaceName(self, WorkspaceName):
+        self.WorkspaceName = WorkspaceName
+
+    def set_StorageAccountConnStr(self, StorageAccountConnStr):
+        self.StorageAccountConnStr = StorageAccountConnStr
+    
+    def set_storage_url(self, storage_url):
+        self.storage_url = storage_url
 
     def set_StorageAccountContainerName(self, StorageAccountContainerName):
         self.StorageAccountContainerName = StorageAccountContainerName

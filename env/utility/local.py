@@ -1,15 +1,13 @@
 import os
 import logging
-from dotenv import dotenv_values
 
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 class Local_File_Management:
 
     def __init__(self, root_path:str=None):
-        self.app_settings = dotenv_values("env/.env")
         self.root_path = root_path
-
+    
     async def save(self, path:str, file_name:str, content):
         """
         param: path is the location to where the content will be saved

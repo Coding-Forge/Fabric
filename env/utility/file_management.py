@@ -15,11 +15,11 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
         self.lfm = Local_File_Management()
         self.ftm = File_Table_Management()
         self._settings = None
-        pass
-
 
     def content(self, context):
         self._settings = context
+        self.bfm.set_context(self._settings)
+        self.ftm.set_context(self._settings)
         
 
     async def save(self, path:str, file_name:str, content):

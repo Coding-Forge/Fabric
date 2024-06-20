@@ -11,12 +11,24 @@ class File_Table_Management:
 
     def __init__(self):
         
-        self.settings = dotenv_values("env/.env")
-        self.sp = json.loads(self.settings['ServicePrincipal'])
-        self.tenant_id = self.sp['TenantId']
-        self.client_id = self.sp['AppId']
-        self.client_secret = self.sp['AppSecret']
-        self.workspace_name = self.settings['WorkspaceName']
+        self.sp = None
+        self.tenant_id = None
+        self.client_id = None
+        self.client_secret = None
+        self.workspace_name = None
+        self.fsc = None
+        self.context = None
+
+    
+    
+
+    def set_context(self, context):
+        self.context = context
+
+        self.tenant_id = context.ServicePrincipal.get("TenantId")
+        self.client_id = context.ServicePrincipal.get("AppId")
+        self.client_secret = context.ServicePrincipal.get("AppSecret")
+        self.workspace_name = context.WorkspaceName
         self.fsc = self.get_file_system_client()
 
 
