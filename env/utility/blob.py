@@ -25,6 +25,7 @@ class Blob_File_Management:
 
     def set_context(self, context):
         self.context = context
+
         self.tenant_id = context.ServicePrincipal.get("TenantId")
         self.client_id = context.ServicePrincipal.get("AppId")
         self.client_secret = context.ServicePrincipal.get("AppSecret")
