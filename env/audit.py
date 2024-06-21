@@ -144,24 +144,12 @@ class Audits:
 
                 # Remove all carriage returns from a string
 
+        gather_tasks = []
+        for module in run_jobs:
+            gather_tasks.append(asyncio.create_task(task(f"{module}", work_queue, content=self.context)))
+
         with Timer(text="\nTotal elapsed time: {:.1f}"):
-            await asyncio.gather(
-                asyncio.create_task(task(f"Activity", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Apps", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Capacity", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Catalog", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Domains", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Fabric Items", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Gateway", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Graph", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Refreshables", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Refresh History", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Roles", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Tenant", work_queue, content=self.context)),
-                asyncio.create_task(task(f"Workspaces", work_queue, content=self.context))
-            )
-            # doesn't quite work, I would like to add all the modules to the gather
-            # await asyncio.gather([asyncio.create_task(task(f"Starting: {x}", work_queue, content=self.context)) for x in classes])
+            await asyncio.gather(*gather_tasks)
 
 
         # this has all the information needed to modify the state.yaml file
