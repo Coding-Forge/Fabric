@@ -2,6 +2,7 @@ import msal
 import aiohttp
 from typing import Dict, Any, Coroutine
 from datetime import datetime, timedelta
+from env.utility.file_management import File_Management
 
 
 class Context:
@@ -32,6 +33,15 @@ class Context:
         self.OutputPath = None
         self.GraphExtractGroups = None
         self.WorkspaceName = None
+        self.clients = {}
+        self.fm = File_Management()
+        self.current_state = None
+
+    def set_current_state(self, current_state):
+        self.current_state = current_state        
+
+    def set_FileManagement(self, fm):
+        self.fm = fm
 
     def set_WorkspaceName(self, WorkspaceName):
         self.WorkspaceName = WorkspaceName
@@ -161,67 +171,67 @@ class Context:
             exit()
     
     
-    def get_context(self, graph=False, tenant=False):
-        """
-        Get the access token for the Power BI API
-        """
-        try:
-            sp = self.get_ServicePrincipal()
-            tenant_id = sp['TenantId']
-            client_id = sp['AppId']
-            client_secret = sp['AppSecret']
+    # def get_context(self, graph=False, tenant=False):
+    #     """
+    #     Get the access token for the Power BI API
+    #     """
+    #     try:
+    #         sp = self.get_ServicePrincipal()
+    #         tenant_id = sp['TenantId']
+    #         client_id = sp['AppId']
+    #         client_secret = sp['AppSecret']
 
-        except Exception as e:
-            print("An exception occurred while reading the file:", str(e))
+    #     except Exception as e:
+    #         print("An exception occurred while reading the file:", str(e))
 
-        if graph:
-            authority = f"https://login.microsoftonline.com/{tenant_id}"
-            scope = "https://graph.microsoft.com/.default"
-        elif tenant:
-            authority = f"https://login.microsoftonline.com/{tenant_id}"
-            scope = "https://api.fabric.microsoft.com/.default"  
-        else:
-            #authority = f"https://login.microsoftonline.com/{tenant_id}/oauth2/token?api-version=1.0"
-            authority = f"https://login.microsoftonline.com/{tenant_id}"
-            scope = "https://analysis.windows.net/powerbi/api/.default"
+    #     if graph:
+    #         authority = f"https://login.microsoftonline.com/{tenant_id}"
+    #         scope = "https://graph.microsoft.com/.default"
+    #     elif tenant:
+    #         authority = f"https://login.microsoftonline.com/{tenant_id}"
+    #         scope = "https://api.fabric.microsoft.com/.default"  
+    #     else:
+    #         #authority = f"https://login.microsoftonline.com/{tenant_id}/oauth2/token?api-version=1.0"
+    #         authority = f"https://login.microsoftonline.com/{tenant_id}"
+    #         scope = "https://analysis.windows.net/powerbi/api/.default"
             
 
-        # Create a ConfidentialClientApplication object
-        app = msal.ConfidentialClientApplication(
-            client_id=client_id,
-            client_credential=client_secret,
-            authority=authority
-        )
+    #     # Create a ConfidentialClientApplication object
+    #     app = msal.ConfidentialClientApplication(
+    #         client_id=client_id,
+    #         client_credential=client_secret,
+    #         authority=authority
+    #     )
 
-        scopes = [scope]
+    #     scopes = [scope]
         
-        # Acquire a token using client credentials
-        try:
-            result = app.acquire_token_for_client(scopes=scopes)
-            if "access_token" in result:
-                access_token = result["access_token"]
-                # Use the access token to make API calls to Power BI
-                headers = {'Authorization': f'Bearer {access_token}'}
+    #     # Acquire a token using client credentials
+    #     try:
+    #         result = app.acquire_token_for_client(scopes=scopes)
+    #         if "access_token" in result:
+    #             access_token = result["access_token"]
+    #             # Use the access token to make API calls to Power BI
+    #             headers = {'Authorization': f'Bearer {access_token}'}
 
-                # TODO: Add your Power BI API calls here
+    #             # TODO: Add your Power BI API calls here
 
-            else:
-                # If silent token acquisition fails, fallback to interactive authentication
-                result = app.acquire_token_for_client(scopes=scopes)
+    #         else:
+    #             # If silent token acquisition fails, fallback to interactive authentication
+    #             result = app.acquire_token_for_client(scopes=scopes)
 
-                if "access_token" in result:
-                    # TODO: Add your Power BI API calls here
-                    access_token = result["access_token"]
-                    # Use the access token to make API calls to Power BI
-                    headers = {'Authorization': f'Bearer {access_token}'}
+    #             if "access_token" in result:
+    #                 # TODO: Add your Power BI API calls here
+    #                 access_token = result["access_token"]
+    #                 # Use the access token to make API calls to Power BI
+    #                 headers = {'Authorization': f'Bearer {access_token}'}
 
-                else:
-                    print(result.get("error_description", "Authentication failed."))
+    #             else:
+    #                 print(result.get("error_description", "Authentication failed."))
 
-            return headers
+    #         return headers
         
-        except Exception as ex:
-            print(ex)
+    #     except Exception as ex:
+    #         print(ex)
 
     async def invokeAPI(self, rest_api, headers=None, json=None)-> Coroutine[Dict[str,Any], None, None]:
         """

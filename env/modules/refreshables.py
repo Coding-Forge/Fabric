@@ -5,7 +5,6 @@ import asyncio
 import time
 import requests
 
-from env.utility.file_management import File_Management
 from datetime import datetime, timedelta
 
 ####### Refresh History PRECONFIGURATION #######
@@ -21,14 +20,9 @@ async def main(context=None):
     logging.info('Started')
 ##################### INTIALIZE THE CONFIGURATION #####################
     
-    fm = File_Management()
-    fm.content(context=context)
 
     # get POWER BI context and settings -- this call must be synchronous
-    headers = context.get_context(tenant=True)
-
-    sp = context.ServicePrincipal
-
+    headers = context.clients['tenant'].get_headers()
     today = datetime.now()
 
     lakehouse_dir = f"datasetrefreshable/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
@@ -46,7 +40,7 @@ async def main(context=None):
         print(f"Error: {result}")
     else:
         # print(result['value'])
-        await fm.save(path=lakehouse_dir, file_name=file_name,content=result['value'])
+        await context.fm.save(path=lakehouse_dir, file_name=file_name,content=result['value'])
 
 if __name__ == "__main__":
     asyncio.run(main())

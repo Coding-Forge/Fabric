@@ -5,7 +5,6 @@ import asyncio
 import time
 
 #from ..utility.fab2 import File_Table_Management
-from env.utility.file_management import File_Management
 from datetime import datetime, timedelta
 
 ####### CATALOG PRECONFIGURATION #######
@@ -24,37 +23,27 @@ async def main(context=None):
     """
     Catalog Snapshots (Published Apps)
     """
+    if context is None:
+        raise RuntimeError("Context is None")
+
 
     logging.info('Started')
 ##################### INTIALIZE THE CONFIGURATION #####################
     # get POWER BI context and settings -- this call must be synchronous
         
 
-    headers = context.get_context()
-
-    sp = context.ServicePrincipal
-    
-
+    headers = context.clients['pbi'].get_headers()
     lakehouse_catalog = f"catalog/"
 
 ##################### INTIALIZE THE CONFIGURATION #####################
 
-    # replacing get_st8te
-    fm = File_Management()
-    fm.content(context)
 
-    try:
-        state = await fm.read(file_name="state.yaml")
-    except Exception as e:
-        print(f"Error: {e}")
-        return
-
-    if isinstance(state, str):
-        LastRun = json.loads(state).get("catalog").get("lastRun")
-        LastFullScan = json.loads(state).get("catalog").get("lastFullScan")
+    if isinstance(context.current_state, str):
+        LastRun = json.loads(context.current_state).get("activity").get("lastRun")
+        LastFullScan = json.loads(context.current_state).get("catalog").get("lastFullScan")
     else:
-        LastRun = state.get("catalog").get("lastRun")
-        LastFullScan = state.get("catalog").get("lastFullScan")
+        LastRun = context.current_state.get("catalog").get("lastRun")
+        LastFullScan = context.current_.get("catalog").get("lastFullScan")
 
     if LastRun is None:
         LastRun = datetime.now()
@@ -108,7 +97,7 @@ async def main(context=None):
 
             #only grab the value section from result
             info=result.get("value")
-            await fm.save(path=path, file_name="apps.json", content=info)
+            await context.fm.save(path=path, file_name="apps.json", content=info)
 
             #await FF.write_json_to_file(directory_client=dc, file_name="apps.json", json_data=result)
         except TypeError as e:

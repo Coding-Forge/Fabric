@@ -26,7 +26,9 @@ from env.modules.refreshables import main as Refreshables
 from env.modules.roles import main as Roles
 from env.modules.tenant import main as Tenant
 from env.modules.workspaces import main as Workspaces
+from env.modules.test import main as Test
 
+from env.clients import PbiClient, GraphClient, TenantClient
 from datetime import datetime, timedelta
 from env.utility.file_management import File_Management
 from env.context import Context
@@ -55,8 +57,17 @@ class Audits:
         self.context = Context()
         self.fm = File_Management()
 
+    def __set_current_state(self, current_state):
+        self.context.set_current_state(current_state)
+
+    def __setup_clients(self):
+        self.context.clients["pbi"] = PbiClient(self.context)
+        self.context.clients["graph"] = GraphClient(self.context)
+        self.context.clients["tenant"] = TenantClient(self.context)
 
     async def run(self):
+
+        self.__setup_clients()
         
         # print(f"service principal: {self.context._ServicePrincipal}")
         # settings = bob.get_settings()
@@ -64,9 +75,12 @@ class Audits:
 
         # replacing get_st8te
         self.fm.content(self.context)
+        self.context.set_FileManagement(self.fm)
 
         try:
             current_state = await self.fm.read(file_name="state.yaml")
+            self.__set_current_state(current_state)
+            
             if not current_state:
                 await self.create_state()
 

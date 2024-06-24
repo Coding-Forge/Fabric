@@ -7,7 +7,6 @@ import time
 from time import sleep
 
 from datetime import datetime, timedelta
-from env.utility.file_management import File_Management
 logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 ##### INTIALIZE THE CONFIGURATION #####
@@ -22,11 +21,12 @@ async def main(context=None):
     """
     Roles
     """
+    if context is None:
+        raise RuntimeError("Context is None")
+
     logging.info('Started')
 
-    headers =  context.get_context()
-    fm = File_Management()
-    fm.content(context=context)
+    headers =  context.clients['pbi'].get_headers()
 
 
     response = requests.get("https://api.fabric.microsoft.com/v1/admin/workspaces", headers=headers)
@@ -69,7 +69,7 @@ async def main(context=None):
     index = str(cnt).zfill(5)
 
     Path = f"roles/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
-    await fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.roles.json",content=content)
+    await context.fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.roles.json",content=content)
 
 
 if __name__ == "__main__":
