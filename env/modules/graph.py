@@ -1,6 +1,6 @@
 import os
 import json
-import logging
+
 import asyncio
 import time
 import requests
@@ -17,8 +17,6 @@ FullScanAfterDays = 30
 reset  = True
 ####### CATALOG PRECONFIGURATION #######
 
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
-
 
 async def main(context=None):
     """
@@ -27,7 +25,6 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-    logging.info('Started')
 ##################### INTIALIZE THE CONFIGURATION #####################
     # get POWER BI context and settings -- this call must be synchronous
 
@@ -70,8 +67,6 @@ async def main(context=None):
 
     for call in graphCalls:
         for key, value in call.items():
-            #print(f"Getting {key} from {value['GraphURL']} and file path {value['FilePath']}")
-
 
             response = requests.get(value['GraphURL'], headers=headers)
             if response.status_code == 200:

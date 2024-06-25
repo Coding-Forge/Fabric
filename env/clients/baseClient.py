@@ -22,6 +22,8 @@ class Client:
             client_secret = sp['AppSecret']
 
         except Exception as e:
+            self._context.logger.error(f"An exception occurred while reading the file: {str(e)}")
+
             print("An exception occurred while reading the file:", str(e))
 
         authority = f"https://login.microsoftonline.com/{tenant_id}"
@@ -62,4 +64,5 @@ class Client:
             return headers
             
         except Exception as ex:
+            self._context.logger.error(f"An exception occurred while reading the file: {str(ex)}")
             print(ex)

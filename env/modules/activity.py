@@ -1,10 +1,9 @@
 import asyncio
 import json
-import logging
 
 from datetime import datetime, timedelta
 
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
+
 
 async def main(context=None):
     """
@@ -38,7 +37,8 @@ async def main(context=None):
 
         # check the https response code for 200
         if "ERROR" in result:
-            logging.error(f"Error: {result}")
+            #TODO: add information to the log file
+            
             innerLoop = False
         else:
             # this is common to both parts of the if statement
@@ -63,7 +63,7 @@ async def main(context=None):
                         pageIndex+=1
                         await activity_events(url=continuationUri, headers=head, pivotDate=pivotDate, pageIndex=pageIndex)
             except Exception as e:
-                print(f"Error: {e}")
+                context.logger.error("Error in activity_events {e}")
 
     headers = context.clients['pbi'].get_headers()
 

@@ -14,12 +14,12 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
         self.bfm = Blob_File_Management()
         self.lfm = Local_File_Management()
         self.ftm = File_Table_Management()
-        self._settings = None
+        self.context = None
 
     def content(self, context):
-        self._settings = context
-        self.bfm.set_context(self._settings)
-        self.ftm.set_context(self._settings)
+        self.context = context
+        self.bfm.set_context(self.context)
+        self.ftm.set_context(self.context)
         
 
     async def save(self, path:str, file_name:str, content):
@@ -29,7 +29,7 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
         param: content is a dictionary that is converted to bytes and saved as the path and file name
         """
 
-        if not self._settings:
+        if not self.context:
             print("No settings found, make sure to pass in or set the settings object")
             return
 
@@ -42,8 +42,8 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                 content = content.encode('utf-8')
 
         #save file to storage
-            if self._settings.StorageAccountContainerName:
-                root = self._settings.StorageAccountContainerRootPath
+            if self.context.StorageAccountContainerName:
+                root = self.context.StorageAccountContainerRootPath
                 if root:
                     path = f"{root}/{path}{file_name}"
                 else:
@@ -51,10 +51,10 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                     
                 #print(path)
                 await self.bfm.write_to_file(blob_name=path, content=content)
-            elif self._settings.OutputPath:
+            elif self.context.OutputPath:
                 await self.lfm.save(path=path, file_name=file_name, content=content)    
-            elif self._settings.LakehouseName:
-                path = f"{self._settings.LakehouseName}.Lakehouse/Files/{self._settings.PathInLakehouse}/{path}"   
+            elif self.context.LakehouseName:
+                path = f"{self.context.LakehouseName}.Lakehouse/Files/{self.context.PathInLakehouse}/{path}"   
                 path = path.replace("//","/")
                 
                 await self.ftm.write_json_to_file(path=path, file_name=file_name, json_data=content)
@@ -63,6 +63,7 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                 exit()
 
         except Exception as e:
+            self.context.logger.error("Error saving file")
             print(f"Error: {e}")
 
 
@@ -75,8 +76,8 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
         """
         try:
 
-            if self._settings.StorageAccountContainerName:
-                root = self._settings.StorageAccountContainerRootPath
+            if self.context.StorageAccountContainerName:
+                root = self.context.StorageAccountContainerRootPath
                 if root:
                     path = f"{root}/{path}{file_name}"
                 else:
@@ -84,14 +85,14 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
 
                 content = await self.bfm.read_from_file(blob_name=path)
                 
-            elif self._settings.OutputPath:
+            elif self.context.OutputPath:
                 await self.lfm.save(path=path, file_name=file_name, content=content)    
             
-            elif self._settings.LakehouseName:
+            elif self.context.LakehouseName:
                 #TODO: create a directory
                 #TODO: upload/stream to location
                 
-                path = f"{self._settings.LakehouseName}.Lakehouse/Files/{self._settings.PathInLakehouse}/{path}"   
+                path = f"{self.context.LakehouseName}.Lakehouse/Files/{self.context.PathInLakehouse}/{path}"   
                 path = path.replace("//","/")
                 content = await self.ftm.read(file_name=file_name, path=path)
                 content = content.decode('utf-8')
@@ -104,4 +105,5 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
 
             return content
         except Exception as e:
+            self.context.logger.error("Error reading file")
             print(f"Error: {e}")

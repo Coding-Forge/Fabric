@@ -1,11 +1,10 @@
 import asyncio
 import json
-import logging
+
 import random
 import time
 
 from datetime import datetime, timedelta
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 
 async def main(context=None):
@@ -13,7 +12,6 @@ async def main(context=None):
     Fabric Items
     """
 
-    logging.info('Started')
 
     headers = context.clients['pbi'].get_headers()
 
@@ -29,14 +27,11 @@ async def main(context=None):
             if continuationUri:
                 await get_data(continuationUri)
         except Exception as e:
-            logging.info("No continuation uri")
+            context.logger.error("ERROR", f"Error: {e}")
             return
 
     url = "https://api.fabric.microsoft.com/v1/admin/items"
     await get_data(url)
-
-    
-
 
 if __name__ == "__main__":
     asyncio.run(main())

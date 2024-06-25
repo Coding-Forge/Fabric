@@ -34,7 +34,7 @@ async def main(context=None):
     """
 
     if not context:
-        print("must pass in context")
+        raise RuntimeError("Context is None")
         return
     
     FullScan = False
@@ -82,21 +82,16 @@ async def main(context=None):
 
     workspaces = list()
 
-    # print(f"catalog results for workspaces {result}")
-    # Check if the request was successful
-    
-    #TODO: Fix result if empty discontinue processing catalog
-
     if result and "error" not in result:
         # Convert the JSON response to a pandas DataFrame
         for workspace in result:
             workspaces.append(workspace.get("id"))
     elif "error" in result:
         # Handle the error case
-        print(f"Error was thrown: {result}")
+        context.logger.error(f"Error was thrown: {result}")
         return
     else:
-        print("No modified workspaces found for the time period searched")
+        context.logger.info("No modified workspaces found for the time period searched")
         return
     # The first thing is to get all the workspaces that have been modified
     # Split into groups of 500
@@ -147,28 +142,25 @@ async def main(context=None):
         result = await context.invokeAPI(rest_api=rest_api, headers=headers, json=body) 
 
         if "ERROR" in result:
-            print(f"Error: {result}")
+            context.logger.error(f"Error: {result}")
         else:
             workspaceScanResults.append(result)
             
             for workspaceScanResult in workspaceScanResults:
 
                 while(workspaceScanResult.get("status") in ["Running", "NotStarted"]):
-                
-                    #print(f"Waiting for scan results, sleeping for {scanStatusSleepSeconds} seconds...")
-                    #time.sleep(scanStatusSleepSeconds)
 
                     try:
                         rest_api = f"admin/workspaces/scanStatus/{workspaceScanResult.get('id')}"
                         result = await context.invokeAPI(rest_api=rest_api, headers=headers)
                         
                     except Exception as e:
-                        print(f"Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
+                        context.logger.error(f"Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
                         await asyncio.sleep(throttleErrorSleepSeconds)
 
 
                     if "ERROR" in result:
-                        print(f"Error: {result}")
+                        context.logger.error(f"Error: {result}")
                     else:
                         workspaceScanResult["status"] = result.get("status")
 
@@ -180,9 +172,8 @@ async def main(context=None):
 
                     # TODO: create a better check on whether scan results were returned or error thrown
                     if "ERRORs" in scanResult:
-                        print(f"Error: Did not get scan results for workspace {id}")
+                        context.logger.error(f"Error: Did not get scan results for workspace {id}")
                     else:
-
                         today = datetime.now()
                         path = f"catalog/scans/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
                         #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=path)
@@ -199,7 +190,7 @@ async def main(context=None):
                             
                             #await FF.write_json_to_file(directory_client=dc, file_name="scanResults.json", json_data=scanResult)
                         except TypeError as e:
-                            print(f"Please fix the async to handle the Error: {e} -- is this the issue")
+                            context.logger.error(f"Please fix the async to handle the Error: {e} -- is this the issue")
 
 
     counter = 0
@@ -211,7 +202,7 @@ async def main(context=None):
                 await get_workspace_info(workspace_groups=subgroup, FullScan=FullScan,fileIndex=counter, headers=headers)
         # Try to catch any 429 errors
         except Exception as e:
-            print(f"Error: {e} - sleeping for {scanStatusSleepSeconds} seconds")
+            context.logger.error(f"Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
             #await asyncio.sleep(scanStatusSleepSeconds)
         if counter % 15 == 0:
             await asyncio.sleep(10)

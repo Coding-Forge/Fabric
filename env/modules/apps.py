@@ -1,6 +1,6 @@
 import os
 import json
-import logging
+
 import asyncio
 import time
 
@@ -16,9 +16,6 @@ FullScanAfterDays = 30
 reset  = True
 ####### CATALOG PRECONFIGURATION #######
 
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
-
-
 async def main(context=None):
     """
     Catalog Snapshots (Published Apps)
@@ -26,17 +23,8 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-
-    logging.info('Started')
-##################### INTIALIZE THE CONFIGURATION #####################
-    # get POWER BI context and settings -- this call must be synchronous
-        
-
     headers = context.clients['pbi'].get_headers()
     lakehouse_catalog = f"catalog/"
-
-##################### INTIALIZE THE CONFIGURATION #####################
-
 
     if isinstance(context.current_state, str):
         LastRun = json.loads(context.current_state).get("activity").get("lastRun")
@@ -66,32 +54,18 @@ async def main(context=None):
     # TODO: get all the scans for apps
     filePath = f"{snapshots}apps.json"
     snapshotFiles.append(filePath)
-    logging.info(f"Headers: {headers}")  
-
+    
     rest_api = "admin/apps?$top=5000&$skip=0"
     try:
         result = await context.invokeAPI(rest_api=rest_api, headers=headers)
     except Exception as e:
-        print(f"Error: {e} - {result}")
+        context.logger.error(f"Error: {e}")
     
     # check to see if the filepath already exists
     if "ERROR" not in result:
 
         ## check if file already exists
         path = f"{lakehouse_catalog}{snapshots}"
-
-        #print(f"Checking if {lakehouse_dir} exists")
-
-        #try:
-        #    paths = FF.fsc.get_paths(lakehouse_dir)
-        #    for path in paths:
-        #        #print(f"Path: {path.name}")
-        #        if "app.json" in path.name:
-        #            raise RuntimeError('app.json already exists')
-        #except Exception as e:
-        #    print(f"Error: {e} - continue with executing code")    
-
-        #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=lakehouse_dir)
 
         try:
 
@@ -101,14 +75,11 @@ async def main(context=None):
 
             #await FF.write_json_to_file(directory_client=dc, file_name="apps.json", json_data=result)
         except TypeError as e:
-            print(f"Please fix the async to handle the Error: {e} -- is this the issue")
-        
+            context.logger.error(f"Please fix the async to handle the Error: {e} -- is this the issue")
     else:
-        print(f"Did not get data", result)
+        context.logger.error(f"Error: {result}")
     
-    logging.info('Finished')
-
-
+    
 if __name__ == "__main__":
     asyncio.run(main() )
 

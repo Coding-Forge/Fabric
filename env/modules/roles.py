@@ -1,20 +1,12 @@
 import asyncio
 import requests
 import json
-import logging
+
 import random
 import time
 from time import sleep
 
 from datetime import datetime, timedelta
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
-
-##### INTIALIZE THE CONFIGURATION #####
-
-
-##### INTIALIZE THE CONFIGURATION #####
-
-
 
 
 async def main(context=None):
@@ -24,7 +16,6 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-    logging.info('Started')
 
     headers =  context.clients['pbi'].get_headers()
 
@@ -61,7 +52,7 @@ async def main(context=None):
             else:
                 if response.status_code==429:
                     result = response.json()
-                    print(f"Request limit reached. You must wait { int(result.get('message').split('.')[1].split(' ')[3])/60} minutes for the next request")
+                    context.logger.error(f"Request limit reached. You must wait { int(result.get('message').split('.')[1].split(' ')[3])/60} minutes for the next request")
                     sleep(int(result.get('message').split('.')[1].split(' ')[3]))
 
     pivotDate = datetime.now()

@@ -1,6 +1,6 @@
 import os
 import json
-import logging
+
 import asyncio
 import time
 import requests
@@ -13,7 +13,6 @@ today = datetime.now()
 reset  = True
 ####### CATALOG PRECONFIGURATION #######
 
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 async def main(context=None):
     """
@@ -22,7 +21,6 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
     
-    logging.info('Started')
 ##################### INTIALIZE THE CONFIGURATION #####################
     
     # get POWER BI context and settings -- this call must be synchronous

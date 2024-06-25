@@ -1,9 +1,9 @@
-import msal
+import sys
 import aiohttp
+import logging
 from typing import Dict, Any, Coroutine
 from datetime import datetime, timedelta
 from env.utility.file_management import File_Management
-
 
 class Context:
     def __init__(self):
@@ -36,6 +36,46 @@ class Context:
         self.clients = {}
         self.fm = File_Management()
         self.current_state = None
+        self.logging_level = logging.ERROR
+        self.logger = logging.getLogger(__name__)
+
+    def __set_log_level(self, level):
+        """
+        Set the logging level
+        """
+        # Set the logging level for the Azure SDK
+        azure_logger = "azure.core.pipeline.policies.http_logging_policy"
+        logging.getLogger(azure_logger).setLevel(logging.WARNING)
+
+        # Basic logging levels
+        levels = {
+            "DEBUG": logging.DEBUG,
+            "INFO": logging.INFO,
+            "WARNING": logging.WARNING,
+            "ERROR": logging.ERROR,
+            "CRITICAL": logging.CRITICAL
+        }
+        return levels[level]
+
+    def set_log_config(self, log_level, log_file):
+        """
+        Set the logging configuration
+        """
+        stdoutHandler = logging.StreamHandler(sys.stdout)
+        errHandler = logging.FileHandler(log_file)
+        
+        stdoutHandler.setLevel(logging.DEBUG)
+        errHandler.setLevel(self.__set_log_level(log_level))
+
+        fmt = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+        stdoutHandler.setFormatter(fmt)
+        errHandler.setFormatter(fmt)
+
+        logging.basicConfig(
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            datefmt='%Y-%m-%d %H:%M:%S', force=True, handlers=[stdoutHandler, errHandler]
+        )
 
     def set_current_state(self, current_state):
         self.current_state = current_state        
@@ -167,72 +207,11 @@ class Context:
             datetime_str = datetime.strptime(date_time, format)
             return datetime_str
         except ValueError as ve:
+            self.logger.error(f"An exception occurred while converting the datetime object to a string: {ve}")
             print(f"An exception occurred while reading the file: {ve}")
             exit()
     
     
-    # def get_context(self, graph=False, tenant=False):
-    #     """
-    #     Get the access token for the Power BI API
-    #     """
-    #     try:
-    #         sp = self.get_ServicePrincipal()
-    #         tenant_id = sp['TenantId']
-    #         client_id = sp['AppId']
-    #         client_secret = sp['AppSecret']
-
-    #     except Exception as e:
-    #         print("An exception occurred while reading the file:", str(e))
-
-    #     if graph:
-    #         authority = f"https://login.microsoftonline.com/{tenant_id}"
-    #         scope = "https://graph.microsoft.com/.default"
-    #     elif tenant:
-    #         authority = f"https://login.microsoftonline.com/{tenant_id}"
-    #         scope = "https://api.fabric.microsoft.com/.default"  
-    #     else:
-    #         #authority = f"https://login.microsoftonline.com/{tenant_id}/oauth2/token?api-version=1.0"
-    #         authority = f"https://login.microsoftonline.com/{tenant_id}"
-    #         scope = "https://analysis.windows.net/powerbi/api/.default"
-            
-
-    #     # Create a ConfidentialClientApplication object
-    #     app = msal.ConfidentialClientApplication(
-    #         client_id=client_id,
-    #         client_credential=client_secret,
-    #         authority=authority
-    #     )
-
-    #     scopes = [scope]
-        
-    #     # Acquire a token using client credentials
-    #     try:
-    #         result = app.acquire_token_for_client(scopes=scopes)
-    #         if "access_token" in result:
-    #             access_token = result["access_token"]
-    #             # Use the access token to make API calls to Power BI
-    #             headers = {'Authorization': f'Bearer {access_token}'}
-
-    #             # TODO: Add your Power BI API calls here
-
-    #         else:
-    #             # If silent token acquisition fails, fallback to interactive authentication
-    #             result = app.acquire_token_for_client(scopes=scopes)
-
-    #             if "access_token" in result:
-    #                 # TODO: Add your Power BI API calls here
-    #                 access_token = result["access_token"]
-    #                 # Use the access token to make API calls to Power BI
-    #                 headers = {'Authorization': f'Bearer {access_token}'}
-
-    #             else:
-    #                 print(result.get("error_description", "Authentication failed."))
-
-    #         return headers
-        
-    #     except Exception as ex:
-    #         print(ex)
-
     async def invokeAPI(self, rest_api, headers=None, json=None)-> Coroutine[Dict[str,Any], None, None]:
         """
         Invoke a REST API

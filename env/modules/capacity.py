@@ -1,11 +1,10 @@
 import asyncio
 import json
-import logging
+
 import random
 import time
 
 from datetime import datetime, timedelta
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 async def main(context=None):
     """
@@ -14,8 +13,6 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-
-    logging.info('Started')
 
     url = "admin/capacities"
     # url = "https://api.powerbi.com/v1.0/myorg/admin/capacities"
@@ -38,6 +35,7 @@ async def main(context=None):
         try:
             continuationUri = response.get("continuationUri")
         except Exception as e:
+            context.logger.error("ERROR", f"Error: {e}")
             pass
 
         if continuationUri:

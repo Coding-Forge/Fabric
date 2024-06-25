@@ -1,11 +1,9 @@
 import asyncio
 import json
-import logging
 import random
 import time
 
 from datetime import datetime, timedelta
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 
 async def main(context=None):
@@ -15,7 +13,6 @@ async def main(context=None):
     if context is None: 
         raise RuntimeError("Context is None")
 
-    logging.info('Started')
 
     headers =  context.clients['pbi'].get_headers()
 
@@ -37,6 +34,7 @@ async def main(context=None):
         try:
             continuationUri = response.get("continuationUri")
         except Exception as e:
+            context.logger.error("ERROR", f"Error: {e}")
             pass
 
         if continuationUri:

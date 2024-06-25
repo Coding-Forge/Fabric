@@ -1,6 +1,5 @@
 import os
 import json
-import logging
 import asyncio
 import time
 import requests
@@ -11,16 +10,14 @@ from datetime import datetime, timedelta
 today = datetime.now()
 ####### CATALOG PRECONFIGURATION #######
 
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 async def main(context=None):
     """
     Refreshables
     """
-    logging.info('Started')
-##################### INTIALIZE THE CONFIGURATION #####################
+    if context is None:
+        raise RuntimeError("Context is None")
     
-
     # get POWER BI context and settings -- this call must be synchronous
     headers = context.clients['tenant'].get_headers()
     today = datetime.now()
@@ -28,8 +25,7 @@ async def main(context=None):
     lakehouse_dir = f"datasetrefreshable/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
     file_name = "workspaces.datasets.refreshable.json"
 
-##################### INTIALIZE THE CONFIGURATION #####################
-    
+   
     # GET https://api.powerbi.com/v1.0/myorg/admin/capacities/refreshables?$expand=capacity,group
     rest_api = "admin/capacities/refreshables?$expand=capacity,group"
 
@@ -37,9 +33,8 @@ async def main(context=None):
     result = await context.invokeAPI(rest_api=rest_api, headers=headers)
     
     if "ERROR" in result:
-        print(f"Error: {result}")
+        context.logger.error("ERROR", f"Error: {result}")
     else:
-        # print(result['value'])
         await context.fm.save(path=lakehouse_dir, file_name=file_name,content=result['value'])
 
 if __name__ == "__main__":

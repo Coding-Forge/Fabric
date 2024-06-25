@@ -1,6 +1,6 @@
 import os
 import json
-import logging
+
 import asyncio
 import time
 import requests
@@ -11,7 +11,6 @@ from datetime import datetime, timedelta
 today = datetime.now()
 ####### CATALOG PRECONFIGURATION #######
 
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 async def main(context=None):
     """
@@ -20,8 +19,6 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
     
-    logging.info('Started')
-##################### INTIALIZE THE CONFIGURATION #####################
     # get POWER BI context and settings -- this call must be synchronous
     
     headers = context.clients['tenant'].get_headers()
@@ -32,7 +29,6 @@ async def main(context=None):
     lakehouse_dir = f"datasetrefresh/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
     file_name = "workspaces.datasets.refreshes.json"
 
-##################### INTIALIZE THE CONFIGURATION #####################
 
     # GET https://api.powerbi.com/v1.0/myorg/admin/groups?$expand=datasets
     rest_api = "admin/groups?$expand=datasets&$top=5000"
@@ -41,7 +37,7 @@ async def main(context=None):
     result = await context.invokeAPI(rest_api=rest_api, headers=headers)
     
     if "ERROR" in result:
-        print(f"Error: {result}")
+        context.logger.error(f"Error: {result}")
     else:
 
         # GET https://api.powerbi.com/v1.0/myorg/groups/{groupId}/datasets/{datasetId}/refreshes

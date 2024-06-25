@@ -1,11 +1,10 @@
 import asyncio
 import json
-import logging
+
 import random
 import time
 
 from datetime import datetime, timedelta
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 
 async def main(context=None):
@@ -17,7 +16,6 @@ async def main(context=None):
     
     headers = context.clients['pbi'].get_headers()
 
-    logging.info('Started')
 
     if isinstance(context.current_state, str):
         lastRun = json.loads(context.current_state).get("activity").get("lastRun")

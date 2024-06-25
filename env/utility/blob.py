@@ -1,6 +1,6 @@
 import os
 import json
-import logging
+
 from typing import Dict, Any, Coroutine
 from dotenv import load_dotenv, dotenv_values
 from datetime import datetime, timedelta
@@ -8,9 +8,6 @@ import yaml
 
 from azure.storage.blob import BlobClient, BlobServiceClient
 from azure.identity import ClientSecretCredential
-
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
-
 
 class Blob_File_Management:
 
