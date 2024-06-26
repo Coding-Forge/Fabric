@@ -1,12 +1,11 @@
 import os
 import json
-import logging
+
 import asyncio
 import time
 import requests
 
 #from ..utility.fab2 import File_Table_Management
-from env.utility.file_management import File_Management
 from datetime import datetime, timedelta
 
 ####### CATALOG PRECONFIGURATION #######
@@ -18,24 +17,19 @@ FullScanAfterDays = 30
 reset  = True
 ####### CATALOG PRECONFIGURATION #######
 
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
-
 
 async def main(context=None):
     """
     Graph
     """
+    if context is None:
+        raise RuntimeError("Context is None")
 
-    logging.info('Started')
 ##################### INTIALIZE THE CONFIGURATION #####################
     # get POWER BI context and settings -- this call must be synchronous
-    fm = File_Management()
-    fm.content(context=context)
 
-    headers = context.get_context(graph=True)
+    headers = context.clients['graph'].get_headers()
     headers['Content-Type'] = 'application/json'
-
-    sp = context.ServicePrincipal
 
     today = datetime.now()
 
@@ -44,7 +38,7 @@ async def main(context=None):
     
 ##################### INTIALIZE THE CONFIGURATION #####################
 
-    graphUrl = "https://graph.microsoft.com/beta"
+    graphUrl = context.clients['graph'].get_api_root()
     outputPath = f"{lakehouse_catalog}"
     graphCalls = [
         {'users':
@@ -73,8 +67,6 @@ async def main(context=None):
 
     for call in graphCalls:
         for key, value in call.items():
-            #print(f"Getting {key} from {value['GraphURL']} and file path {value['FilePath']}")
-
 
             response = requests.get(value['GraphURL'], headers=headers)
             if response.status_code == 200:
@@ -82,7 +74,7 @@ async def main(context=None):
 
                 info = result.get("value")
 
-                await fm.save(path=lakehouse_catalog, file_name=value['FilePath'], content=info)
+                await context.fm.save(path=lakehouse_catalog, file_name=value['FilePath'], content=info)
 
                 #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=lakehouse_catalog)
                 #await FF.write_json_to_file(directory_client=dc, file_name=value['FilePath'], json_data=result)

@@ -1,25 +1,20 @@
 import asyncio
 import json
-import logging
 import random
 import time
 
 from datetime import datetime, timedelta
-from env.utility.file_management import File_Management
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 
 async def main(context=None):
     """
     Workspaces in tenant
     """
-    logging.info('Started')
+    if context is None: 
+        raise RuntimeError("Context is None")
 
 
-    headers =  context.get_context()
-
-    fm = File_Management()
-    fm.content(context=context)
+    headers =  context.clients['pbi'].get_headers()
 
     url = "https://api.fabric.microsoft.com/v1/admin/workspaces"
 
@@ -34,11 +29,12 @@ async def main(context=None):
         index = str(pageCount).zfill(5)
 
         Path = f"workspaces/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
-        await fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.workspaces.json",content=workspaces)
+        await context.fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.workspaces.json",content=workspaces)
 
         try:
             continuationUri = response.get("continuationUri")
         except Exception as e:
+            context.logger.error("ERROR", f"Error: {e}")
             pass
 
         if continuationUri:

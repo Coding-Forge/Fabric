@@ -4,7 +4,6 @@ import json
 from azure.identity import ClientSecretCredential
 from azure.storage.filedatalake import FileSystemClient, DataLakeDirectoryClient
 from azure.storage.blob import BlobClient
-from dotenv import load_dotenv, dotenv_values
 
 
 class File_Table_Management:
@@ -18,9 +17,6 @@ class File_Table_Management:
         self.workspace_name = None
         self.fsc = None
         self.context = None
-
-    
-    
 
     def set_context(self, context):
         self.context = context

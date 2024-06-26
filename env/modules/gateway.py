@@ -3,14 +3,15 @@ import json
 import requests
 from datetime import datetime
 
-from env.utility.file_management import File_Management
-
 async def main(context=None):
     """
     Gateways
     """
     
-    headers = context.get_context()
+    if not context:
+        raise RuntimeError("Context is None")
+    
+    headers = context.clients['pbi'].get_headers()
     headers['content-type'] = 'application/json'
     headers['pragma'] = 'no-cache'
 
@@ -25,13 +26,10 @@ async def main(context=None):
     for gateway in results['value']:
         gateways.append(gateway.get("id"))
 
-    fm = File_Management()
-    fm.content(context=context)
-
     today = datetime.today()
     path = f'gateways/{today.strftime("%Y")}/{today.strftime("%m")}/{today.strftime("%d")}/'
 
-    await fm.save(path=path, file_name='gateways.json', content=json.dumps(results['value']))
+    await context.fm.save(path=path, file_name='gateways.json', content=json.dumps(results['value']))
 
     status = list()
     users = list()
@@ -101,10 +99,10 @@ async def main(context=None):
         results.pop('@odata.context')
         datasource_details.append(results)
 
-    await fm.save(path=path, file_name='status.json', content=json.dumps(status))
-    await fm.save(path=path, file_name='users.json', content=json.dumps(users))
-    await fm.save(path=path, file_name='datasources.json', content=json.dumps(gateways))
-    await fm.save(path=path, file_name='datasource_details.json', content=json.dumps(datasource_details))
+    await context.fm.save(path=path, file_name='status.json', content=json.dumps(status))
+    await context.fm.save(path=path, file_name='users.json', content=json.dumps(users))
+    await context.fm.save(path=path, file_name='datasources.json', content=json.dumps(gateways))
+    await context.fm.save(path=path, file_name='datasource_details.json', content=json.dumps(datasource_details))
 
 
 if __name__ == "__main__":

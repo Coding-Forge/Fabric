@@ -1,7 +1,4 @@
 import os
-import logging
-
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 class Local_File_Management:
 

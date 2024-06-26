@@ -1,11 +1,10 @@
 import os
 import json
-import logging
+
 import asyncio
 import time
 import requests
 
-from env.utility.file_management import File_Management
 from datetime import datetime, timedelta
 
 ####### CATALOG PRECONFIGURATION #######
@@ -14,41 +13,33 @@ today = datetime.now()
 reset  = True
 ####### CATALOG PRECONFIGURATION #######
 
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 async def main(context=None):
     """
     Tenant Settings
     """
-    logging.info('Started')
+    if context is None:
+        raise RuntimeError("Context is None")
+    
 ##################### INTIALIZE THE CONFIGURATION #####################
     
     # get POWER BI context and settings -- this call must be synchronous
     
-    headers = context.get_context(tenant=True)
+    headers = context.clients['tenant'].get_headers()
     headers['Content-Type'] = 'application/json'
-
-    sp = context.ServicePrincipal
 
     today = datetime.now()
 
     lakehouse_dir = f"tenant/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
 
-    tenantUrl = "https://api.fabric.microsoft.com/v1/admin/tenantsettings"
-    apiResource = "https://api.fabric.microsoft.com/"
-    TenantFilePath = "$($outputPath)\tenant-settings.json"
-
 ##################### INTIALIZE THE CONFIGURATION #####################
 
     url = "https://api.fabric.microsoft.com/v1/admin/tenantsettings"
-    
-    fm = File_Management()
-    fm.content(context=context)
 
     response = requests.get(url=url, headers=headers)
     if response.status_code == 200:
         result = response.json()
-        await fm.save(path=lakehouse_dir, file_name="tenant-settings.json", content=result)
+        await context.fm.save(path=lakehouse_dir, file_name="tenant-settings.json", content=result)
 #        dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=lakehouse_dir)
 #        await FF.write_json_to_file(directory_client=dc, file_name="tenant-settings.json", json_data=result)
 

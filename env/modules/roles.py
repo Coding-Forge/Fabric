@@ -1,32 +1,23 @@
 import asyncio
 import requests
 import json
-import logging
+
 import random
 import time
 from time import sleep
 
 from datetime import datetime, timedelta
-from env.utility.file_management import File_Management
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
-
-##### INTIALIZE THE CONFIGURATION #####
-
-
-##### INTIALIZE THE CONFIGURATION #####
-
-
 
 
 async def main(context=None):
     """
     Roles
     """
-    logging.info('Started')
+    if context is None:
+        raise RuntimeError("Context is None")
 
-    headers =  context.get_context()
-    fm = File_Management()
-    fm.content(context=context)
+
+    headers =  context.clients['pbi'].get_headers()
 
 
     response = requests.get("https://api.fabric.microsoft.com/v1/admin/workspaces", headers=headers)
@@ -61,7 +52,7 @@ async def main(context=None):
             else:
                 if response.status_code==429:
                     result = response.json()
-                    print(f"Request limit reached. You must wait { int(result.get('message').split('.')[1].split(' ')[3])/60} minutes for the next request")
+                    context.logger.error(f"Request limit reached. You must wait { int(result.get('message').split('.')[1].split(' ')[3])/60} minutes for the next request")
                     sleep(int(result.get('message').split('.')[1].split(' ')[3]))
 
     pivotDate = datetime.now()
@@ -69,7 +60,7 @@ async def main(context=None):
     index = str(cnt).zfill(5)
 
     Path = f"roles/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
-    await fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.roles.json",content=content)
+    await context.fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.roles.json",content=content)
 
 
 if __name__ == "__main__":

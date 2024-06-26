@@ -7,26 +7,13 @@ import asyncio
 import json
 import yaml
 import sys
-import logging
 import os
 
 from codetiming import Timer
 from croniter import croniter
+from env.modules import *
 
-from env.modules.activity import main as Activity
-from env.modules.apps import main as Apps
-from env.modules.capacity import main as Capacity
-from env.modules.catalog import main as Catalog
-from env.modules.domains import main as Domains
-from env.modules.fabricitems import main as FabricItems
-from env.modules.graph import main as Graph
-from env.modules.gateway import main as Gateway
-from env.modules.refreshhistory import main as RefreshHistory
-from env.modules.refreshables import main as Refreshables
-# from env.modules.roles import main as Roles
-from env.modules.tenant import main as Tenant
-from env.modules.workspaces import main as Workspaces
-
+from env.clients import PbiClient, GraphClient, TenantClient
 from datetime import datetime, timedelta
 from env.utility.file_management import File_Management
 from env.context import Context
@@ -55,8 +42,20 @@ class Audits:
         self.context = Context()
         self.fm = File_Management()
 
+    def __set_current_state(self, current_state):
+        self.context.set_current_state(current_state)
+
+    def __setup_clients(self):
+        self.context.clients["pbi"] = PbiClient(self.context)
+        self.context.clients["graph"] = GraphClient(self.context)
+        self.context.clients["tenant"] = TenantClient(self.context)
+
+    def set_logging_config(self, log_level, log_file):
+        self.context.set_log_config(log_level, log_file)
 
     async def run(self):
+
+        self.__setup_clients()
         
         # print(f"service principal: {self.context._ServicePrincipal}")
         # settings = bob.get_settings()
@@ -64,13 +63,17 @@ class Audits:
 
         # replacing get_st8te
         self.fm.content(self.context)
+        self.context.set_FileManagement(self.fm)
 
         try:
             current_state = await self.fm.read(file_name="state.yaml")
+            self.__set_current_state(current_state)
+            
             if not current_state:
                 await self.create_state()
 
         except Exception as e:
+            self.context.logger.error("Error retrieve state.yaml file")
             print(f"Error: {e}")
             return
 
@@ -97,10 +100,9 @@ class Audits:
                     run_jobs.append(module)
                     current_state[module.lower()] =  {"lastRun": "2024-05-31T04:00:31.000683Z"}
                 else:
-                    last_run = self.context.convert_dt_str(run)    
+                    last_run = self.context.convert_dt_str(run)   
 
                     if is_function_due(cron,last_run):
-                        logging.info(f"The following module added to the run queue {module}")
                         run_jobs.append(module)
             except:
                 # most likely the this is the first time running the module and will build the state.yaml file at the end
@@ -119,14 +121,10 @@ class Audits:
             for module in classes:
                 await work_queue.put(module)
         except Exception as e:
+            self.context.logger.error(f"Error check globals: {e}")
+
             print(f"Error check globals: {e}")
             return
-        
-
-        # tasks = await create_module_tasks(dynamic_modules)
-
-        # Run tasks concurrently using asyncio.gather()
-        # results = await asyncio.gather(*tasks)
 
         def remove_carriage_returns(string):
             return re.sub(r'\r', '', string.strip())
@@ -135,14 +133,11 @@ class Audits:
             timer = Timer(text=f"Task {name} elapsed time: {{:.1f}}")
             while not work_queue.empty():
                 module = await work_queue.get()
-                
+                self.context.logger.info(f"Task {remove_carriage_returns(module.__doc__)} is now running")
                 print(f"Task {remove_carriage_returns(module.__doc__)} is now running")
                 timer.start()
                 await module(content)
                 timer.stop()
-
-
-                # Remove all carriage returns from a string
 
         gather_tasks = []
         for module in run_jobs:
@@ -150,10 +145,6 @@ class Audits:
 
         with Timer(text="\nTotal elapsed time: {:.1f}"):
             await asyncio.gather(*gather_tasks)
-
-
-        # this has all the information needed to modify the state.yaml file
-        # update the state.yaml file with the last run information
 
         if isinstance(current_state, str):
             current_state = json.loads(current_state)
@@ -165,6 +156,7 @@ class Audits:
             self.fm.content(self.context)
             await self.fm.save("", "state.yaml", current_state)
         except Exception as e:
+            self.context.logger.error(f"Error saving state.yaml file: {e}")
             print(f"fm Error: {e}")
 
 

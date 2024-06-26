@@ -1,36 +1,26 @@
 import asyncio
 import json
-import logging
+
 import random
 import time
 
 from datetime import datetime, timedelta
-from env.utility.file_management import File_Management
-logging.basicConfig(filename='myapp.log', level=logging.INFO)
 
 
 async def main(context=None):
     """
     Domains
     """
+    if context is None:
+        raise RuntimeError("Context is None")
     
-    context = context
-    headers = context.get_context()
+    headers = context.clients['pbi'].get_headers()
 
-    logging.info('Started')
-    fm = File_Management()
-    fm.content(context)
 
-    try:
-        config = await fm.read(file_name="state.yaml")
-    except Exception as e:
-        print(f"Error: {e}")
-        return
-
-    if isinstance(config, str):
-        config = json.loads(config)
-    
-    lastRun = config.get("domains",{}).get("lastRun")
+    if isinstance(context.current_state, str):
+        lastRun = json.loads(context.current_state).get("activity").get("lastRun")
+    else:
+        lastRun = context.current_state.get("activity").get("lastRun")
     
     if not lastRun:
         lastRun = datetime.now()
@@ -59,7 +49,7 @@ async def main(context=None):
         domain_workspaces.append(domain)
 
     Path = f"domains/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
-    await fm.save(path=Path, file_name="domains.json",content=domain_workspaces)
+    await context.fm.save(path=Path, file_name="domains.json",content=domain_workspaces)
 
 
 if __name__ == "__main__":
