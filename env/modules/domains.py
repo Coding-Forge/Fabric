@@ -58,7 +58,7 @@ async def main(context=None):
 
         domain_workspaces.append(domain)
 
-    Path = f"domains/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/"
+    Path = f"domains/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
     await fm.save(path=Path, file_name="domains.json",content=domain_workspaces)
 
 

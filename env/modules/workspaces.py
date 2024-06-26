@@ -33,7 +33,7 @@ async def main(context=None):
 
         index = str(pageCount).zfill(5)
 
-        Path = f"workspaces/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/"
+        Path = f"workspaces/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
         await fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.workspaces.json",content=workspaces)
 
         try:

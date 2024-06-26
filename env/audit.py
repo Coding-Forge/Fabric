@@ -23,7 +23,7 @@ from env.modules.graph import main as Graph
 from env.modules.gateway import main as Gateway
 from env.modules.refreshhistory import main as RefreshHistory
 from env.modules.refreshables import main as Refreshables
-from env.modules.roles import main as Roles
+# from env.modules.roles import main as Roles
 from env.modules.tenant import main as Tenant
 from env.modules.workspaces import main as Workspaces
 

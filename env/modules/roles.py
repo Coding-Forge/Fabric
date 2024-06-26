@@ -68,7 +68,7 @@ async def main(context=None):
     content = workspace_lst
     index = str(cnt).zfill(5)
 
-    Path = f"roles/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/"
+    Path = f"roles/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
     await fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.roles.json",content=content)
 
 

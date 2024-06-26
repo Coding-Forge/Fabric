@@ -24,7 +24,7 @@ async def get_capacity(url:str, pageCount:int, context=None):
 
     index = str(pageCount).zfill(5)
 
-    Path = f"capacity/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/"
+    Path = f"capacity/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
     await fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.capacity.json",content=content)
 
     try:
