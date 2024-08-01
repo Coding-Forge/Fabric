@@ -67,11 +67,11 @@ class Audits:
 
         try:
             current_state = await self.fm.read(file_name="state.yaml")
-            self.__set_current_state(current_state)
             
             if not current_state:
                 current_state = await self.create_state()
 
+            self.__set_current_state(current_state)
         except Exception as e:
             self.context.logger.error("Error retrieve state.yaml file")
             print(f"Error: {e}")
