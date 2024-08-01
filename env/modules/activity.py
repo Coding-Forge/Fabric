@@ -12,6 +12,8 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
+    print(f"What is current state {context.current_state}")
+
     if isinstance(context.current_state, str):
         lastRun = json.loads(context.current_state).get("activity").get("lastRun")
     else:
