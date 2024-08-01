@@ -70,7 +70,7 @@ class Audits:
             self.__set_current_state(current_state)
             
             if not current_state:
-                await self.create_state()
+                current_state = await self.create_state()
 
         except Exception as e:
             self.context.logger.error("Error retrieve state.yaml file")
@@ -165,7 +165,7 @@ class Audits:
         self.fm.content(self.context)
 
         now = datetime.now()
-        yesterday = now - timedelta(days=1)
+        yesterday = now - timedelta(days=7)
         state_now = yesterday.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         current_state = {
             "activity": {
