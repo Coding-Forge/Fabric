@@ -90,8 +90,12 @@ class File_Table_Management:
     async def read(self, path:str, file_name: str):
         dc = self.fsc.get_directory_client(path)
         file_client = dc.get_file_client(file_name)
-        download = file_client.download_file()
-        return download.readall()
+        try:
+            download = file_client.download_file()
+            return download.readall()
+        except Exception as e:
+            print(f"File not found: {e}")
+            return None
 
     async def write_json_to_file(self, path:str, file_name: str, json_data):
 

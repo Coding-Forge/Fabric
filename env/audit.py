@@ -41,10 +41,7 @@ class Audits:
     def __init__(self):
         self.context = Context()
         self.fm = File_Management()
-
-    def __set_current_state(self, current_state):
-        self.context.set_current_state(current_state)
-
+    
     def __setup_clients(self):
         self.context.clients["pbi"] = PbiClient(self.context)
         self.context.clients["graph"] = GraphClient(self.context)
@@ -77,8 +74,6 @@ class Audits:
         except Exception as e:
             self.context.logger.error("Error retrieve state.yaml file")
             print(f"Error: {e}")
-            return
-
 
         # get the modules selected in the configuration for the application
         # modules = settings.get("ApplicationModules").replace(" ","").split(",")

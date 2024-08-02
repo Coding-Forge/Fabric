@@ -37,8 +37,12 @@ class Blob_File_Management:
     def read_from_file(self, blob_name):
         blob_service_client = BlobServiceClient.from_connection_string(self.app_settings.get("StorageAccountConnStr"))
         blob_client = blob_service_client.get_blob_client(container=self.container_name, blob=blob_name)
-        blob_content = blob_client.download_blob().readall()
-        return blob_client
+        try:
+            blob_content = blob_client.download_blob().readall()
+            return blob_client
+        except Exception as e:
+            print(f"Blob not found: {e}")
+            return None
 
     async def write_to_file(self, blob_name, content):
         """

@@ -50,7 +50,7 @@ async def main(context=None):
         LastFullScan = json.loads(context.current_state).get("catalog").get("lastFullScan")
     else:
         LastRun = context.current_state.get("catalog").get("lastRun")
-        LastFullScan = context.current_.get("catalog").get("lastFullScan")
+        LastFullScan = context.current_state.get("catalog").get("lastFullScan")
 
     if LastRun is None:
         LastRun = datetime.now()
