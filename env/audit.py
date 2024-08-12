@@ -104,6 +104,9 @@ class Audits:
             except:
                 # most likely the this is the first time running the module and will build the state.yaml file at the end
                 run_jobs.append(module)
+                if isinstance(current_state, str):
+                    current_state = json.loads(current_state)
+                    
                 current_state[module.lower()] =  {"lastRun": "2024-05-31T04:00:31.000683Z"}
                 pass
 

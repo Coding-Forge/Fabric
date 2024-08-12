@@ -1,21 +1,27 @@
-activity:
-  lastRun: '2024-06-06T16:00:03.759607Z'
-apps:
-  lastRun: '2024-06-06T16:00:03.759619Z'
+activity: 
+  lastRun': '2024-06-26T13:00:49.839057Z'
+apps: 
+  lastRun: '2024-06-26T13:00:49.839079Z'
 capacity:
-  lastRun: '2024-06-05T19:35:51.070505Z'
-catalog:
+  lastRun: '2024-06-05T19:35:51.070505Z'  
+catalog: 
   lastFullScan: '2024-06-01T16:00:01.375061Z'
   lastRun: '2024-06-06T16:00:03.759626Z'
-gateway:
-  lastRun: '2024-06-06T00:00:38.086455Z'
-graph:
-  lastRun: '2024-06-06T00:00:38.086439Z'
-refreshables:
-  lastRun: '2024-06-06T00:00:38.086461Z'
-refreshhistory:
-  lastRun: '2024-06-06T13:54:21.594882Z'
-roles:
-  lastRun: '2024-06-06T09:02:52.435914Z'
-tenant:
-  lastRun: '2024-06-06T00:00:38.086445Z'
+domains: 
+  lastRun: '2024-06-26T13:00:49.839091Z'
+fabricitems: 
+  lastRun: '2024-06-26T13:00:49.839094Z'
+gateway: 
+  lastRun: '2024-06-26T13:00:49.839097Z'
+graph: 
+  lastRun: '2024-06-26T13:00:49.839100Z'
+refreshables: 
+  lastRun: '2024-06-26T13:00:49.839103Z'
+refreshhistory: 
+  lastRun: '2024-06-26T13:00:49.839105Z'
+roles: 
+  lastRun: '2024-06-26T13:00:49.839108Z'
+tenant: 
+  lastRun: '2024-06-26T13:00:49.839111Z'
+workspaces: 
+  lastRun: '2024-06-26T13:00:49.839113Z'
