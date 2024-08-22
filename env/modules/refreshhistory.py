@@ -54,6 +54,7 @@ async def main(context=None):
                         refreshes = await context.invokeAPI(rest_api=rest_api, headers=headers)
                         for refresh in refreshes['value']:
                             if len(refresh)>0:
+                                refresh['dataset_id'] = dataset['id']
                                 resfresh_history.append(refresh)
                         
                         await context.fm.save(path=lakehouse_dir, file_name=file_name,content=resfresh_history)
