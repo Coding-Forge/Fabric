@@ -54,9 +54,9 @@ async def main(context=None):
                         refreshes = await context.invokeAPI(rest_api=rest_api, headers=headers)
                         for refresh in refreshes['value']:
                             if len(refresh)>0:
-                                refresh['dataset_name'] = dataset['name']
                                 refresh['workspace_name'] = item['name']
                                 refresh['workspace_id'] = item['id']
+                                refresh['dataset_name'] = dataset['name']
                                 refresh['dataset_id'] = dataset['id']
                                 resfresh_history.append(refresh)
                         
