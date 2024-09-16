@@ -107,27 +107,45 @@ async def main(context=None):
     # Each of the 16 subgroups is then run in parallel
     # Access the groups by using subgroups[][] and then run the scan results for each group of 500 workspaces
 
-    groups_of_500 = [workspaces[i:i+500] for i in range(0, len(workspaces), 500)]
+    # groups_of_500 = [workspaces[i:i+500] for i in range(0, len(workspaces), 500)]
+    items = workspaces
+    num_groups = 16
 
-    subgroups = []
-    for group in groups_of_500:
-        items_per_subgroup = len(group) // runsInParallel
-        remainder = len(group) % runsInParallel
-        start_index = 0
-        subgroup = []
-        for i in range(runsInParallel):
-            end_index = start_index + items_per_subgroup
-            if i < remainder:
-                end_index += 1
-            subgroup.append(group[start_index:end_index])
-            start_index = end_index
-        subgroups.append(subgroup)
+    group_size = len(items) // num_groups
+    remainder = len(items) % num_groups
+
+    # Create the groups
+    groups = []
+    start = 0
+    for i in range(num_groups):
+        end = start + group_size + (1 if i < remainder else 0)
+        groups.append(items[start:end])
+        start = end
+
+    # return groups
+
+    # subgroups = []
+    # for group in groups_of_500:
+    #     items_per_subgroup = len(group) // runsInParallel
+    #     remainder = len(group) % runsInParallel
+    #     start_index = 0
+    #     subgroup = []
+    #     for i in range(runsInParallel):
+    #         end_index = start_index + items_per_subgroup
+    #         if i < remainder:
+    #             end_index += 1
+    #         subgroup.append(group[start_index:end_index])
+    #         start_index = end_index
+    #     subgroups.append(subgroup)
+
+    # for groups in subgroups:
+    #     for subgroup in groups:
+    #         await work_queue.put(subgroup)
 
     work_queue = asyncio.Queue()
-
-    for groups in subgroups:
-        for subgroup in groups:
-            await work_queue.put(subgroup)
+    for i, group in enumerate(groups):
+        print(f"Group {i+1}: {len(group)} items")
+        await work_queue.put(group)
 
     # put all groups into the queue
     # build in a sleep for 10 seconds every 15 groups
