@@ -233,18 +233,36 @@ class Context:
         if "continuationToken" in rest_api:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url=rest_api, headers=headers) as response:
-                    return await response.json()
+                    try:
+                        return await response.json(encoding='utf-8')
+                    except ValueError as e:
+                        print(f"Error decoding JSON: {e}")
+                        print(f"Response content: {response.content}")
+                        return await response.content
 
         if json:
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, headers=headers, json=json) as response:
-                    return await response.json()
+                    try:
+                        return await response.json(encoding='utf-8')
+                    except ValueError as e:
+                        print(f"Error decoding JSON: {e}")
+                        print(f"Response content: {response.content}")
+                        return await response.content
+                    
         else:
             if not headers:
                 url = rest_api
                 async with aiohttp.ClientSession() as session:
                     async with session.get(url) as response:
-                        return await response.json(encoding='utf-8')
+                        try:
+                            return await response.json(encoding='utf-8')
+                        except ValueError as e:
+                            print(f"Error decoding JSON: {e}")
+                            print(f"Response content: {response.content}")
+                            return await response.content
+
+                        # return await response.json(encoding='utf-8')
             else:
 
                 p = rest_api.find("api.fabric.microsoft")
