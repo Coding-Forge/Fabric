@@ -127,7 +127,6 @@ async def main(context=None):
 
     for groups in subgroups:
         for subgroup in groups:
-            print(f"The following are the subgroups: {subgroup}")
             await work_queue.put(subgroup)
 
     # put all groups into the queue
@@ -197,9 +196,15 @@ async def main(context=None):
                             context.logger.error(f"Please fix the async to handle the Error: {e} -- is this the issue")
 
 
-    counter = 0
+    counter = int()
+
     while not work_queue.empty():
         counter += 1
+        # a max of 16 parallel runs
+        if counter % 17 == 0:
+            print(f"Sleeping for {60*3} seconds to avoid throttling")
+            time.sleep(60*3)
+
         subgroup = await work_queue.get()
         try:
             if len(subgroup) > 0:
@@ -208,8 +213,6 @@ async def main(context=None):
         except Exception as e:
             context.logger.error(f"Getting workspace info Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
             await asyncio.sleep(scanStatusSleepSeconds)
-        if counter % 15 == 0:
-            await asyncio.sleep(10)
 
 
 
