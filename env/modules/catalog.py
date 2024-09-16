@@ -76,8 +76,8 @@ async def main(context=None):
     ## if you do not pass the modifiedsince argument then all workspaces will be returned
     if allWorkspaces:
         # getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True&getArtifactUsers=true', data=batchBody, additional_headers={"Content-Type": "application/json"})
-        # rest_api = f"admin/workspaces/modified"
-        rest_api = f"admin/workspaces"
+        rest_api = f"admin/workspaces/modified"
+        # rest_api = f"admin/workspaces"
         # rest_api = f"admin/workspaces/getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True&getArtifactUsers=true', data=batchBody, additional_headers={'Content-Type': 'application/json'}"
     else:
         rest_api = f"admin/workspaces/modified?modifiedSince={LastRun}T00:00:00.0000000Z&{getModifiedWorkspacesParams}"
