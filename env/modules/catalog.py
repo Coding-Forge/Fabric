@@ -107,20 +107,15 @@ async def main(context=None):
     # Each of the 16 subgroups is then run in parallel
     # Access the groups by using subgroups[][] and then run the scan results for each group of 500 workspaces
 
-    # groups_of_500 = [workspaces[i:i+500] for i in range(0, len(workspaces), 500)]
-    items = workspaces
-    num_groups = runsInParallel
+    def create_groups(input_list, group_size):
+        # Create groups of the specified size
+        groups = [input_list[i:i + group_size] for i in range(0, len(input_list), group_size)]
+        return groups
 
-    group_size = len(items) // num_groups
-    remainder = len(items) % num_groups
-
-    # Create the groups
-    groups = []
-    start = 0
-    for i in range(num_groups):
-        end = start + group_size + (1 if i < remainder else 0)
-        groups.append(items[start:end])
-        start = end
+    # Example usage
+    input_list = workspaces
+    group_size = 500
+    groups = create_groups(input_list, group_size)
 
     # return groups
 
