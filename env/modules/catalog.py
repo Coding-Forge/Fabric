@@ -158,7 +158,7 @@ async def main(context=None):
                         result = await context.invokeAPI(rest_api=rest_api, headers=headers)
                         
                     except Exception as e:
-                        context.logger.error(f"Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
+                        context.logger.error(f"Scan status Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
                         await asyncio.sleep(throttleErrorSleepSeconds)
 
 
@@ -205,8 +205,8 @@ async def main(context=None):
                 await get_workspace_info(workspace_groups=subgroup, FullScan=FullScan,fileIndex=counter, headers=headers)
         # Try to catch any 429 errors
         except Exception as e:
-            context.logger.error(f"Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
-            #await asyncio.sleep(scanStatusSleepSeconds)
+            context.logger.error(f"Getting workspace info Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
+            await asyncio.sleep(scanStatusSleepSeconds)
         if counter % 15 == 0:
             await asyncio.sleep(10)
 
