@@ -127,6 +127,7 @@ async def main(context=None):
 
     for groups in subgroups:
         for subgroup in groups:
+            print(f"The following are the subgroups: {subgroup}")
             await work_queue.put(subgroup)
 
     # put all groups into the queue
