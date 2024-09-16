@@ -201,6 +201,9 @@ class Audits:
         await self.fm.save("", "state.yaml", current_state)
         return current_state
     
+    def set_all_workspaces(self, get_all_workspaces:bool):
+        return self.context.set_all_workspaces(get_all_workspaces)
+
     def set_WorkspaceName(self, WorkspaceName):
         self.context.set_WorkspaceName(WorkspaceName)
 

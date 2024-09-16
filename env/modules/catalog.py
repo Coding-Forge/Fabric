@@ -38,7 +38,7 @@ async def main(context=None):
         return
     
     FullScan = False
-    allWorkspaces = False
+    allWorkspaces = context.all_workspaces
 
     headers = context.clients['pbi'].get_headers()
 
@@ -75,7 +75,10 @@ async def main(context=None):
 
     ## if you do not pass the modifiedsince argument then all workspaces will be returned
     if allWorkspaces:
-        rest_api = f"admin/workspaces/modified"
+        # getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True&getArtifactUsers=true', data=batchBody, additional_headers={"Content-Type": "application/json"})
+        # rest_api = f"admin/workspaces/modified"
+        rest_api = f"admin/workspaces"
+        # rest_api = f"admin/workspaces/getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True&getArtifactUsers=true', data=batchBody, additional_headers={'Content-Type': 'application/json'}"
     else:
         rest_api = f"admin/workspaces/modified?modifiedSince={LastRun}T00:00:00.0000000Z&{getModifiedWorkspacesParams}"
     result = await context.invokeAPI(rest_api=rest_api, headers=headers)

@@ -38,6 +38,7 @@ class Context:
         self.current_state = None
         self.logging_level = logging.ERROR
         self.logger = logging.getLogger(__name__)
+        self.all_workspaces = False
 
     def __set_log_level(self, level):
         """
@@ -76,6 +77,9 @@ class Context:
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S', force=True, handlers=[stdoutHandler, errHandler]
         )
+
+    def set_all_workspaces(self, all_workspaces):
+        self.all_workspaces = all_workspaces
 
     def set_current_state(self, current_state):
         self.current_state = current_state        
