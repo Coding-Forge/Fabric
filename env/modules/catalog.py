@@ -4,7 +4,7 @@ import time
 import asyncio
 import argparse
 
-from codetiming import Timer
+# from codetiming import Timer
 import sys
 
 from datetime import datetime, timedelta
@@ -109,7 +109,7 @@ async def main(context=None):
 
     # groups_of_500 = [workspaces[i:i+500] for i in range(0, len(workspaces), 500)]
     items = workspaces
-    num_groups = 16
+    num_groups = runsInParallel
 
     group_size = len(items) // num_groups
     remainder = len(items) % num_groups
