@@ -155,7 +155,14 @@ async def main(context=None):
         }
 
         rest_api = "admin/workspaces/getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True"
-        result = await context.invokeAPI(rest_api=rest_api, headers=headers, json=body) 
+        
+        result = None
+        try:
+            result = await context.invokeAPI(rest_api=rest_api, headers=headers, json=body) 
+        except Exception as e:
+            print(f"Error getting lineage: {e} with result: {result}")
+            time.sleep(60*3)
+
 
         if "ERROR" in result:
             context.logger.error(f"Error: {result}")
@@ -220,7 +227,7 @@ async def main(context=None):
 
         subgroup = await work_queue.get()
         try:
-            print(f"Processing subgroup {counter} of {len(subgroup)} workspaces")
+            print(f"Processing subgroup {counter} of {len(groups)} groups of workspaces that contain {len(subgroup)} workspaces")
             if len(subgroup) > 0:
                 await get_workspace_info(workspace_groups=subgroup, FullScan=FullScan,fileIndex=counter, headers=headers)
         # Try to catch any 429 errors
