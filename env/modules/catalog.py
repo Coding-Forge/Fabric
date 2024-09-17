@@ -149,7 +149,6 @@ async def main(context=None):
     async def get_workspace_info(workspace_groups, FullScan=False,fileIndex=0, headers=None):
         workspaceScanResults = []
         
-        
         body = {
             "workspaces":workspace_groups
         }
@@ -158,7 +157,8 @@ async def main(context=None):
         
         result = None
         try:
-            result = await context.invokeAPI(rest_api=rest_api, headers=headers, json=body) 
+            print(f"Getting lineage for {len(workspace_groups)} workspaces and the body is {body}")
+            result = await context.invokeAPI(rest_api=rest_api, headers=headers, json=body)
         except Exception as e:
             print(f"Error getting lineage: {e} with result: {result}")
             time.sleep(60*3)
@@ -168,12 +168,10 @@ async def main(context=None):
             context.logger.error(f"Error: {result}")
         else:
             workspaceScanResults.append(result)
-            
             for workspaceScanResult in workspaceScanResults:
-
                 while(workspaceScanResult.get("status") in ["Running", "NotStarted"]):
-
                     try:
+                        print(f"Getting scan status for workspace {workspaceScanResult.get('id')}")
                         rest_api = f"admin/workspaces/scanStatus/{workspaceScanResult.get('id')}"
                         result = await context.invokeAPI(rest_api=rest_api, headers=headers)
                         
@@ -190,6 +188,7 @@ async def main(context=None):
                 if "Succeeded" in workspaceScanResult["status"]:
                     id = workspaceScanResult.get("id")
 
+                    print(f"Getting scan results for workspace {id}")
                     rest_api = f"admin/workspaces/scanResult/{id}"
                     scanResult = await context.invokeAPI(rest_api=rest_api, headers=headers)
 
