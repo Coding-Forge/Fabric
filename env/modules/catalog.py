@@ -107,6 +107,8 @@ async def main(context=None):
     # Each of the 16 subgroups is then run in parallel
     # Access the groups by using subgroups[][] and then run the scan results for each group of 500 workspaces
 
+    # NOTE: 'ValidateInput does not support more then 100 workspace Ids in one call'
+
     def create_groups(input_list, group_size):
         # Create groups of the specified size
         groups = [input_list[i:i + group_size] for i in range(0, len(input_list), group_size)]
@@ -114,7 +116,7 @@ async def main(context=None):
 
     # Example usage
     input_list = workspaces
-    group_size = 499
+    group_size = 100
     groups = create_groups(input_list, group_size)
 
     # return groups
@@ -167,6 +169,8 @@ async def main(context=None):
         if "ERROR" in result:
             context.logger.error(f"Error: {result}")
         else:
+            print(f"what is the result: {result}")
+
             workspaceScanResults.append(result)
             for workspaceScanResult in workspaceScanResults:
                 while(workspaceScanResult.get("status") in ["Running", "NotStarted"]):
@@ -213,6 +217,9 @@ async def main(context=None):
                             #await FF.write_json_to_file(directory_client=dc, file_name="scanResults.json", json_data=scanResult)
                         except TypeError as e:
                             context.logger.error(f"Please fix the async to handle the Error: {e} -- is this the issue")
+
+                else:
+                    time.sleep(30)
 
 
     counter = int()
