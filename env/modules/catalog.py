@@ -114,7 +114,7 @@ async def main(context=None):
 
     # Example usage
     input_list = workspaces
-    group_size = 500
+    group_size = 499
     groups = create_groups(input_list, group_size)
 
     # return groups
@@ -220,6 +220,7 @@ async def main(context=None):
 
         subgroup = await work_queue.get()
         try:
+            print(f"Processing subgroup {counter} of {len(subgroup)} workspaces")
             if len(subgroup) > 0:
                 await get_workspace_info(workspace_groups=subgroup, FullScan=FullScan,fileIndex=counter, headers=headers)
         # Try to catch any 429 errors
