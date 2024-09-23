@@ -5,6 +5,8 @@ config.json
 *.json
 *.log
 *.map
+*.ipynb
+
 
 **/__pycache__/
 **/__pycache__
@@ -19,5 +21,3 @@ venv/
 !Fabric/*.json
 .python_packages
 
-test.ipynb
-testing.ipynb
