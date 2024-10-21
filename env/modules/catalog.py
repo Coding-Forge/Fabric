@@ -42,7 +42,7 @@ async def main(context=None):
 
     headers = context.clients['pbi'].get_headers()
 
-    getModifiedWorkspacesParams = context.CatalogGetModifiedParameters
+    getModifiedWorkspacesParams = f"excludePersonalWorkspaces={context.include_personal_workspaces}&excludeInActiveWorkspaces={context.exclude_inactive_workspaces}"     # context.CatalogGetModifiedParameters
     getInfoDetails = context.CatalogGetInfoParameters
 
     if isinstance(context.current_state, str):

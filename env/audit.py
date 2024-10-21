@@ -272,3 +272,9 @@ class Audits:
 
     def set_ApplicationModules(self, ApplicationModules):
         self.context.set_ApplicationModules(ApplicationModules)
+
+    def include_personal_workspaces(self, include_personal_workspaces):
+        self.context.include_personal_workspaces(include_personal_workspaces)
+
+    def exclude_inactivate_workspaces(self, exclude_personal_workspaces):
+        self.context.exclude_inactivate_workspaces(exclude_personal_workspaces)
