@@ -39,7 +39,7 @@ class Context:
         self.logging_level = logging.ERROR
         self.logger = logging.getLogger(__name__)
         self.all_workspaces = False
-        self.include_personal_workspaces = False
+        self.exclude_personal_workspaces = True
         self.exclude_inactive_workspaces = True
 
     def __set_log_level(self, level):
@@ -172,8 +172,8 @@ class Context:
     def get_PathInLakehouse(self):
         return self.PathInLakehouse
     
-    def set_include_personal_workspaces(self, include_personal_workspaces):
-        self.include_personal_workspaces = include_personal_workspaces
+    def set_exclude_personal_workspaces(self, exclude_personal_workspaces):
+        self.exclude_personal_workspaces = exclude_personal_workspaces
 
     def set_exclude_inactive_workspaces(self, exclude_inactive_workspaces):
         self.exclude_inactive_workspaces = exclude_inactive_workspaces

@@ -42,7 +42,7 @@ async def main(context=None):
 
     headers = context.clients['pbi'].get_headers()
 
-    getModifiedWorkspacesParams = f"excludePersonalWorkspaces={context.include_personal_workspaces}&excludeInActiveWorkspaces={context.exclude_inactive_workspaces}"     # context.CatalogGetModifiedParameters
+    getModifiedWorkspacesParams = f"excludePersonalWorkspaces={context.exclude_personal_workspaces}&excludeInActiveWorkspaces={context.exclude_inactive_workspaces}"     # context.CatalogGetModifiedParameters
     getInfoDetails = context.CatalogGetInfoParameters
 
     if isinstance(context.current_state, str):
@@ -76,11 +76,15 @@ async def main(context=None):
     ## if you do not pass the modifiedsince argument then all workspaces will be returned
     if allWorkspaces:
         # getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True&getArtifactUsers=true', data=batchBody, additional_headers={"Content-Type": "application/json"})
-        rest_api = f"admin/workspaces/modified"
+        rest_api = f"admin/workspaces/modified?{getModifiedWorkspacesParams}"
         # rest_api = f"admin/workspaces"
         # rest_api = f"admin/workspaces/getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True&getArtifactUsers=true', data=batchBody, additional_headers={'Content-Type': 'application/json'}"
     else:
         rest_api = f"admin/workspaces/modified?modifiedSince={LastRun}T00:00:00.0000000Z&{getModifiedWorkspacesParams}"
+
+
+    print(f"using the following url: {rest_api}")
+
     result = await context.invokeAPI(rest_api=rest_api, headers=headers)
 
     workspaces = list()

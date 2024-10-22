@@ -86,6 +86,8 @@ class Audits:
         for module in modules:
             cron = self.context.get_cron(module)
             
+
+            run_jobs.append(module)
             try:
                 if isinstance(current_state, str):
                     current_state = json.loads(current_state)
@@ -273,8 +275,8 @@ class Audits:
     def set_ApplicationModules(self, ApplicationModules):
         self.context.set_ApplicationModules(ApplicationModules)
 
-    def include_personal_workspaces(self, include_personal_workspaces):
-        self.context.include_personal_workspaces(include_personal_workspaces)
+    def exclude_personal_workspaces(self, exclude_personal_workspaces):
+        self.context.exclude_personal_workspaces(exclude_personal_workspaces)
 
     def exclude_inactivate_workspaces(self, exclude_personal_workspaces):
         self.context.exclude_inactivate_workspaces(exclude_personal_workspaces)
