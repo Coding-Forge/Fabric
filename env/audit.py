@@ -86,8 +86,6 @@ class Audits:
         for module in modules:
             cron = self.context.get_cron(module)
             
-
-            run_jobs.append(module)
             try:
                 if isinstance(current_state, str):
                     current_state = json.loads(current_state)
