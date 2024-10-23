@@ -241,35 +241,45 @@ class Context:
         if "continuationToken" in rest_api:
             async with aiohttp.ClientSession() as session:
                 async with session.get(url=rest_api, headers=headers) as response:
-                    try:
-                        return await response.json(encoding='utf-8')
-                    except ValueError as e:
-                        print(f"Error decoding JSON: {e}")
-                        print(f"Response content: {response.content}")
-                        return await response.content
-
-        if json:
-            async with aiohttp.ClientSession() as session:
-                async with session.post(url, headers=headers, json=json) as response:
-                    try:
-                        return await response.json(encoding='utf-8')
-                    except ValueError as e:
-                        print(f"Error decoding JSON: {e}")
-                        print(f"Response content: {response.content}")
-                        return await response.content
-                    
-        else:
-            if not headers:
-                url = rest_api
-                async with aiohttp.ClientSession() as session:
-                    async with session.get(url) as response:
+                    if response.ok:
                         try:
                             return await response.json(encoding='utf-8')
                         except ValueError as e:
                             print(f"Error decoding JSON: {e}")
                             print(f"Response content: {response.content}")
                             return await response.content
+                    else:
+                        return {"ERROR" : "429 error thrown", "message": response}
 
+        if json:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, headers=headers, json=json) as response:
+                    if response.ok:
+                        try:
+                            return await response.json(encoding='utf-8')
+                        except ValueError as e:
+                            print(f"Error decoding JSON: {e}")
+                            print(f"Response content: {response.content}")
+                            return await response.content
+                    else:
+                        return {"ERROR" : "429 error thrown", "message": response}
+
+                    
+        else:
+            if not headers:
+                url = rest_api
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(url) as response:
+                        if response.ok:
+                            try:
+                                return await response.json(encoding='utf-8')
+                            except ValueError as e:
+                                print(f"Error decoding JSON: {e}")
+                                print(f"Response content: {response.content}")
+                                return await response.content
+
+                        else:
+                            return {"ERROR" : "429 error thrown", "message": response}
                         # return await response.json(encoding='utf-8')
             else:
 
@@ -283,7 +293,7 @@ class Context:
                     async with session.get(url, headers=headers) as response:
                         if response.ok:
                             return await response.json(encoding='utf-8')
-                        return {"error" : "429 error thrown", "message": response}
+                        return {"ERROR" : "429 error thrown", "message": response}
 
 
 
