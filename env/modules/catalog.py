@@ -195,38 +195,41 @@ async def main(context=None):
                         context.logger.error(f"Error: {result}")
                     else:
                         workspaceScanResult["status"] = result.get("status")
+                try:
+                    if workspaceScanResult is not None and  "status" in workspaceScanResult and "Succeeded" in workspaceScanResult["status"]:
+                        id = workspaceScanResult.get("id")
 
-                if workspaceScanResult is not None and  "status" in workspaceScanResult and "Succeeded" in workspaceScanResult["status"]:
-                    id = workspaceScanResult.get("id")
+                        # print(f"Getting scan results for scan {id}")
+                        rest_api = f"admin/workspaces/scanResult/{id}"
+                        scanResult = await context.invokeAPI(rest_api=rest_api, headers=headers)
 
-                    # print(f"Getting scan results for scan {id}")
-                    rest_api = f"admin/workspaces/scanResult/{id}"
-                    scanResult = await context.invokeAPI(rest_api=rest_api, headers=headers)
-
-                    # TODO: create a better check on whether scan results were returned or error thrown
-                    if "ERRORs" in scanResult:
-                        context.logger.error(f"Error: Did not get scan results for workspace {id}")
+                        # TODO: create a better check on whether scan results were returned or error thrown
+                        if "ERRORs" in scanResult:
+                            context.logger.error(f"Error: Did not get scan results for workspace {id}")
+                        else:
+                            today = datetime.now()
+                            path = f"catalog/scans/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
+                            #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=path)
+                            try:
+                                if FullScan:
+                                    file_name=f"scanResults.fullscan.json"
+                                else:
+                                    file_name=f"scanResults.json"
+                                
+                                index = str(fileIndex).zfill(5)
+                                file_name = f"{today.strftime('%Y%m%d')}_{index}.{file_name}"
+                                print(f"Saving scan results to {file_name}")
+                                
+                                await context.fm.save(path=path, file_name=file_name, content=scanResult)
+                                return "Saved"
+                                #await FF.write_json_to_file(directory_client=dc, file_name="scanResults.json", json_data=scanResult)
+                            except TypeError as e:
+                                context.logger.error(f"Please fix the async to handle the Error: {e} -- is this the issue")
                     else:
-                        today = datetime.now()
-                        path = f"catalog/scans/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
-                        #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=path)
-                        try:
-                            if FullScan:
-                                file_name=f"scanResults.fullscan.json"
-                            else:
-                                file_name=f"scanResults.json"
-                            
-                            index = str(fileIndex).zfill(5)
-                            file_name = f"{today.strftime('%Y%m%d')}_{index}.{file_name}"
-                            print(f"Saving scan results to {file_name}")
-                            
-                            await context.fm.save(path=path, file_name=file_name, content=scanResult)
-                            return "Saved"
-                            #await FF.write_json_to_file(directory_client=dc, file_name="scanResults.json", json_data=scanResult)
-                        except TypeError as e:
-                            context.logger.error(f"Please fix the async to handle the Error: {e} -- is this the issue")
-                else:
-                    context.logger.error(f"Error: Did not get scan results for workspace")
+                        context.logger.error(f"Error: Did not get scan results for workspace")
+                except Exception as e:
+                    print(e)
+                    pass
 
 
 
