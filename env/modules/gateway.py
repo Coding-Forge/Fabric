@@ -71,10 +71,11 @@ async def main(context=None):
         response = requests.get(api_users, headers=headers)
         results = response.json()
 
-        
-        results['value'][0]['datasourceId'] = gateways[i]["id"]
-        results['value'][0]['gatewayId'] = gateways[i]["gatewayId"]
-        users.append(results['value'][0])
+        if "value" in results:
+            for l in range(0,len(results['value'])):
+                results['value'][l]['datasourceId'] = gateways[i]["id"]
+                results['value'][l]['gatewayId'] = gateways[i]["gatewayId"]
+                users.append(results['value'][l])
 
     for i in range(0,len(gateways)):
         api_status = f'https://api.powerbi.com/v1.0/myorg/gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/status'
