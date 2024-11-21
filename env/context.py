@@ -41,6 +41,7 @@ class Context:
         self.all_workspaces = False
         self.exclude_personal_workspaces = True
         self.exclude_inactive_workspaces = True
+        self.on_fabric = True
 
     def __set_log_level(self, level):
         """
@@ -80,6 +81,9 @@ class Context:
             datefmt='%Y-%m-%d %H:%M:%S', force=True, handlers=[stdoutHandler, errHandler]
         )
 
+    def set_on_fabric(self, on_fabric):
+        self.on_fabric = on_fabric
+        
     def set_all_workspaces(self, all_workspaces):
         self.all_workspaces = all_workspaces
 

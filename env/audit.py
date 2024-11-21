@@ -201,6 +201,9 @@ class Audits:
         await self.fm.save("", "state.yaml", current_state)
         return current_state
     
+    def set_on_fabric(self, on_fabric:bool):
+        self.context.set_on_fabric(on_fabric)
+
     def set_all_workspaces(self, get_all_workspaces:bool):
         return self.context.set_all_workspaces(get_all_workspaces)
 
