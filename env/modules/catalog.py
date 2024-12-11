@@ -226,7 +226,7 @@ async def main(context=None):
                                     except TypeError as e:
                                         context.logger.error(f"Please fix the async to handle the Error: {e} -- is this the issue")
                             else:
-                                context.logger.error(f"Error: Did not get scan results for workspace")
+                                context.logger.error(f"Information: Waiting for Scan results.....")
                         except Exception as e:
                             print(e)
                             pass

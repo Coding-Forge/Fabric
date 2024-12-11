@@ -36,27 +36,24 @@ async def main(context=None):
 
     ceiling = len(items)
     cnt = 0
-    for item in items:
-        cnt+=1
 
-        if len(workspace_lst) > ceiling:
+    base_url = 'https://api.powerbi.com/v1.0/myorg/admin/groups?$expand=users&$top=5000'
+
+    all_groups = []
+    for i in range(0, ceiling, 5000):
+        url = f'{base_url}&$skip={i}'
+        response = requests.get(url, headers=headers)
+        if response.status_code == 200:
+            groups = response.json().get('value', [])
+            all_groups.extend(groups)
+        else:
+            print(f'Error: {response.status_code}')
             break
 
-        if cnt <= ceiling:
-            url = f"https://api.powerbi.com/v1.0/myorg/admin/groups/{item}?$expand=users"
-        
-            response = requests.get(url, headers=headers)
-            if response.ok:
-                results = response.json()
-                workspace_lst.append(results)
-            else:
-                if response.status_code==429:
-                    result = response.json()
-                    context.logger.error(f"Request limit reached. You must wait { int(result.get('message').split('.')[1].split(' ')[3])/60} minutes for the next request")
-                    sleep(int(result.get('message').split('.')[1].split(' ')[3]))
-
+    print(f'Total groups retrieved: {len(all_groups)}')
+    
     pivotDate = datetime.now()
-    content = workspace_lst
+    content = all_groups
     index = str(cnt).zfill(5)
 
     Path = f"roles/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"

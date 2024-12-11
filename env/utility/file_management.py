@@ -54,7 +54,11 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
             elif self.context.OutputPath:
                 await self.lfm.save(path=path, file_name=file_name, content=content)    
             elif self.context.LakehouseName:
-                path = f"{self.context.LakehouseName}.Lakehouse/Files/{self.context.PathInLakehouse}/{path}"   
+                if self.context.on_fabric:
+                    path = f"/lakehouse/default/Files/{self.context.PathInLakehouse}/{path}"
+                else:
+                    path = f"{self.context.LakehouseName}.Lakehouse/Files/{self.context.PathInLakehouse}/{path}"                   
+
                 path = path.replace("//","/")
                 
                 await self.ftm.write_json_to_file(path=path, file_name=file_name, json_data=content)

@@ -100,12 +100,18 @@ class File_Table_Management:
     async def write_json_to_file(self, path:str, file_name: str, json_data):
         
         json_bytes = json_data
+        directory = path
+        file_path = os.path.join(directory, file_name)
+        file_path.replace("//", "/")
+
+        os.makedirs(directory, exist_ok=True)
 
         if self.context.on_fabric:
-            with open(f"/lakehouse/default/{path}/{file_name}", "w+") as file:
+            with open(file_path, "wb") as file:
                 file.write(json_bytes)
         else:
             dc = self.fsc.get_directory_client(path)
             file_client = dc.get_file_client(file_name)
             file_client.upload_data(json_bytes, overwrite=True)
+
 
