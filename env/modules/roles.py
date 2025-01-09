@@ -20,19 +20,27 @@ async def main(context=None):
     headers =  context.clients['pbi'].get_headers()
 
 
-    response = requests.get("https://api.fabric.microsoft.com/v1/admin/workspaces", headers=headers)
-    if response.ok:
-        results = response.json()
+    items = set()
+    continuationToken = None
+    while True:
 
-    workspace = results.get("workspaces")
+        if continuationToken == None:
+            response = requests.get("https://api.fabric.microsoft.com/v1/admin/workspaces", headers=headers)
+        else:
+            response = requests.get(f"https://api.fabric.microsoft.com/v1/admin/workspaces?continuationToken='{continuationToken}'",headers=headers)
 
-    items = list()
+        if response.ok:
+            results = response.json()
 
-    for item in workspace:
-        items.append(item["id"])
+            workspace = results.get("workspaces")
 
-    items = set(items)
-    workspace_lst = list()
+            for item in workspace:
+                items.add(item["id"])
+
+            continuationToken =  results.get("continuationToken",[])
+
+            if continuationToken == None:
+                break
 
     ceiling = len(items)
     cnt = 0
@@ -51,6 +59,7 @@ async def main(context=None):
             break
 
     print(f'Total groups retrieved: {len(all_groups)}')
+    
     
     pivotDate = datetime.now()
     content = all_groups
