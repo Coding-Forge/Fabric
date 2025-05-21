@@ -36,17 +36,27 @@ async def main(context=None):
 
     domain_workspaces=[]
 
-    for domain in response.get("domains"):
+    domains = response.get("domains", [])
+    if len(domains) == 0:
+        return
+
+    for domain in domains:
         domainId = domain['id']
 
         response = await context.invokeAPI(f"https://api.fabric.microsoft.com/v1/admin/domains/{domainId}/workspaces", headers=headers)
-        for value in response.get("value"):
-            if len(value) != 0:
-                domain["workspace"] = value.get("displayName")
-                domain["workspaceId"] = value.get("id")
-                domain_workspaces.append(domain)
 
-        domain_workspaces.append(domain)
+        values = response.get("value", [])
+
+        if len(values) == 0:
+            continue
+        else:
+            for value in values:
+                if len(value) != 0:
+                    domain["workspace"] = value.get("displayName")
+                    domain["workspaceId"] = value.get("id")
+                    domain_workspaces.append(domain)
+
+            domain_workspaces.append(domain)
 
     Path = f"domains/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
     await context.fm.save(path=Path, file_name="domains.json",content=domain_workspaces)
