@@ -11,16 +11,25 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
     def __init__(self):
         # self.bob = Bob()
         # self.settings = "lakehouse"
-        self.bfm = Blob_File_Management()
-        self.lfm = Local_File_Management()
-        self.ftm = File_Table_Management()
+        self.bfm = None # Blob_File_Management()
+        self.lfm = None #Local_File_Management()
+        self.ftm = None #File_Table_Management()
         self.context = None
 
     def content(self, context):
         self.context = context
-        self.bfm.set_context(self.context)
-        self.ftm.set_context(self.context)
+
+        print("storage account container name", self.context.StorageAccountContainerName)
+        if self.context.StorageAccountContainerName:
+            self.bfm = Blob_File_Management()
+            self.bfm.set_context(self.context)
         
+        elif self.context.get_LakehouseName():
+            self.ftm = File_Table_Management()
+            self.ftm.set_context(self.context)
+        else:
+            self.lfm = Local_File_Management()
+            self.lfm.set_context(self.context)
 
     async def save(self, path:str, file_name:str, content):
         """

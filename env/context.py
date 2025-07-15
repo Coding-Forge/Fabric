@@ -108,6 +108,9 @@ class Context:
     def set_StorageAccountContainerRootPath(self, StorageAccountContainerRootPath):
         self.StorageAccountContainerRootPath = StorageAccountContainerRootPath
 
+    def get_StorageAccountContainerName(self):
+        return self.StorageAccountContainerName
+
     def set_OutputPath(self, OutputPath):
         self.OutputPath = OutputPath
 

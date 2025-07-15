@@ -250,7 +250,7 @@ async def main(context=None):
             output = await get_workspace_info(workspace_groups=item, FullScan=FullScan,fileIndex=counter, headers=headers)
             print(output)
 
-        print("I sleeping")
+        # print("I sleeping")
         time.sleep(30)  # Pause for 10 minutes
 
     # while not work_queue.empty():
