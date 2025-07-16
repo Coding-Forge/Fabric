@@ -42,6 +42,8 @@ class Context:
         self.exclude_personal_workspaces = True
         self.exclude_inactive_workspaces = True
         self.on_fabric = True
+        self.capacity_metrics_dataset_id = None
+        self.impersonatedUserName = None
 
     def __set_log_level(self, level):
         """
@@ -127,6 +129,12 @@ class Context:
             "TenantId": TenantId,
             "Environment": Environment
         }
+
+    def set_ImpersonatedUserName(self, impersonatedUserName):
+        self.impersonatedUserName = impersonatedUserName
+
+    def set_capacity_metrics_dataset_id(self, capacity_metrics_dataset_id):
+        self.capacity_metrics_dataset_id = capacity_metrics_dataset_id
 
     def set_Domains_cron(self, Domains_cron):
         self.Domains_cron = Domains_cron
@@ -263,11 +271,31 @@ class Context:
                 async with session.post(url, headers=headers, json=json) as response:
                     if response.ok:
                         try:
-                            return await response.json(encoding='utf-8')
+                            results =  await response.json()
+
+                            if isinstance(results, dict) and "error" in results:
+                                print("Error in results:", results["error"])
+                                return results
+                            elif isinstance(results, dict) and len(results) == 0:
+                                print("No results found")
+                                return {"message": "No results found"}
+                            elif isinstance(results, dict) and len(results) > 0:
+                                return results
+                            else:
+                                print("Unexpected results format:", results)
+                                return {"message": "Unexpected results format", "results": results}
                         except ValueError as e:
                             print(f"Error decoding JSON: {e}")
                             print(f"Response content: {response.content}")
                             return await response.content
+                        except Exception as e:
+                            print(f"What is the Error: {e}")
+                        finally:
+                            if response.status == 429:
+                                print("429 error thrown")
+                                return {"ERROR" : "429 error thrown", "message": response}
+                            else:
+                                print("Finally print response:", response)
                     else:
                         return {"ERROR" : "429 error thrown", "message": response}
 

@@ -37,6 +37,13 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
         param: file_name is the name of the file to be saved
         param: content is a dictionary that is converted to bytes and saved as the path and file name
         """
+        print("What is the path?", path)
+        print("What is the file name?", file_name)
+        print("What is the content?", content)
+
+        if not content:
+            print("No content to save")
+            return
 
         if not self.context:
             print("No settings found, make sure to pass in or set the settings object")
@@ -50,6 +57,7 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
             else:
                 content = content.encode('utf-8')
 
+
         #save file to storage
             if self.context.StorageAccountContainerName:
                 root = self.context.StorageAccountContainerRootPath
@@ -58,7 +66,7 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                 else:
                     path = f"{path}{file_name}"
                     
-                #print(path)
+                print("What is the content?", content)
                 await self.bfm.write_to_file(blob_name=path, content=content)
             elif self.context.OutputPath:
                 await self.lfm.save(path=path, file_name=file_name, content=content)    
@@ -76,7 +84,7 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                 exit()
 
         except Exception as e:
-            self.context.logger.error("Error saving file")
+            self.context.logger.error("Error saving file to storage")
             print(f"Error: {e}")
 
 

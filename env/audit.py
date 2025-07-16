@@ -113,7 +113,8 @@ class Audits:
         if len(run_jobs) == 0:
             print("No jobs to run")
             return
-
+        
+        print(f"Running jobs: {run_jobs}")
 
         try:
             classes = [globals()[module] for module in run_jobs]
@@ -231,8 +232,11 @@ class Audits:
     def set_CatlogGetModifiedParameters(self, CatalogGetModifiedParameters):
         self.context.set_CatlogGetModifiedParameters(CatalogGetModifiedParameters)
 
-    def set_CatoalogGetInfoParameters(self, CatalogGetInfoParameters):
-        self.context.set_CatoalogGetInfoParameters(CatalogGetInfoParameters)
+    def set_capacity_metrics_dataset_id(self, capacity_metrics_dataset_id):
+        self.context.set_capacity_metrics_dataset_id(capacity_metrics_dataset_id)
+
+    def set_CatalogGetInfoParameters(self, CatalogGetInfoParameters):
+        self.context.set_CatalogGetInfoParameters(CatalogGetInfoParameters)
 
     def set_ServicePrincipal(self, tenant_id, client_id, client_secret):
         self.context.set_ServicePrincipal(TenantId=tenant_id, AppId=client_id, AppSecret=client_secret, Environment="Public")
@@ -281,3 +285,6 @@ class Audits:
 
     def exclude_inactivate_workspaces(self, exclude_personal_workspaces):
         self.context.exclude_inactivate_workspaces(exclude_personal_workspaces)
+
+    def set_ImpersonatedUserName(self, impersonatedUserName):
+        self.context.set_ImpersonatedUserName(impersonatedUserName)

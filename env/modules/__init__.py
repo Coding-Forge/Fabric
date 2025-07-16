@@ -11,4 +11,5 @@ from .refreshhistory import main as RefreshHistory
 from .roles import main as Roles
 from .tenant import main as Tenant
 from .workspaces import main as Workspaces
+from .capacity_metrics import main as CapacityMetrics
 
