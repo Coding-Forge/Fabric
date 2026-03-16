@@ -1,3 +1,4 @@
+import os
 import json
 from env.utility.fabric import File_Table_Management
 from env.utility.blob import Blob_File_Management
@@ -57,7 +58,6 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
             else:
                 content = content.encode('utf-8')
 
-
         #save file to storage
             if self.context.StorageAccountContainerName:
                 root = self.context.StorageAccountContainerRootPath
@@ -65,9 +65,18 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                     path = f"{root}/{path}{file_name}"
                 else:
                     path = f"{path}{file_name}"
-                    
-                print("What is the content?", content)
-                await self.bfm.write_to_file(blob_name=path, content=content)
+
+                if os.environ.get("DRY_RUN", "").lower() in ("1", "true", "yes"):
+                    print(f"\n{'='*60}")
+                    print(f"[DRY RUN] Would write to blob: {path}")
+                    print(f"{'='*60}")
+                    try:
+                        print(json.dumps(json.loads(content.decode("utf-8")), indent=2)[:4000])
+                    except Exception:
+                        print(content[:4000])
+                    print(f"{'='*60}\n")
+                else:
+                    await self.bfm.write_to_file(blob_name=path, content=content)
             elif self.context.OutputPath:
                 await self.lfm.save(path=path, file_name=file_name, content=content)    
             elif self.context.LakehouseName:
@@ -104,7 +113,12 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                 else:
                     path = f"{path}{file_name}"
 
+                print(f"[READ] Attempting to read blob: container={self.context.StorageAccountContainerName} path={path}")
                 content = await self.bfm.read_from_file(blob_name=path)
+                if content is None:
+                    print(f"[READ] Blob not found or empty: {path} — will create fresh state")
+                else:
+                    print(f"[READ] Successfully read blob: {path}")
                 
             elif self.context.OutputPath:
                 await self.lfm.save(path=path, file_name=file_name, content=content)    

@@ -6,3 +6,15 @@ __queuestorage__
 local.settings.json
 test
 venv
+.venv
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+notebooks/
+schema_examples/
+containers/
+images/
+*.ipynb
+*.ps1
+*.cs

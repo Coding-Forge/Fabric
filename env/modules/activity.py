@@ -15,9 +15,9 @@ async def main(context=None):
     print(f"What is current state {context.current_state}")
 
     if isinstance(context.current_state, str):
-        lastRun = json.loads(context.current_state).get("activity").get("lastRun")
+        lastRun = json.loads(context.current_state).get("activity", {}).get("lastRun")
     else:
-        lastRun = context.current_state.get("activity").get("lastRun")
+        lastRun = (context.current_state.get("activity") or {}).get("lastRun")
 
     # if lastRun is recorded then proceed from there
     lastRun_tm = context.convert_dt_str(lastRun)

@@ -1,9 +1,14 @@
 import sys
+import socket
 import aiohttp
 import logging
 from typing import Dict, Any, Coroutine
 from datetime import datetime, timedelta
 from env.utility.file_management import File_Management
+
+# Force IPv4 to avoid SSL handshake hangs on Linux/WSL (IPv6 attempted first, times out)
+_CONNECTOR_KWARGS = dict(family=socket.AF_INET)
+_TIMEOUT = aiohttp.ClientTimeout(total=300, connect=60)
 
 class Context:
     def __init__(self):
@@ -250,28 +255,43 @@ class Context:
 
         url = api_root + rest_api
 
+        def _log(method, url, status, result=None):
+            if result is None:
+                count = "n/a"
+            elif isinstance(result, dict):
+                count = len(result.get("value", result))
+            elif isinstance(result, list):
+                count = len(result)
+            else:
+                count = "n/a"
+            short_url = url if len(url) <= 120 else url[:117] + "..."
+            print(f"[API] {method} {short_url} -> HTTP {status} | records: {count}")
+
         ## The conintuation Token redirects to your organization for Power BI instead of accessing
         ## the REST API the originated the call. Therefore, we need to intercept and call the 
         ## using the continuation URI
         if "continuationToken" in rest_api:
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(**_CONNECTOR_KWARGS), timeout=_TIMEOUT) as session:
                 async with session.get(url=rest_api, headers=headers) as response:
                     if response.ok:
                         try:
-                            return await response.json(encoding='utf-8')
+                            result = await response.json(encoding='utf-8')
+                            _log("GET", rest_api, response.status, result)
+                            return result
                         except ValueError as e:
-                            print(f"Error decoding JSON: {e}")
-                            print(f"Response content: {response.content}")
+                            print(f"[API] GET {rest_api} -> HTTP {response.status} | Error decoding JSON: {e}")
                             return await response.content
                     else:
+                        print(f"[API] GET {rest_api} -> HTTP {response.status} | ERROR")
                         return {"ERROR" : "429 error thrown", "message": response}
 
         if json:
-            async with aiohttp.ClientSession() as session:
+            async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(**_CONNECTOR_KWARGS), timeout=_TIMEOUT) as session:
                 async with session.post(url, headers=headers, json=json) as response:
                     if response.ok:
                         try:
-                            results =  await response.json()
+                            results = await response.json()
+                            _log("POST", url, response.status, results)
 
                             if isinstance(results, dict) and "error" in results:
                                 print("Error in results:", results["error"])
@@ -285,11 +305,10 @@ class Context:
                                 print("Unexpected results format:", results)
                                 return {"message": "Unexpected results format", "results": results}
                         except ValueError as e:
-                            print(f"Error decoding JSON: {e}")
-                            print(f"Response content: {response.content}")
+                            print(f"[API] POST {url} -> HTTP {response.status} | Error decoding JSON: {e}")
                             return await response.content
                         except Exception as e:
-                            print(f"What is the Error: {e}")
+                            print(f"[API] POST {url} -> HTTP {response.status} | Error: {e}")
                         finally:
                             if response.status == 429:
                                 print("429 error thrown")
@@ -297,25 +316,26 @@ class Context:
                             else:
                                 pass
                     else:
+                        print(f"[API] POST {url} -> HTTP {response.status} | ERROR")
                         return {"ERROR" : "429 error thrown", "message": response}
 
                     
         else:
             if not headers:
                 url = rest_api
-                async with aiohttp.ClientSession() as session:
+                async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(**_CONNECTOR_KWARGS), timeout=_TIMEOUT) as session:
                     async with session.get(url) as response:
                         if response.ok:
                             try:
-                                return await response.json(encoding='utf-8')
+                                result = await response.json(encoding='utf-8')
+                                _log("GET", url, response.status, result)
+                                return result
                             except ValueError as e:
-                                print(f"Error decoding JSON: {e}")
-                                print(f"Response content: {response.content}")
+                                print(f"[API] GET {url} -> HTTP {response.status} | Error decoding JSON: {e}")
                                 return await response.content
-
                         else:
+                            print(f"[API] GET {url} -> HTTP {response.status} | ERROR")
                             return {"ERROR" : "429 error thrown", "message": response}
-                        # return await response.json(encoding='utf-8')
             else:
 
                 p = rest_api.find("api.fabric.microsoft")
@@ -324,11 +344,15 @@ class Context:
                 if p > 0:
                     url = rest_api
 
-                async with aiohttp.ClientSession() as session:
+                async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(**_CONNECTOR_KWARGS), timeout=_TIMEOUT) as session:
                     async with session.get(url, headers=headers) as response:
                         if response.ok:
-                            return await response.json(encoding='utf-8')
+                            result = await response.json(encoding='utf-8')
+                            _log("GET", url, response.status, result)
+                            return result
+                        print(f"[API] GET {url} -> HTTP {response.status} | ERROR")
                         return {"ERROR" : "429 error thrown", "message": response}
+
 
 
 

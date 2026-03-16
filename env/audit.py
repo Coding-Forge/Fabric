@@ -24,6 +24,10 @@ content = None
 
 # from .monitor import main as Monitor
 def is_function_due(cron_syntax, last_run):
+    # If no cron is configured, always run the module
+    if not cron_syntax:
+        return True
+
     last_run_datetime = last_run
 
     cron = croniter(cron_syntax, last_run_datetime)

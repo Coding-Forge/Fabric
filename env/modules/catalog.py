@@ -46,11 +46,11 @@ async def main(context=None):
     getInfoDetails = context.CatalogGetInfoParameters
 
     if isinstance(context.current_state, str):
-        LastRun = json.loads(context.current_state).get("activity").get("lastRun")
-        LastFullScan = json.loads(context.current_state).get("catalog").get("lastFullScan")
+        LastRun = json.loads(context.current_state).get("catalog", {}).get("lastRun")
+        LastFullScan = json.loads(context.current_state).get("catalog", {}).get("lastFullScan")
     else:
-        LastRun = context.current_state.get("catalog").get("lastRun")
-        LastFullScan = context.current_state.get("catalog").get("lastFullScan")
+        LastRun = (context.current_state.get("catalog") or {}).get("lastRun")
+        LastFullScan = (context.current_state.get("catalog") or {}).get("lastFullScan")
 
     if LastRun is None:
         LastRun = datetime.now()
@@ -90,9 +90,11 @@ async def main(context=None):
     workspaces = list()
 
     if result and "error" not in result:
-        # Convert the JSON response to a pandas DataFrame
-        for workspace in result:
-            workspaces.append(workspace.get("id"))
+        # The API returns {"value": [...]} — unwrap the list
+        workspace_list = result.get("value", result) if isinstance(result, dict) else result
+        for workspace in workspace_list:
+            if isinstance(workspace, dict):
+                workspaces.append(workspace.get("id"))
     elif "error" in result:
         # Handle the error case
         context.logger.error(f"Error was thrown: {result}")

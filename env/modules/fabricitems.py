@@ -16,18 +16,18 @@ async def main(context=None):
     headers = context.clients['pbi'].get_headers()
 
     today = datetime.now()
-    async def get_data(url,pageIndex=1):
-        pageIndex = str(pageIndex).zfill(5)
+    async def get_data(url, pageIndex=1):
+        file_index = str(pageIndex).zfill(5)
         response = await context.invokeAPI(url, headers=headers)
         Path = f"items/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
-        await context.fm.save(path=Path, file_name=f"fabricitems_{pageIndex}.json",content=response.get("itemEntities"))
+        await context.fm.save(path=Path, file_name=f"fabricitems_{file_index}.json", content=response.get("itemEntities"))
 
         try:
             continuationUri = response.get("continuationUri")
             if continuationUri:
-                await get_data(continuationUri)
+                await get_data(continuationUri, pageIndex=pageIndex + 1)
         except Exception as e:
-            context.logger.error("ERROR", f"Error: {e}")
+            context.logger.error(f"Error paginating fabricitems: {e}")
             return
 
     url = "https://api.fabric.microsoft.com/v1/admin/items"
