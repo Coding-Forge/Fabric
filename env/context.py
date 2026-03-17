@@ -1,13 +1,15 @@
 import sys
 import socket
+import platform
 import aiohttp
 import logging
 from typing import Dict, Any, Coroutine
 from datetime import datetime, timedelta
 from env.utility.file_management import File_Management
 
-# Force IPv4 to avoid SSL handshake hangs on Linux/WSL (IPv6 attempted first, times out)
-_CONNECTOR_KWARGS = dict(family=socket.AF_INET)
+# On Linux/WSL, aiohttp tries IPv6 first which causes SSL handshake timeouts.
+# Force IPv4 on Linux. On Windows, aiohttp resolves correctly without this constraint.
+_CONNECTOR_KWARGS = dict(family=socket.AF_INET) if platform.system() != "Windows" else {}
 _TIMEOUT = aiohttp.ClientTimeout(total=300, connect=60)
 
 class Context:
