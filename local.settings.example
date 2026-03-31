@@ -1,0 +1,43 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+
+    "TENANT_ID": "",
+    "CLIENT_ID": "",
+    "CLIENT_SECRET": "",
+    "AZURE_TENANT_ID": "",
+    "AZURE_CLIENT_ID": "",
+    "AZURE_CLIENT_SECRET": "",
+
+    "APPLICATION_MODULES": "Activity,Apps,Capacity,Catalog,Domains,FabricItems,Gateway,Graph,Refreshables,RefreshHistory,Roles,Tenant,Workspaces",
+
+    "STORAGE_ACCOUNT_CONN_STR": "",
+    "STORAGE_ACCOUNT_URL": "https://fabricdemosg.blob.core.windows.net",
+    "STORAGE_ACCOUNT_CONTAINER_NAME": "monitor",
+    "STORAGE_ACCOUNT_CONTAINER_ROOT_PATH": "stage",
+    "DRY_RUN": "false",
+
+    "LAKEHOUSE_NAME": "",
+    "WORKSPACE_NAME": "",
+    "PATH_IN_LAKEHOUSE": "stage",
+    "ON_FABRIC": "false",
+
+    "ALL_WORKSPACES": "false",
+    "IMPERSONATED_USER_NAME": "",
+    "CAPACITY_METRICS_DATASET_ID": "",
+
+    "ACTIVITY_CRON": "",
+    "APPS_CRON": "",
+    "CAPACITY_CRON": "",
+    "CATALOG_CRON": "",
+    "DOMAINS_CRON": "",
+    "GATEWAY_CRON": "",
+    "GRAPH_CRON": "",
+    "REFRESHABLES_CRON": "",
+    "REFRESHHISTORY_CRON": "",
+    "ROLES_CRON": "",
+    "TENANT_CRON": ""
+  }
+}
