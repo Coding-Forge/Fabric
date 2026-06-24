@@ -233,8 +233,11 @@ class Audits:
     def set_OutputPath(self, OutputPath):
         self.context.set_OutputPath(OutputPath)
 
+    def set_CatalogGetModifiedParameters(self, CatalogGetModifiedParameters):
+        self.context.set_CatalogGetModifiedParameters(CatalogGetModifiedParameters)
+
     def set_CatlogGetModifiedParameters(self, CatalogGetModifiedParameters):
-        self.context.set_CatlogGetModifiedParameters(CatalogGetModifiedParameters)
+        self.set_CatalogGetModifiedParameters(CatalogGetModifiedParameters)
 
     def set_capacity_metrics_dataset_id(self, capacity_metrics_dataset_id):
         self.context.set_capacity_metrics_dataset_id(capacity_metrics_dataset_id)
@@ -278,17 +281,29 @@ class Audits:
     def set_Capacity_cron(self, Capacity_cron):
         self.context.set_Capacity_cron(Capacity_cron)
 
+    def set_CapacityMetrics_cron(self, CapacityMetrics_cron):
+        self.context.set_CapacityMetrics_cron(CapacityMetrics_cron)
+
     def set_Roles_cron(self, Roles_cron):
         self.context.set_Roles_cron(Roles_cron)
+
+    def set_FabricItems_cron(self, FabricItems_cron):
+        self.context.set_FabricItems_cron(FabricItems_cron)
+
+    def set_Workspaces_cron(self, Workspaces_cron):
+        self.context.set_Workspaces_cron(Workspaces_cron)
 
     def set_ApplicationModules(self, ApplicationModules):
         self.context.set_ApplicationModules(ApplicationModules)
 
     def exclude_personal_workspaces(self, exclude_personal_workspaces):
-        self.context.exclude_personal_workspaces(exclude_personal_workspaces)
+        self.context.set_exclude_personal_workspaces(exclude_personal_workspaces)
 
-    def exclude_inactivate_workspaces(self, exclude_personal_workspaces):
-        self.context.exclude_inactivate_workspaces(exclude_personal_workspaces)
+    def exclude_inactive_workspaces(self, exclude_inactive_workspaces):
+        self.context.set_exclude_inactive_workspaces(exclude_inactive_workspaces)
+
+    def exclude_inactivate_workspaces(self, exclude_inactive_workspaces):
+        self.exclude_inactive_workspaces(exclude_inactive_workspaces)
 
     def set_ImpersonatedUserName(self, impersonatedUserName):
         self.context.set_ImpersonatedUserName(impersonatedUserName)

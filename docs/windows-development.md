@@ -33,6 +33,26 @@ The script will:
 4. Create a `.venv` Python virtual environment and install all dependencies
 5. Create a `local.settings.json` template if one doesn't exist
 
+### UI-only setup
+
+If you only want the non-developer Windows desktop UI and do not need Azure Functions Core Tools or Azurite, use:
+
+```powershell
+cd C:\Projects\Fabric\monitor
+.\setup-windows-ui.ps1
+```
+
+The UI setup script checks for Python 3.12, creates `.venv`, and installs `requirements.txt`.
+
+After setup succeeds:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m app.windows_ui
+```
+
+If `.\.venv\Scripts\Activate.ps1` is not recognized, `.venv` has not been created yet. Run `.\setup-windows-ui.ps1` first.
+
 ---
 
 ## Manual Setup

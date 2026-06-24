@@ -1,5 +1,6 @@
 import os
 import json
+import posixpath
 from env.utility.fabric import File_Table_Management
 from env.utility.blob import Blob_File_Management
 from env.utility.local import Local_File_Management
@@ -20,7 +21,6 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
     def content(self, context):
         self.context = context
 
-        print("storage account container name", self.context.StorageAccountContainerName)
         if self.context.StorageAccountContainerName:
             self.bfm = Blob_File_Management()
             self.bfm.set_context(self.context)
@@ -32,16 +32,25 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
             self.lfm = Local_File_Management()
             self.lfm.set_context(self.context)
 
+    def _blob_path(self, path: str, file_name: str) -> str:
+        parts = [
+            self.context.StorageAccountContainerRootPath or "",
+            path or "",
+            file_name or "",
+        ]
+        return posixpath.join(*(part.strip("/") for part in parts if part))
+
+    def _lakehouse_path(self, path: str) -> str:
+        lakehouse_path = self.context.PathInLakehouse or ""
+        base = "/lakehouse/default/Files" if self.context.on_fabric else f"{self.context.LakehouseName}.Lakehouse/Files"
+        return posixpath.join(base, lakehouse_path.strip("/"), path.strip("/"))
+
     async def save(self, path:str, file_name:str, content):
         """
         param: path is the location to where the content will be saved
         param: file_name is the name of the file to be saved
         param: content is a dictionary that is converted to bytes and saved as the path and file name
         """
-        print("What is the path?", path)
-        print("What is the file name?", file_name)
-        print("What is the content?", content)
-
         if not content:
             print("No content to save")
             return
@@ -52,7 +61,9 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
 
         try:
 
-            if isinstance(content, dict) or isinstance(content, list):
+            if isinstance(content, bytes):
+                pass
+            elif isinstance(content, dict) or isinstance(content, list):
                 content = json.dumps(content)
                 content = content.encode('utf-8')
             else:
@@ -60,11 +71,7 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
 
         #save file to storage
             if self.context.StorageAccountContainerName:
-                root = self.context.StorageAccountContainerRootPath
-                if root:
-                    path = f"{root}/{path}{file_name}"
-                else:
-                    path = f"{path}{file_name}"
+                path = self._blob_path(path, file_name)
 
                 if os.environ.get("DRY_RUN", "").lower() in ("1", "true", "yes"):
                     print(f"\n{'='*60}")
@@ -80,13 +87,7 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
             elif self.context.OutputPath:
                 await self.lfm.save(path=path, file_name=file_name, content=content)    
             elif self.context.LakehouseName:
-                if self.context.on_fabric:
-                    path = f"/lakehouse/default/Files/{self.context.PathInLakehouse}/{path}"
-                else:
-                    path = f"{self.context.LakehouseName}.Lakehouse/Files/{self.context.PathInLakehouse}/{path}"                   
-
-                path = path.replace("//","/")
-                
+                path = self._lakehouse_path(path)
                 await self.ftm.write_json_to_file(path=path, file_name=file_name, json_data=content)
             else:
                 print("No storage location found")
@@ -107,30 +108,23 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
         try:
 
             if self.context.StorageAccountContainerName:
-                root = self.context.StorageAccountContainerRootPath
-                if root:
-                    path = f"{root}/{path}{file_name}"
-                else:
-                    path = f"{path}{file_name}"
+                path = self._blob_path(path, file_name)
 
                 print(f"[READ] Attempting to read blob: container={self.context.StorageAccountContainerName} path={path}")
                 content = await self.bfm.read_from_file(blob_name=path)
                 if content is None:
-                    print(f"[READ] Blob not found or empty: {path} — will create fresh state")
+                    print(f"[READ] Blob not found or empty: {path} - will create fresh state")
                 else:
                     print(f"[READ] Successfully read blob: {path}")
                 
             elif self.context.OutputPath:
-                await self.lfm.save(path=path, file_name=file_name, content=content)    
+                content = await self.lfm.read(path=path, file_name=file_name)
             
             elif self.context.LakehouseName:
-                #TODO: create a directory
-                #TODO: upload/stream to location
-                
-                path = f"{self.context.LakehouseName}.Lakehouse/Files/{self.context.PathInLakehouse}/{path}"   
-                path = path.replace("//","/")
+                path = self._lakehouse_path(path)
                 content = await self.ftm.read(file_name=file_name, path=path)
-                content = content.decode('utf-8')
+                if content is not None:
+                    content = content.decode('utf-8')
 
             
                 # await self.ftm.write_json_to_file(path=path, file_name=file_name, json_data=content)

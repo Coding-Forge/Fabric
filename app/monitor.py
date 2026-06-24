@@ -1,89 +1,62 @@
-import os
+import argparse
+import asyncio
 import logging
-from env.audit import Audits
+import os
+from collections.abc import Sequence
 
 
-def _get_bool(key: str, default: bool = False) -> bool:
-    return os.environ.get(key, str(default)).lower() in ("1", "true", "yes")
+async def main(settings: dict | None = None, *, env_file: str | None = None):
+    from env.config import build_audit
 
-
-async def main():
-    audit = Audits()
-
-    # --- Service Principal (required) ---
-    audit.set_ServicePrincipal(
-        tenant_id=os.environ["TENANT_ID"],
-        client_id=os.environ["CLIENT_ID"],
-        client_secret=os.environ["CLIENT_SECRET"],
-    )
-
-    # --- Modules to run (required) ---
-    # Example: "Activity,Apps,Capacity,Catalog,Domains,FabricItems,Gateway,Graph,Refreshables,RefreshHistory,Roles,Tenant,Workspaces"
-    audit.set_ApplicationModules(os.environ["APPLICATION_MODULES"])
-
-    # --- Storage: prefer Blob Storage when STORAGE_ACCOUNT_CONN_STR or STORAGE_ACCOUNT_URL
-    #     is set, otherwise fall back to Fabric Lakehouse.
-    #     STORAGE_ACCOUNT_URL (e.g. https://<account>.blob.core.windows.net) uses
-    #     credential-based auth (Managed Identity / service principal) and works even when
-    #     shared key access is disabled on the storage account. ---
-    storage_conn_str = os.environ.get("STORAGE_ACCOUNT_CONN_STR") or None
-    storage_url = os.environ.get("STORAGE_ACCOUNT_URL") or None
-    if storage_conn_str:
-        audit.set_StorageAccountConnStr(storage_conn_str)
-        audit.set_StorageAccountContainerName(os.environ["STORAGE_ACCOUNT_CONTAINER_NAME"])
-        root_path = os.environ.get("STORAGE_ACCOUNT_CONTAINER_ROOT_PATH", "")
-        if root_path:
-            audit.set_StorageAccountContainerRootPath(root_path)
-        audit.set_on_fabric(False)
-    elif storage_url:
-        audit.set_storage_url(storage_url)
-        audit.set_StorageAccountContainerName(os.environ["STORAGE_ACCOUNT_CONTAINER_NAME"])
-        root_path = os.environ.get("STORAGE_ACCOUNT_CONTAINER_ROOT_PATH", "")
-        if root_path:
-            audit.set_StorageAccountContainerRootPath(root_path)
-        audit.set_on_fabric(False)
-    else:
-        audit.set_LakehouseName(os.environ["LAKEHOUSE_NAME"])
-        audit.set_WorkspaceName(os.environ["WORKSPACE_NAME"])
-        path_in_lakehouse = os.environ.get("PATH_IN_LAKEHOUSE", "")
-        if path_in_lakehouse:
-            audit.set_PathInLakehouse(path_in_lakehouse)
-        audit.set_on_fabric(_get_bool("ON_FABRIC", True))
-
-    # --- Optional: extract all workspaces ---
-    audit.set_all_workspaces(_get_bool("ALL_WORKSPACES", False))
-
-    # --- Optional: impersonated user ---
-    impersonated_user = os.environ.get("IMPERSONATED_USER_NAME")
-    if impersonated_user:
-        audit.set_ImpersonatedUserName(impersonated_user)
-
-    # --- Optional: Capacity Metrics dataset ---
-    capacity_metrics_id = os.environ.get("CAPACITY_METRICS_DATASET_ID")
-    if capacity_metrics_id:
-        audit.set_capacity_metrics_dataset_id(capacity_metrics_id)
-
-    # --- Optional: per-module cron overrides ---
-    # These override the default cron schedule for each module.
-    # Format: standard cron syntax, e.g. "0 */4 * * *"
-    cron_map = {
-        "ACTIVITY_CRON": audit.set_Activity_cron,
-        "APPS_CRON": audit.set_Apps_cron,
-        "CAPACITY_CRON": audit.set_Capacity_cron,
-        "CATALOG_CRON": audit.set_Catalog_cron,
-        "DOMAINS_CRON": audit.set_Domains_cron,
-        "GATEWAY_CRON": audit.set_Gateway_cron,
-        "GRAPH_CRON": audit.set_Graph_cron,
-        "REFRESHABLES_CRON": audit.set_Refreshables_cron,
-        "REFRESHHISTORY_CRON": audit.set_RefreshHistory_cron,
-        "ROLES_CRON": audit.set_Roles_cron,
-        "TENANT_CRON": audit.set_Tenant_cron,
-    }
-    for env_key, setter in cron_map.items():
-        value = os.environ.get(env_key)
-        if value:
-            setter(value)
+    audit = build_audit(settings=settings, load_env_file=True, env_file=env_file)
 
     logging.info("Starting Fabric Monitor run")
     await audit.run()
     logging.info("Fabric Monitor run complete")
+
+
+def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run the Fabric Monitor application.")
+    parser.add_argument(
+        "--base",
+        action="store_true",
+        help="Run catalog in full workspace scan mode for this execution.",
+    )
+    parser.add_argument(
+        "--modules",
+        help="Comma-separated module list to run for this execution.",
+    )
+    parser.add_argument(
+        "--profile",
+        help="Path to a JSON profile containing monitor configuration values.",
+    )
+    parser.add_argument(
+        "--env-file",
+        help="Path to a .env file. Defaults to .env in the current directory when omitted.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print blob writes instead of writing to Blob Storage.",
+    )
+    return parser.parse_args(argv)
+
+
+def cli(argv: Sequence[str] | None = None) -> None:
+    args = _parse_args(argv)
+    overrides = {}
+    if args.profile:
+        from env.config import load_profile
+
+        overrides.update(load_profile(args.profile))
+    if args.base:
+        overrides["ALL_WORKSPACES"] = True
+    if args.modules:
+        overrides["APPLICATION_MODULES"] = args.modules
+    if args.dry_run:
+        os.environ["DRY_RUN"] = "true"
+    asyncio.run(main(settings=overrides, env_file=args.env_file))
+
+
+if __name__ == "__main__":
+    cli()

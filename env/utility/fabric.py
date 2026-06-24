@@ -25,7 +25,8 @@ class File_Table_Management:
         self.client_id = context.ServicePrincipal.get("AppId")
         self.client_secret = context.ServicePrincipal.get("AppSecret")
         self.workspace_name = context.WorkspaceName
-        self.fsc = self.get_file_system_client()
+        if not context.on_fabric:
+            self.fsc = self.get_file_system_client()
 
 
     def __await__(self):
@@ -88,6 +89,13 @@ class File_Table_Management:
             local_file.close()
 
     async def read(self, path:str, file_name: str):
+        if self.context.on_fabric:
+            file_path = os.path.join(path, file_name)
+            if not os.path.exists(file_path):
+                return None
+            with open(file_path, "rb") as file:
+                return file.read()
+
         dc = self.fsc.get_directory_client(path)
         file_client = dc.get_file_client(file_name)
         try:

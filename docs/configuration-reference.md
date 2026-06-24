@@ -2,6 +2,12 @@
 
 All settings are environment variables. Locally they are set in `local.settings.json` under `Values`. In Azure they are set as **Function App → Settings → Environment variables**.
 
+For standalone Python and the Windows UI, the same values can also be supplied in a JSON profile and passed with:
+
+```powershell
+python -m app.monitor --profile .\profiles\local-monitor.json
+```
+
 ---
 
 ## Required Settings
@@ -17,9 +23,15 @@ All settings are environment variables. Locally they are set in `local.settings.
 
 ## Storage Settings
 
-Exactly one storage mode must be configured: **Blob Storage URL** (recommended), **Blob Storage connection string**, or **Fabric Lakehouse**.
+Configure one storage mode: **local files**, **Blob Storage URL** (recommended), **Blob Storage connection string**, or **Fabric Lakehouse**. If no storage settings are provided, standalone Python defaults to `OUTPUT_PATH=Data`.
 
-### Option A — Blob Storage with URL auth (recommended)
+### Option A — Local files
+
+| Variable | Required | Description |
+|---|---|---|
+| `OUTPUT_PATH` | No | Local folder for output files. Defaults to `Data` for standalone Python when no other storage mode is configured. |
+
+### Option B — Blob Storage with URL auth (recommended)
 
 Uses `DefaultAzureCredential` (Managed Identity in Azure, service principal locally). Works when shared key access is disabled on your storage account.
 
@@ -34,17 +46,17 @@ Uses `DefaultAzureCredential` (Managed Identity in Azure, service principal loca
 
 > In Azure with Managed Identity, `AZURE_*` variables are **not needed** — the identity is resolved automatically.
 
-### Option B — Blob Storage with connection string
+### Option C — Blob Storage with connection string
 
 | Variable | Required | Description |
 |---|---|---|
-| `STORAGE_ACCOUNT_CONN_STR` | Yes | Full connection string from the storage account Access keys blade. |
+| `STORAGE_ACCOUNT_CONN_STR` or `STORAGE_ACCOUNT_CONNECTION_STRING` | Yes | Full connection string from the storage account Access keys blade. |
 | `STORAGE_ACCOUNT_CONTAINER_NAME` | Yes | Container name. |
 | `STORAGE_ACCOUNT_CONTAINER_ROOT_PATH` | No | Root path prefix. |
 
 > Not recommended if "Allow storage account key access" is disabled on your storage account.
 
-### Option C — Fabric Lakehouse
+### Option D — Fabric Lakehouse
 
 Used when running inside a Fabric environment.
 
@@ -63,6 +75,8 @@ Used when running inside a Fabric environment.
 |---|---|---|
 | `DRY_RUN` | `false` | When `true`, prints what would be written to blob instead of writing it. Useful for local testing. |
 | `ALL_WORKSPACES` | `false` | When `true`, retrieves all workspaces regardless of modification date. |
+| `EXCLUDE_PERSONAL_WORKSPACES` | `true` | Excludes personal workspaces from catalog modified-workspace scans. |
+| `EXCLUDE_INACTIVE_WORKSPACES` | `true` | Excludes inactive workspaces from catalog modified-workspace scans. |
 | `IMPERSONATED_USER_NAME` | _(none)_ | UPN of a user to impersonate for API calls. |
 | `CAPACITY_METRICS_DATASET_ID` | _(none)_ | Dataset ID for the Capacity Metrics module. |
 
@@ -77,14 +91,17 @@ Each module runs on the global timer schedule (`0 0 */4 * * *` — every 4 hours
 | `ACTIVITY_CRON` | Activity Events |
 | `APPS_CRON` | Apps |
 | `CAPACITY_CRON` | Capacity |
+| `CAPACITY_METRICS_CRON` | Capacity Metrics |
 | `CATALOG_CRON` | Catalog Scans |
 | `DOMAINS_CRON` | Domains |
+| `FABRICITEMS_CRON` | Fabric Items |
 | `GATEWAY_CRON` | Gateways |
 | `GRAPH_CRON` | Graph (AAD Groups) |
 | `REFRESHABLES_CRON` | Refreshables |
 | `REFRESHHISTORY_CRON` | Refresh History |
 | `ROLES_CRON` | Workspace Roles |
 | `TENANT_CRON` | Tenant Settings |
+| `WORKSPACES_CRON` | Workspaces |
 
 **Example:** run Catalog only once a day at midnight UTC:
 ```

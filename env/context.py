@@ -22,6 +22,7 @@ class Context:
         self.Activity_cron = None
         self.Apps_cron = None
         self.Capacity_cron = None
+        self.CapacityMetrics_cron = None
         self.Catalog_cron = None
         self.Domains_cron = None
         self.FabricItems_cron = None
@@ -179,8 +180,17 @@ class Context:
     def set_Capacity_cron(self, Capacity_cron):
         self.Capacity_cron = Capacity_cron
 
+    def set_CapacityMetrics_cron(self, CapacityMetrics_cron):
+        self.CapacityMetrics_cron = CapacityMetrics_cron
+
     def set_Roles_cron(self, Roles_cron):
         self.Roles_cron = Roles_cron
+
+    def set_FabricItems_cron(self, FabricItems_cron):
+        self.FabricItems_cron = FabricItems_cron
+
+    def set_Workspaces_cron(self, Workspaces_cron):
+        self.Workspaces_cron = Workspaces_cron
 
     def set_ApplicationModules(self, ApplicationModules):
         self.ApplicationModules = ApplicationModules
@@ -219,8 +229,14 @@ class Context:
             return self.Gateway_cron
         elif cron_name == "Capacity":
             return self.Capacity_cron
+        elif cron_name == "CapacityMetrics":
+            return self.CapacityMetrics_cron
         elif cron_name == "Roles":
             return self.Roles_cron
+        elif cron_name == "FabricItems":
+            return self.FabricItems_cron
+        elif cron_name == "Workspaces":
+            return self.Workspaces_cron
         else:
             return None
     
