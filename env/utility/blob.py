@@ -13,7 +13,7 @@ class Blob_File_Management:
         self.context = context
         # DefaultAzureCredential works both locally (via AZURE_CLIENT_ID / AZURE_CLIENT_SECRET /
         # AZURE_TENANT_ID env vars or `az login`) and in Azure (via Managed Identity).
-        self.credentials = DefaultAzureCredential()
+        self.credentials = DefaultAzureCredential(authority=self.context.cloud.azure_authority_host)
 
     def _get_client(self, blob_name: str) -> BlobClient:
         if self.context.StorageAccountConnStr:

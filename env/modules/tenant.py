@@ -34,7 +34,7 @@ async def main(context=None):
 
 ##################### INTIALIZE THE CONFIGURATION #####################
 
-    url = "https://api.fabric.microsoft.com/v1/admin/tenantsettings"
+    url = context.get_fabric_url("v1/admin/tenantsettings")
 
     response = requests.get(url=url, headers=headers)
     if response.status_code == 200:

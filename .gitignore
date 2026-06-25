@@ -21,3 +21,6 @@ venv/
 !Fabric/*.json
 .python_packages
 
+# Ignore local GeneralDynamics content
+GeneralDynamics/
+

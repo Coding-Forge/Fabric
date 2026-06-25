@@ -38,12 +38,19 @@ class File_Table_Management:
             workspace_name=self.workspace_name).__await__()
 
     def get_file_system_client(self) -> FileSystemClient:
+        if not self.context.cloud.supports_onelake:
+            raise RuntimeError(
+                f"OneLake output is not enabled for CLOUD_ENVIRONMENT={self.context.cloud.name}. "
+                "Use local or Blob Storage output outside Commercial until Fabric Gov is available."
+            )
+
         cred = ClientSecretCredential(tenant_id=self.tenant_id,
                                     client_id=self.client_id,
-                                    client_secret=self.client_secret)
+                                    client_secret=self.client_secret,
+                                    authority=self.context.cloud.azure_authority_host)
 
         file_system_client = FileSystemClient(
-            account_url="https://onelake.dfs.fabric.microsoft.com",
+            account_url=self.context.cloud.onelake_dfs_root,
             file_system_name=self.workspace_name,
             credential=cred)
 

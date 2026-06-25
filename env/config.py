@@ -79,6 +79,7 @@ def build_audit(
         tenant_id=_get_value(settings, "TENANT_ID", "TenantId", required=True),
         client_id=_get_value(settings, "CLIENT_ID", "ClientId", required=True),
         client_secret=_get_value(settings, "CLIENT_SECRET", "ClientSecret", required=True),
+        environment=_get_value(settings, "CLOUD_ENVIRONMENT", "CloudEnvironment", "ENVIRONMENT", "Environment", default="Commercial"),
     )
     audit.set_ApplicationModules(
         _get_value(settings, "APPLICATION_MODULES", "ApplicationModules", default=DEFAULT_APPLICATION_MODULES)
@@ -130,6 +131,11 @@ def build_audit(
 
     if audit.context.StorageAccountContainerName or audit.context.OutputPath:
         audit.set_on_fabric(False)
+    elif audit.context.LakehouseName and not audit.context.cloud.supports_onelake:
+        raise RuntimeError(
+            f"Fabric Lakehouse / OneLake output is not enabled for CLOUD_ENVIRONMENT={audit.context.cloud.name}. "
+            "Use OUTPUT_PATH or Blob Storage until Fabric Gov is available."
+        )
     elif not audit.context.LakehouseName:
         audit.set_OutputPath("Data")
         audit.set_on_fabric(False)

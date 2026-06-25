@@ -17,6 +17,7 @@ python -m app.monitor --profile .\profiles\local-monitor.json
 | `TENANT_ID` | Azure AD tenant ID. Used by MSAL for Power BI / Fabric API token acquisition. |
 | `CLIENT_ID` | App registration (service principal) client ID. |
 | `CLIENT_SECRET` | App registration client secret. **Use a Key Vault reference in production.** |
+| `CLOUD_ENVIRONMENT` | Cloud profile for endpoints and token scopes. Supported values: `Commercial`, `Gcc`, `GccHigh`, `Dod`. Defaults to `Commercial`. |
 | `APPLICATION_MODULES` | Comma-separated list of modules to run. See [Modules](#modules) below. |
 
 ---
@@ -37,7 +38,7 @@ Uses `DefaultAzureCredential` (Managed Identity in Azure, service principal loca
 
 | Variable | Required | Description |
 |---|---|---|
-| `STORAGE_ACCOUNT_URL` | Yes | `https://<account>.blob.core.windows.net` |
+| `STORAGE_ACCOUNT_URL` | Yes | Commercial/GCC: `https://<account>.blob.core.windows.net`; GCC High/DoD Azure Government: `https://<account>.blob.core.usgovcloudapi.net` |
 | `STORAGE_ACCOUNT_CONTAINER_NAME` | Yes | Container name, e.g. `monitor` |
 | `STORAGE_ACCOUNT_CONTAINER_ROOT_PATH` | No | Root path prefix inside the container, e.g. `stage` |
 | `AZURE_TENANT_ID` | Yes (local) | Same as `TENANT_ID`. Read by `DefaultAzureCredential`. |
@@ -59,6 +60,8 @@ Uses `DefaultAzureCredential` (Managed Identity in Azure, service principal loca
 ### Option D — Fabric Lakehouse
 
 Used when running inside a Fabric environment.
+
+> Fabric Lakehouse / OneLake output is currently enabled only for `CLOUD_ENVIRONMENT=Commercial`. Use local files or Blob Storage for `Gcc`, `GccHigh`, and `Dod` until Fabric Gov support becomes public preview.
 
 | Variable | Required | Description |
 |---|---|---|
@@ -129,6 +132,23 @@ All available module names for `APPLICATION_MODULES`:
 | `Roles` | Workspace role assignments |
 | `Tenant` | Tenant settings |
 | `Workspaces` | Workspace metadata |
+
+---
+
+## Cloud Environment Behavior
+
+`CLOUD_ENVIRONMENT` controls the identity authority, API roots, and token scopes used by the monitor.
+
+| Value | Power BI API root | Graph root | Fabric REST / OneLake |
+|---|---|---|---|
+| `Commercial` | `https://api.powerbi.com/v1.0/myorg/` | `https://graph.microsoft.com/beta` | Enabled |
+| `Gcc` | `https://api.powerbigov.us/v1.0/myorg/` | `https://graph.microsoft.com/beta` | Disabled |
+| `GccHigh` | `https://api.high.powerbigov.us/v1.0/myorg/` | `https://graph.microsoft.us/beta` | Disabled |
+| `Dod` | `https://api.mil.powerbigov.us/v1.0/myorg/` | `https://graph.microsoft.us/beta` | Disabled |
+
+The monitor automatically skips Fabric REST API modules outside Commercial until Fabric Gov becomes public preview. Skipped modules: `Domains`, `FabricItems`, `Roles`, `Tenant`, and `Workspaces`.
+
+Classic Power BI REST modules such as `Activity`, `Apps`, `Capacity`, `CapacityMetrics`, `Catalog`, `Gateway`, `Refreshables`, and `RefreshHistory` continue to use the configured Power BI government endpoint.
 
 ---
 

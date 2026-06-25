@@ -14,9 +14,9 @@ async def main(context=None):
         raise RuntimeError("Context is None")
 
 
-    headers =  context.clients['pbi'].get_headers()
+    headers =  context.clients['tenant'].get_headers()
 
-    url = "https://api.fabric.microsoft.com/v1/admin/workspaces"
+    url = context.get_fabric_url("v1/admin/workspaces")
 
     async def get_workspaces(url:str, pageCount:int):
 

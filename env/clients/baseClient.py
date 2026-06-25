@@ -26,7 +26,7 @@ class Client:
 
             print("An exception occurred while reading the file:", str(e))
 
-        authority = f"https://login.microsoftonline.com/{tenant_id}"
+        authority = f"{self._context.cloud.authority_host}/{tenant_id}"
 
 
         # Create a ConfidentialClientApplication object

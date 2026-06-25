@@ -13,6 +13,7 @@ What you need to do to use this application
 3.	Create your .env file  
     a. Set the cron time for each module  
     b. Select which modules you would like the monitor application to use  
+    c. Set `CLOUD_ENVIRONMENT` to `Commercial`, `Gcc`, `GccHigh`, or `Dod`  
 4.	Using the application  
     a. Native Python Application  
     b. Docker Container  
@@ -122,6 +123,20 @@ python -m env.modules.<module name>
 ```
 
 The standalone application loads `.env` automatically. The same configuration builder supports both current upper-case environment variable names and the older names from `env/.env.examples`.
+
+Set `CLOUD_ENVIRONMENT` to choose the cloud endpoint profile. `Commercial` is the default. `Gcc`, `GccHigh`, and `Dod` switch Power BI, Graph, authority, and Azure Storage authentication endpoints to government cloud profiles. Fabric REST API and OneLake output modules are automatically skipped outside Commercial until Fabric Gov becomes public preview.
+
+## Azure Synapse Notebooks
+
+The monitor can also be run from Azure Synapse notebooks, including Synapse in Azure Government for GCC High scenarios. Notebooks run the Python monitor code and can write output to files, Blob Storage, or a downstream Synapse Dedicated SQL Pool load step.
+
+See [Running the Monitor from Azure Synapse Notebooks](docs/azure-synapse-notebooks.md) for import options, notebook setup, required configuration, GCC High notes, and Dedicated SQL Pool loading patterns.
+
+## Enterprise Deployment
+
+For production deployments, use Azure Functions for scheduled data collection, ADLS Gen2 or Blob Storage for raw output, and Synapse for downstream curation/loading.
+
+See [Enterprise Deployment Best Practices](docs/enterprise-deployment-best-practices.md) for cloud-specific guidance across Commercial, GCC, GCC High, and DoD.
 
 For Fabric notebooks, keep the repo files available in the notebook environment and call the notebook helper from a setup cell:
 

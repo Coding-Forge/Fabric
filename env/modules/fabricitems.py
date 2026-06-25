@@ -13,7 +13,7 @@ async def main(context=None):
     """
 
 
-    headers = context.clients['pbi'].get_headers()
+    headers = context.clients['tenant'].get_headers()
 
     today = datetime.now()
     async def get_data(url, pageIndex=1):
@@ -30,7 +30,7 @@ async def main(context=None):
             context.logger.error(f"Error paginating fabricitems: {e}")
             return
 
-    url = "https://api.fabric.microsoft.com/v1/admin/items"
+    url = context.get_fabric_url("v1/admin/items")
     await get_data(url)
 
 if __name__ == "__main__":

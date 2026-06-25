@@ -5,6 +5,9 @@ import aiohttp
 import logging
 from typing import Dict, Any, Coroutine
 from datetime import datetime, timedelta
+from urllib.parse import urljoin
+
+from env.cloud import get_cloud_profile
 from env.utility.file_management import File_Management
 
 # On Linux/WSL, aiohttp tries IPv6 first which causes SSL handshake timeouts.
@@ -52,6 +55,7 @@ class Context:
         self.on_fabric = True
         self.capacity_metrics_dataset_id = None
         self.impersonatedUserName = None
+        self.cloud = get_cloud_profile(None)
 
     def __set_log_level(self, level):
         """
@@ -131,11 +135,12 @@ class Context:
         self.CatalogGetModifiedParameters = CatalogGetModifiedParameters
 
     def set_ServicePrincipal(self, AppId, AppSecret, TenantId, Environment):
+        self.cloud = get_cloud_profile(Environment)
         self.ServicePrincipal = {
             "AppId": AppId,
             "AppSecret": AppSecret,
             "TenantId": TenantId,
-            "Environment": Environment
+            "Environment": self.cloud.name
         }
 
     def set_ImpersonatedUserName(self, impersonatedUserName):
@@ -243,6 +248,21 @@ class Context:
     def get_ApplicationModules(self):
         return self.ApplicationModules
 
+    def get_powerbi_url(self, rest_api: str) -> str:
+        if rest_api.lower().startswith(("http://", "https://")):
+            return rest_api
+        return urljoin(self.cloud.powerbi_api_root, rest_api)
+
+    def get_fabric_url(self, rest_api: str) -> str:
+        if not self.cloud.supports_fabric_api:
+            raise RuntimeError(
+                f"Fabric REST APIs are not enabled for CLOUD_ENVIRONMENT={self.cloud.name}. "
+                "Use Commercial until Fabric Gov is available."
+            )
+        if rest_api.lower().startswith(("http://", "https://")):
+            return rest_api
+        return urljoin(self.cloud.fabric_api_root, rest_api)
+
     def convert_dt_str(self, date_time):
         """
         Convert a datetime object to a string
@@ -269,9 +289,7 @@ class Context:
         headers: dict
         body: dict
         """
-        api_root = "https://api.powerbi.com/v1.0/myorg/"
-
-        url = api_root + rest_api
+        url = self.get_powerbi_url(rest_api)
 
         def _log(method, url, status, result=None):
             if result is None:
@@ -356,11 +374,7 @@ class Context:
                             return {"ERROR" : "429 error thrown", "message": response}
             else:
 
-                p = rest_api.find("api.fabric.microsoft")
-
-                url = api_root + rest_api
-                if p > 0:
-                    url = rest_api
+                url = rest_api if rest_api.lower().startswith(("http://", "https://")) else self.get_powerbi_url(rest_api)
 
                 async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(**_CONNECTOR_KWARGS), timeout=_TIMEOUT) as session:
                     async with session.get(url, headers=headers) as response:

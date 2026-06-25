@@ -17,7 +17,7 @@ async def main(context=None):
         raise RuntimeError("Context is None")
 
 
-    headers =  context.clients['pbi'].get_headers()
+    headers =  context.clients['tenant'].get_headers()
 
 
     items = set()
@@ -25,9 +25,9 @@ async def main(context=None):
     while True:
 
         if continuationToken == None:
-            response = requests.get("https://api.fabric.microsoft.com/v1/admin/workspaces", headers=headers)
+            response = requests.get(context.get_fabric_url("v1/admin/workspaces"), headers=headers)
         else:
-            response = requests.get(f"https://api.fabric.microsoft.com/v1/admin/workspaces?continuationToken='{continuationToken}'",headers=headers)
+            response = requests.get(context.get_fabric_url(f"v1/admin/workspaces?continuationToken='{continuationToken}'"),headers=headers)
 
         if response.ok:
             results = response.json()
@@ -45,12 +45,13 @@ async def main(context=None):
     ceiling = len(items)
     cnt = 0
 
-    base_url = 'https://api.powerbi.com/v1.0/myorg/admin/groups?$expand=users&$top=5000'
+    pbi_headers = context.clients['pbi'].get_headers()
+    base_url = context.get_powerbi_url('admin/groups?$expand=users&$top=5000')
 
     all_groups = []
     for i in range(0, ceiling, 5000):
         url = f'{base_url}&$skip={i}'
-        response = requests.get(url, headers=headers)
+        response = requests.get(url, headers=pbi_headers)
         if response.status_code == 200:
             groups = response.json().get('value', [])
             all_groups.extend(groups)

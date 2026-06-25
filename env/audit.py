@@ -20,6 +20,7 @@ from env.context import Context
 import re
 
 content = None
+FABRIC_ONLY_MODULES = {"Domains", "FabricItems", "Tenant", "Roles", "Workspaces"}
 
 
 # from .monitor import main as Monitor
@@ -49,7 +50,8 @@ class Audits:
     def __setup_clients(self):
         self.context.clients["pbi"] = PbiClient(self.context)
         self.context.clients["graph"] = GraphClient(self.context)
-        self.context.clients["tenant"] = TenantClient(self.context)
+        if self.context.cloud.supports_fabric_api:
+            self.context.clients["tenant"] = TenantClient(self.context)
 
     def set_logging_config(self, log_level, log_file):
         self.context.set_log_config(log_level, log_file)
@@ -82,6 +84,17 @@ class Audits:
         # get the modules selected in the configuration for the application
         # modules = settings.get("ApplicationModules").replace(" ","").split(",")
         modules = self.context.ApplicationModules.replace(" ","").split(",")
+        if not self.context.cloud.supports_fabric_api:
+            requested_modules = modules
+            modules = [module for module in modules if module not in FABRIC_ONLY_MODULES]
+            skipped_modules = [module for module in requested_modules if module in FABRIC_ONLY_MODULES]
+            if skipped_modules:
+                message = (
+                    f"Skipping Fabric REST API modules for CLOUD_ENVIRONMENT={self.context.cloud.name}: "
+                    f"{', '.join(skipped_modules)}. Fabric Gov support is disabled until public preview."
+                )
+                self.context.logger.warning(message)
+                print(message)
         
         run_jobs = []
 
@@ -245,8 +258,8 @@ class Audits:
     def set_CatalogGetInfoParameters(self, CatalogGetInfoParameters):
         self.context.set_CatalogGetInfoParameters(CatalogGetInfoParameters)
 
-    def set_ServicePrincipal(self, tenant_id, client_id, client_secret):
-        self.context.set_ServicePrincipal(TenantId=tenant_id, AppId=client_id, AppSecret=client_secret, Environment="Public")
+    def set_ServicePrincipal(self, tenant_id, client_id, client_secret, environment="Commercial"):
+        self.context.set_ServicePrincipal(TenantId=tenant_id, AppId=client_id, AppSecret=client_secret, Environment=environment)
 
     def set_LakehouseName(self, LakehouseName):
         self.context.set_LakehouseName(LakehouseName)

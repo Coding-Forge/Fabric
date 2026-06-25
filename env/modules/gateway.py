@@ -18,7 +18,7 @@ async def main(context=None):
     
 # GET https://api.powerbi.com/v1.0/myorg/gateways
     
-    api_url = 'https://api.powerbi.com/v1.0/myorg/gateways'
+    api_url = context.get_powerbi_url('gateways')
     response = requests.get(url=api_url, headers=headers)
     results = response.json()
 
@@ -52,7 +52,7 @@ async def main(context=None):
 
     r = list()
     for id in gateways:
-        response = requests.get(f'https://api.powerbi.com/v1.0/myorg/gateways/{id}/datasources', headers=headers)
+        response = requests.get(context.get_powerbi_url(f'gateways/{id}/datasources'), headers=headers)
         doc_results = response.json()
         r.append(doc_results['value'])   
 
@@ -67,7 +67,7 @@ async def main(context=None):
 
 
     for i in range(0,len(gateways)):
-        api_users = f'https://api.powerbi.com/v1.0/myorg/gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/users'
+        api_users = context.get_powerbi_url(f'gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/users')
         response = requests.get(api_users, headers=headers)
         results = response.json()
 
@@ -78,7 +78,7 @@ async def main(context=None):
                 users.append(results['value'][l])
 
     for i in range(0,len(gateways)):
-        api_status = f'https://api.powerbi.com/v1.0/myorg/gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/status'
+        api_status = context.get_powerbi_url(f'gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/status')
         
         response = requests.get(api_status, headers=headers)
         if response.ok:
@@ -96,7 +96,7 @@ async def main(context=None):
             status.append(results)
 
     for i in range(0,len(gateways)):
-        api_datasource = f'https://api.powerbi.com/v1.0/myorg/gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}'
+        api_datasource = context.get_powerbi_url(f'gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}')
         response = requests.get(api_datasource, headers=headers)
         results = response.json()
         results.pop('@odata.context')

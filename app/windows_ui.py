@@ -27,6 +27,8 @@ MODULES = [
     "Workspaces",
 ]
 
+CLOUD_ENVIRONMENTS = ("Commercial", "Gcc", "GccHigh", "Dod")
+
 STORAGE_MODES = (
     "Local files",
     "Blob Storage URL",
@@ -106,6 +108,15 @@ class MonitorUi(tk.Tk):
         self._add_field(required, 0, "Tenant ID", "TENANT_ID")
         self._add_field(required, 1, "Client ID", "CLIENT_ID")
         self._add_field(required, 2, "Client secret", "CLIENT_SECRET", show="*")
+        self.fields["CLOUD_ENVIRONMENT"] = tk.StringVar(value=CLOUD_ENVIRONMENTS[0])
+        ttk.Label(required, text="Cloud environment").grid(row=3, column=0, sticky=tk.W, pady=3)
+        cloud_selector = ttk.Combobox(
+            required,
+            textvariable=self.fields["CLOUD_ENVIRONMENT"],
+            values=CLOUD_ENVIRONMENTS,
+            state="readonly",
+        )
+        cloud_selector.grid(row=3, column=1, sticky=tk.EW, pady=3)
 
         storage = ttk.LabelFrame(parent, text="Output storage", padding=10)
         storage.grid(row=1, column=0, sticky=tk.NSEW, padx=4, pady=4)
@@ -210,6 +221,7 @@ class MonitorUi(tk.Tk):
         profile: dict[str, str | bool] = {
             "TENANT_ID": self.fields["TENANT_ID"].get().strip(),
             "CLIENT_ID": self.fields["CLIENT_ID"].get().strip(),
+            "CLOUD_ENVIRONMENT": self.fields["CLOUD_ENVIRONMENT"].get().strip() or "Commercial",
             "APPLICATION_MODULES": ",".join(modules),
             "ALL_WORKSPACES": self.base_scan_var.get(),
             "EXCLUDE_PERSONAL_WORKSPACES": self.exclude_personal_var.get(),

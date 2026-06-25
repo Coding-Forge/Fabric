@@ -39,6 +39,11 @@ def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
         action="store_true",
         help="Print blob writes instead of writing to Blob Storage.",
     )
+    parser.add_argument(
+        "--cloud-environment",
+        choices=("Commercial", "Gcc", "GccHigh", "Dod"),
+        help="Cloud endpoint profile to use for this execution.",
+    )
     return parser.parse_args(argv)
 
 
@@ -53,6 +58,8 @@ def cli(argv: Sequence[str] | None = None) -> None:
         overrides["ALL_WORKSPACES"] = True
     if args.modules:
         overrides["APPLICATION_MODULES"] = args.modules
+    if args.cloud_environment:
+        overrides["CLOUD_ENVIRONMENT"] = args.cloud_environment
     if args.dry_run:
         os.environ["DRY_RUN"] = "true"
     asyncio.run(main(settings=overrides, env_file=args.env_file))
