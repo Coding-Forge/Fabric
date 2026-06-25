@@ -130,6 +130,8 @@ class Audits:
         if len(run_jobs) == 0:
             print("No jobs to run")
             return
+
+        self.__validate_auth(run_jobs)
         
         print(f"Running jobs: {run_jobs}")
 
@@ -149,20 +151,44 @@ class Audits:
 
         async def task(name, work_queue, content):
             timer = Timer(text=f"Task {name} elapsed time: {{:.1f}}")
+            failures = []
             while not work_queue.empty():
                 module = await work_queue.get()
-                self.context.logger.info(f"Task {remove_carriage_returns(module.__doc__)} is now running")
-                print(f"Task {remove_carriage_returns(module.__doc__)} is now running")
-                timer.start()
-                await module(content)
-                timer.stop()
+                module_name = remove_carriage_returns(module.__doc__)
+                self.context.logger.info(f"Task {module_name} is now running")
+                print(f"Task {module_name} is now running")
+                try:
+                    timer.start()
+                    await module(content)
+                    timer.stop()
+                except Exception as exc:
+                    try:
+                        timer.stop()
+                    except Exception:
+                        pass
+                    failures.append((module_name, exc))
+            return failures
 
         gather_tasks = []
         for module in run_jobs:
             gather_tasks.append(asyncio.create_task(task(f"{module}", work_queue, content=self.context)))
 
         with Timer(text="\nTotal elapsed time: {:.1f}"):
-            await asyncio.gather(*gather_tasks)
+            results = await asyncio.gather(*gather_tasks, return_exceptions=True)
+
+        failures = []
+        for result in results:
+            if isinstance(result, Exception):
+                failures.append(("worker", result))
+            else:
+                failures.extend(result)
+
+        if failures:
+            for module_name, failure in failures:
+                self.context.logger.error(f"Task {module_name} failed: {failure}")
+                print(f"Task {module_name} failed: {failure}")
+            failed_modules = ", ".join(module_name for module_name, _ in failures)
+            raise RuntimeError(f"One or more monitor tasks failed: {failed_modules}")
 
         if isinstance(current_state, str):
             current_state = json.loads(current_state)
@@ -176,6 +202,17 @@ class Audits:
         except Exception as e:
             self.context.logger.error(f"Error saving state.yaml file: {e}")
             print(f"fm Error: {e}")
+
+    def __validate_auth(self, run_jobs):
+        clients_to_validate = {"pbi"}
+        if "Graph" in run_jobs:
+            clients_to_validate.add("graph")
+        if any(module in FABRIC_ONLY_MODULES for module in run_jobs) and "tenant" in self.context.clients:
+            clients_to_validate.add("tenant")
+
+        for client_name in sorted(clients_to_validate):
+            print(f"Validating {client_name} authentication for CLOUD_ENVIRONMENT={self.context.cloud.name}")
+            self.context.clients[client_name].get_headers()
 
 
     async def create_state(self):
@@ -308,6 +345,12 @@ class Audits:
 
     def set_ApplicationModules(self, ApplicationModules):
         self.context.set_ApplicationModules(ApplicationModules)
+
+    def set_GraphExtractGroups(self, GraphExtractGroups):
+        self.context.set_GraphExtractGroups(GraphExtractGroups)
+
+    def set_PowerBIAudienceGroupIds(self, PowerBIAudienceGroupIds):
+        self.context.set_PowerBIAudienceGroupIds(PowerBIAudienceGroupIds)
 
     def exclude_personal_workspaces(self, exclude_personal_workspaces):
         self.context.set_exclude_personal_workspaces(exclude_personal_workspaces)

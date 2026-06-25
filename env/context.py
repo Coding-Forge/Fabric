@@ -43,6 +43,7 @@ class Context:
         self.StorageAccountContainerRootPath = None
         self.OutputPath = None
         self.GraphExtractGroups = None
+        self.PowerBIAudienceGroupIds = None
         self.WorkspaceName = None
         self.clients = {}
         self.fm = File_Management()
@@ -199,6 +200,12 @@ class Context:
 
     def set_ApplicationModules(self, ApplicationModules):
         self.ApplicationModules = ApplicationModules
+
+    def set_GraphExtractGroups(self, GraphExtractGroups):
+        self.GraphExtractGroups = GraphExtractGroups
+
+    def set_PowerBIAudienceGroupIds(self, PowerBIAudienceGroupIds):
+        self.PowerBIAudienceGroupIds = PowerBIAudienceGroupIds
 
     def get_ServicePrincipal(self):
         return self.ServicePrincipal

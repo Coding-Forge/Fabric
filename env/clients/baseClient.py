@@ -12,19 +12,15 @@ class Client:
         Get the access token for the Power BI API
         """
 
-        try:
-            if self._context is None:
-                print("Context is None")
+        if self._context is None:
+            raise RuntimeError("Context is None")
 
-            sp = self._context.get_ServicePrincipal()
-            tenant_id = sp['TenantId']
-            client_id = sp['AppId']
-            client_secret = sp['AppSecret']
-
-        except Exception as e:
-            self._context.logger.error(f"An exception occurred while reading the file: {str(e)}")
-
-            print("An exception occurred while reading the file:", str(e))
+        sp = self._context.get_ServicePrincipal()
+        tenant_id = sp.get("TenantId")
+        client_id = sp.get("AppId")
+        client_secret = sp.get("AppSecret")
+        if not tenant_id or not client_id or not client_secret:
+            raise RuntimeError("TENANT_ID, CLIENT_ID, and CLIENT_SECRET are required for token acquisition.")
 
         authority = f"{self._context.cloud.authority_host}/{tenant_id}"
 
@@ -40,29 +36,18 @@ class Client:
         # This needs to stay as a list
         scopes = [self.scope]
         
-        # Acquire a token using client credentials
-        try:
-            result = app.acquire_token_for_client(scopes=scopes)
-            if "access_token" in result:
-                access_token = result["access_token"]
-                # Use the access token to make API calls to Power BI
-                headers = {'Authorization': f'Bearer {access_token}'}
+        result = app.acquire_token_for_client(scopes=scopes)
+        if "access_token" not in result:
+            error = result.get("error", "authentication_failed")
+            description = result.get("error_description", "Authentication failed.")
+            message = f"Token acquisition failed for {self.scope}: {error}: {description}"
+            if "AADSTS7000215" in description:
+                message += (
+                    " Use the client secret VALUE from the Entra app registration, "
+                    "not the secret ID."
+                )
+            self._context.logger.error(message)
+            raise RuntimeError(message)
 
-            else:
-                # If silent token acquisition fails, fallback to interactive authentication
-                result = app.acquire_token_for_client(scopes=scopes)
-
-                if "access_token" in result:
-                    # TODO: Add your Power BI API calls here
-                    access_token = result["access_token"]
-                    # Use the access token to make API calls to Power BI
-                    headers = {'Authorization': f'Bearer {access_token}'}
-
-                else:
-                    print(result.get("error_description", "Authentication failed."))
-
-            return headers
-            
-        except Exception as ex:
-            self._context.logger.error(f"An exception occurred while reading the file: {str(ex)}")
-            print(ex)
+        access_token = result["access_token"]
+        return {'Authorization': f'Bearer {access_token}'}

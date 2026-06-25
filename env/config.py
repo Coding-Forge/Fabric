@@ -95,8 +95,11 @@ def build_audit(
         audit.exclude_inactive_workspaces(
             _get_bool(settings, "EXCLUDE_INACTIVE_WORKSPACES", "ExcludeInactiveWorkspaces")
         )
+    if _get_value(settings, "GRAPH_EXTRACT_GROUPS", "GraphExtractGroups") is not None:
+        audit.set_GraphExtractGroups(_get_bool(settings, "GRAPH_EXTRACT_GROUPS", "GraphExtractGroups"))
 
     _set_if_present(settings, ("IMPERSONATED_USER_NAME", "ImpersonatedUserName"), audit.set_ImpersonatedUserName)
+    _set_if_present(settings, ("POWER_BI_AUDIENCE_GROUP_IDS", "PowerBIAudienceGroupIds"), audit.set_PowerBIAudienceGroupIds)
     _set_if_present(settings, ("CAPACITY_METRICS_DATASET_ID", "CapacityMetricsDatasetId"), audit.set_capacity_metrics_dataset_id)
     _set_if_present(settings, ("OUTPUT_PATH", "OutputPath"), audit.set_OutputPath)
     _set_if_present(settings, ("LAKEHOUSE_NAME", "LakehouseName"), audit.set_LakehouseName)

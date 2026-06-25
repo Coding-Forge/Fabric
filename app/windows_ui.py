@@ -1,6 +1,7 @@
 import json
 import os
 import queue
+import re
 import subprocess
 import sys
 import tempfile
@@ -384,6 +385,13 @@ class MonitorUi(tk.Tk):
         for key in ("TENANT_ID", "CLIENT_ID", "CLIENT_SECRET"):
             if not profile.get(key):
                 raise ValueError(f"{key} is required.")
+
+        secret = str(profile.get("CLIENT_SECRET", "")).strip()
+        if re.fullmatch(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}", secret):
+            raise ValueError(
+                "CLIENT_SECRET looks like a secret ID. Paste the secret VALUE from Entra app registration "
+                "Certificates & secrets, not the secret ID."
+            )
 
         has_storage = any(
             profile.get(key)

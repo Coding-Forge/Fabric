@@ -1,21 +1,36 @@
-import os
-import json
-
 import asyncio
-import time
+from datetime import datetime
+
 import requests
 
-#from ..utility.fab2 import File_Table_Management
-from datetime import datetime, timedelta
 
-####### CATALOG PRECONFIGURATION #######
-catalog_types = ["scan","snapshots"]
-today = datetime.now()
-getInfoDetails = "lineage=true&datasourceDetails=true&getArtifactUsers=true&datasetSchema=false&datasetExpressions=false"
-getModifiedWorkspacesParams = "excludePersonalWorkspaces=False&excludeInActiveWorkspaces=False"
-FullScanAfterDays = 30
-reset  = True
-####### CATALOG PRECONFIGURATION #######
+def _split_ids(value) -> set[str]:
+    if not value:
+        return set()
+    if isinstance(value, (list, tuple, set)):
+        return {str(item).strip().lower() for item in value if str(item).strip()}
+    return {item.strip().lower() for item in str(value).split(",") if item.strip()}
+
+
+def _get_all_pages(url: str, headers: dict) -> list[dict]:
+    results = []
+    next_url = url
+    while next_url:
+        response = requests.get(next_url, headers=headers)
+        if response.status_code != 200:
+            if response.status_code == 403:
+                raise RuntimeError(
+                    "Graph request failed with 403 Authorization_RequestDenied. "
+                    "Grant admin consent for Microsoft Graph application permissions "
+                    "User.Read.All, Group.Read.All, and Directory.Read.All, then rerun Graph. "
+                    f"Response: {response.text}"
+                )
+            raise RuntimeError(f"Graph request failed: {response.status_code} {response.text}")
+
+        payload = response.json()
+        results.extend(payload.get("value", []))
+        next_url = payload.get("@odata.nextLink")
+    return results
 
 
 async def main(context=None):
@@ -25,62 +40,91 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-##################### INTIALIZE THE CONFIGURATION #####################
-    # get POWER BI context and settings -- this call must be synchronous
-
-    headers = context.clients['graph'].get_headers()
-    headers['Content-Type'] = 'application/json'
+    headers = context.clients["graph"].get_headers()
+    headers["Content-Type"] = "application/json"
 
     today = datetime.now()
-
     lakehouse_catalog = f"graph/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
-    Groups = bool(context.GraphExtractGroups)
-    
-##################### INTIALIZE THE CONFIGURATION #####################
+    graph_url = context.clients["graph"].get_api_root()
+    audience_group_ids = _split_ids(context.PowerBIAudienceGroupIds)
 
-    graphUrl = context.clients['graph'].get_api_root()
-    outputPath = f"{lakehouse_catalog}"
-    graphCalls = [
-        {'users':
-            { 
-                'GraphURL': f'{graphUrl}/users?$select=id,displayName,assignedLicenses,UserPrincipalName',
-                'FilePath': 'users.json'
-            }
-        },
-        {"subscribedSkus":
-            {
-            'GraphURL': f'{graphUrl}/subscribedSkus?$select=id,capabilityStatus,consumedUnits,prepaidUnits,skuid,skupartnumber,prepaidUnits',
-            'FilePath': 'subscribedskus.json'
-            }
-        }
-    ]
-
-    if Groups:
-        graphCalls.append(
-            {"groups":
+    users_url = (
+        f"{graph_url}/users?"
+        "$select=id,displayName,userPrincipalName,mail,accountEnabled,userType,assignedLicenses"
+        "&$top=999"
+    )
+    users = _get_all_pages(users_url, headers)
+    user_licenses = []
+    for user in users:
+        user_id = user.get("id")
+        upn = user.get("userPrincipalName")
+        for license_item in user.get("assignedLicenses") or []:
+            user_licenses.append(
                 {
-                    'GraphURL': f'{graphUrl}/groups?$filter=securityEnabled eq true&$select=id,displayName',
-                    'FilePath': 'groups.json'
+                    "userId": user_id,
+                    "userPrincipalName": upn,
+                    "skuId": license_item.get("skuId"),
+                    "disabledPlans": license_item.get("disabledPlans") or [],
                 }
-            }
+            )
+
+    subscribed_skus_url = (
+        f"{graph_url}/subscribedSkus?"
+        "$select=id,capabilityStatus,consumedUnits,prepaidUnits,skuId,skuPartNumber"
+    )
+    subscribed_skus = _get_all_pages(subscribed_skus_url, headers)
+
+    await context.fm.save(path=lakehouse_catalog, file_name="users.json", content=users)
+    await context.fm.save(path=lakehouse_catalog, file_name="userlicenses.json", content=user_licenses)
+    await context.fm.save(path=lakehouse_catalog, file_name="subscribedskus.json", content=subscribed_skus)
+
+    extract_groups = True if context.GraphExtractGroups is None else bool(context.GraphExtractGroups)
+    if not extract_groups:
+        return
+
+    groups_url = (
+        f"{graph_url}/groups?"
+        "$filter=securityEnabled eq true"
+        "&$select=id,displayName,mail,mailEnabled,securityEnabled,groupTypes"
+        "&$top=999"
+    )
+    groups = _get_all_pages(groups_url, headers)
+    for group in groups:
+        group["isPowerBIAudienceGroup"] = (
+            not audience_group_ids or str(group.get("id", "")).lower() in audience_group_ids
         )
 
-    for call in graphCalls:
-        for key, value in call.items():
+    group_members = []
+    for group in groups:
+        group_id = group.get("id")
+        if not group_id:
+            continue
 
-            response = requests.get(value['GraphURL'], headers=headers)
-            if response.status_code == 200:
-                result = response.json()
+        members_url = (
+            f"{graph_url}/groups/{group_id}/transitiveMembers/microsoft.graph.user?"
+            "$select=id,displayName,userPrincipalName,mail,accountEnabled,userType"
+            "&$top=999"
+        )
+        members = _get_all_pages(members_url, headers)
+        for member in members:
+            group_members.append(
+                {
+                    "groupId": group_id,
+                    "groupDisplayName": group.get("displayName"),
+                    "isPowerBIAudienceGroup": group.get("isPowerBIAudienceGroup"),
+                    "memberId": member.get("id"),
+                    "displayName": member.get("displayName"),
+                    "userPrincipalName": member.get("userPrincipalName"),
+                    "mail": member.get("mail"),
+                    "accountEnabled": member.get("accountEnabled"),
+                    "userType": member.get("userType"),
+                }
+            )
 
-                info = result.get("value")
+    await context.fm.save(path=lakehouse_catalog, file_name="groups.json", content=groups)
+    await context.fm.save(path=lakehouse_catalog, file_name="groupmembers.json", content=group_members)
 
-                await context.fm.save(path=lakehouse_catalog, file_name=value['FilePath'], content=info)
-
-                #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=lakehouse_catalog)
-                #await FF.write_json_to_file(directory_client=dc, file_name=value['FilePath'], json_data=result)
-
-# TODO: Fix error that comes from return application/json
-# doesn't kill the job but does throw an error
 
 if __name__ == "__main__":
     asyncio.run(main())
+
