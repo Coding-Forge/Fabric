@@ -138,6 +138,24 @@ For production deployments, use Azure Functions for scheduled data collection, A
 
 See [Enterprise Deployment Best Practices](docs/enterprise-deployment-best-practices.md) for cloud-specific guidance across Commercial, GCC, GCC High, and DoD.
 
+## Windows UI Launcher
+
+For a simple end-user experience on Windows, use:
+
+```text
+Run Fabric Monitor UI.cmd
+```
+
+The launcher creates a local virtual environment, installs dependencies on first run, and opens the Windows UI. Users can also run:
+
+```text
+Create Desktop Shortcut.cmd
+```
+
+to create a desktop icon.
+
+See [Windows UI Release and Launcher](docs/windows-ui-release.md) for release zip and enterprise packaging guidance.
+
 For Fabric notebooks, keep the repo files available in the notebook environment and call the notebook helper from a setup cell:
 
 ```python
