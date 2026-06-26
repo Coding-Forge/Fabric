@@ -85,6 +85,36 @@ icons/
 README.md
 ```
 
+You can build the default end-user zip with:
+
+```powershell
+.\build-release.ps1 -Version 1.0.0
+```
+
+This creates:
+
+```text
+release\fabric-monitor-windows-ui-v1.0.0.zip
+```
+
+Optional release switches:
+
+| Switch | Adds |
+|---|---|
+| `-IncludeSetupScripts` | `setup-windows-ui.ps1`, `setup-windows.ps1` |
+| `-IncludeContainers` | `containers/` |
+| `-IncludeInfra` | `infra/`, `azure.yaml`, `BICEP_README.md` |
+| `-IncludeNotebooks` | `notebooks/`, sample notebook files |
+| `-IncludeFabricAssets` | `Fabric/`, `activity.json.txt`, `PublicLibrary.yml` |
+| `-IncludeAzureDevOps` | `.azdo/` |
+| `-IncludeAllOptional` | All optional choices |
+
+Example full package:
+
+```powershell
+.\build-release.ps1 -Version 1.0.0 -IncludeAllOptional
+```
+
 Do not include:
 
 ```text
