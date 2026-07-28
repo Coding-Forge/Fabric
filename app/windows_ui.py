@@ -134,7 +134,14 @@ class MonitorUi(tk.Tk):
         storage_selector.bind("<<ComboboxSelected>>", lambda _event: self.update_storage_fields())
 
         local_frame = self._add_storage_frame(storage, "Local files", "Local files")
-        self._add_field(local_frame, 0, "Local output path", "OUTPUT_PATH").insert(0, "Data")
+        local_frame.columnconfigure(2, weight=0)
+        ttk.Label(local_frame, text="Local output path").grid(row=0, column=0, sticky=tk.W, pady=3)
+        value = self.fields.get("OUTPUT_PATH") or tk.StringVar()
+        entry = ttk.Entry(local_frame, textvariable=value)
+        entry.grid(row=0, column=1, sticky=tk.EW, pady=3, padx=(0, 4))
+        entry.insert(0, "Data")
+        self.fields["OUTPUT_PATH"] = value
+        ttk.Button(local_frame, text="Browse...", command=self.browse_output_folder).grid(row=0, column=2, sticky=tk.E, pady=3)
 
         blob_url_frame = self._add_storage_frame(storage, "Blob Storage URL", "Blob Storage URL")
         self._add_field(blob_url_frame, 0, "Blob account URL", "STORAGE_ACCOUNT_URL")
@@ -177,6 +184,32 @@ class MonitorUi(tk.Tk):
                 frame.grid(row=1, column=0, columnspan=2, sticky=tk.EW, pady=(8, 0))
             else:
                 frame.grid_remove()
+
+    def browse_output_folder(self):
+        """Open a folder browser dialog to select or create an output directory."""
+        initial_path = self.fields["OUTPUT_PATH"].get().strip()
+        if not initial_path or initial_path == "Data":
+            initial_path = str(Path.cwd())
+        elif not Path(initial_path).is_absolute():
+            initial_path = str(self.project_root / initial_path)
+        
+        try:
+            selected_path = filedialog.askdirectory(
+                title="Select or create output folder for Fabric Monitor",
+                initialdir=initial_path if Path(initial_path).exists() else str(Path.cwd()),
+                mustexist=False
+            )
+            if selected_path:
+                # Convert to absolute path and update field
+                abs_path = Path(selected_path).resolve()
+                # Create the folder if it doesn't exist
+                try:
+                    abs_path.mkdir(parents=True, exist_ok=True)
+                    self.fields["OUTPUT_PATH"].set(str(abs_path))
+                except Exception as error:
+                    messagebox.showerror("Folder creation failed", f"Unable to create folder: {error}")
+        except Exception as error:
+            messagebox.showerror("Browse folder failed", str(error))
 
     def _build_modules_tab(self, parent):
         ttk.Label(parent, text="Select the modules to run. These map to APPLICATION_MODULES.").pack(anchor=tk.W)
