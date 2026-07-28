@@ -1,0 +1,286 @@
+table activity
+	lineageTag: 90867da0-dc82-4034-8424-40821f324f36
+
+	column Id
+		dataType: string
+		lineageTag: 1e1fbd5c-023b-4687-91e1-88c2dcf5dcca
+		summarizeBy: none
+		sourceColumn: Id
+
+		annotation SummarizationSetBy = Automatic
+
+	column RecordType
+		dataType: int64
+		formatString: 0
+		lineageTag: 295d6773-11bd-4fbf-bdca-c8f475759807
+		summarizeBy: sum
+		sourceColumn: RecordType
+
+		annotation SummarizationSetBy = Automatic
+
+	column CreationTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9ccafcac-da25-43cf-9f49-2fa4f8b7f4c5
+		summarizeBy: none
+		sourceColumn: CreationTime
+
+		variation Variation
+			isDefault
+			relationship: 05c57fbb-ce0f-45fe-85e8-e7039968472f
+			defaultHierarchy: LocalDateTable_cba74368-764f-470d-923a-7cc8e4d59c03.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Operation
+		dataType: string
+		lineageTag: b777a97d-6e3f-4ae7-b7c6-413101bd4de6
+		summarizeBy: none
+		sourceColumn: Operation
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrganizationId
+		dataType: string
+		lineageTag: b3213226-15e1-4160-bc5b-9ac74e8eaf36
+		summarizeBy: none
+		sourceColumn: OrganizationId
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserType
+		dataType: int64
+		formatString: 0
+		lineageTag: 81ae3130-a9d8-47c2-902b-ff02666e6588
+		summarizeBy: sum
+		sourceColumn: UserType
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserKey
+		dataType: string
+		lineageTag: 4ff4262f-f877-425f-95a2-0ad3f8e349b4
+		summarizeBy: none
+		sourceColumn: UserKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Workload
+		dataType: string
+		lineageTag: b701be0d-5359-43a8-8c81-75881b738606
+		summarizeBy: none
+		sourceColumn: Workload
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserId
+		dataType: string
+		lineageTag: d9c943c4-6d03-4ed2-94d5-2bafca10a1af
+		summarizeBy: none
+		sourceColumn: UserId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClientIP
+		dataType: string
+		lineageTag: adc7a1e0-e2bc-445d-a36f-2b619cab9dfd
+		summarizeBy: none
+		sourceColumn: ClientIP
+
+		annotation SummarizationSetBy = Automatic
+
+	column Activity
+		dataType: string
+		lineageTag: c9a09cc7-d1f5-4b30-8129-08b9f2009083
+		summarizeBy: none
+		sourceColumn: Activity
+
+		annotation SummarizationSetBy = Automatic
+
+	column ItemName
+		dataType: string
+		lineageTag: 029098df-ee29-40ef-ac27-d4e107b80e0b
+		summarizeBy: none
+		sourceColumn: ItemName
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkSpaceName
+		dataType: string
+		lineageTag: 30ffd9a1-a0bf-437a-9d56-88dc234a73e1
+		summarizeBy: none
+		sourceColumn: WorkSpaceName
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetName
+		dataType: string
+		lineageTag: b6bc0684-9657-4e33-bd27-adffe13a505f
+		summarizeBy: none
+		sourceColumn: DatasetName
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapacityId
+		dataType: string
+		lineageTag: 24215b95-11be-46e2-aab3-9381cdc68bd8
+		summarizeBy: none
+		sourceColumn: CapacityId
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapacityName
+		dataType: string
+		lineageTag: 959db4e8-bd15-468f-8353-5e285bef65a3
+		summarizeBy: none
+		sourceColumn: CapacityName
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceId
+		dataType: string
+		lineageTag: 65bb7183-a56d-43a1-823f-3b0a1077b27b
+		summarizeBy: none
+		sourceColumn: WorkspaceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ObjectId
+		dataType: string
+		lineageTag: 9f4fcde5-cfe6-47f8-8187-5346871db3e2
+		summarizeBy: none
+		sourceColumn: ObjectId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetId
+		dataType: string
+		lineageTag: dc92e7f8-c64d-4ae3-9df1-01fc3ca24adf
+		summarizeBy: none
+		sourceColumn: DatasetId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataConnectivityMode
+		dataType: string
+		lineageTag: 06c35206-6758-49e7-a442-6691777e289e
+		summarizeBy: none
+		sourceColumn: DataConnectivityMode
+
+		annotation SummarizationSetBy = Automatic
+
+	column ArtifactId
+		dataType: string
+		lineageTag: e99a7316-f65a-452f-8243-469325ddb2c9
+		summarizeBy: none
+		sourceColumn: ArtifactId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ArtifactName
+		dataType: string
+		lineageTag: 6b10ed9d-5ee7-47c0-9351-471eba1b4737
+		summarizeBy: none
+		sourceColumn: ArtifactName
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsSuccess
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 86ee3e19-9ec7-4110-98ed-2f1872701b0b
+		summarizeBy: none
+		sourceColumn: IsSuccess
+
+		annotation SummarizationSetBy = Automatic
+
+	column RequestId
+		dataType: string
+		lineageTag: 962c3648-d313-4a12-a32e-02a55b197445
+		summarizeBy: none
+		sourceColumn: RequestId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ActivityId
+		dataType: string
+		lineageTag: 455b5052-96b8-4540-bbfa-c3ef5b58f97e
+		summarizeBy: none
+		sourceColumn: ActivityId
+
+		annotation SummarizationSetBy = Automatic
+
+	column RefreshType
+		dataType: string
+		lineageTag: 5dfe780a-21d8-4c03-9e0a-b881cf44bf63
+		summarizeBy: none
+		sourceColumn: RefreshType
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastRefreshTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 37ec5be4-91b3-4b17-9e5f-39400e4fc515
+		summarizeBy: none
+		sourceColumn: LastRefreshTime
+
+		variation Variation
+			isDefault
+			relationship: 9def52f3-9ad2-4f35-a623-1fcab7930192
+			defaultHierarchy: LocalDateTable_ee0c90c1-d213-4433-a5ce-32eabeac4f1f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column ArtifactKind
+		dataType: string
+		lineageTag: 35040587-8e5b-4c73-8efa-97b0df35e6e6
+		summarizeBy: none
+		sourceColumn: ArtifactKind
+
+		annotation SummarizationSetBy = Automatic
+
+	column RefreshEnforcementPolicy
+		dataType: int64
+		formatString: 0
+		lineageTag: d5b96b58-9073-4f99-9ca3-d4b8b033089e
+		summarizeBy: sum
+		sourceColumn: RefreshEnforcementPolicy
+
+		annotation SummarizationSetBy = Automatic
+
+	column ItemId
+		dataType: string
+		lineageTag: f57b01c6-480b-4abd-9a5b-828fb2c96e97
+		summarizeBy: none
+		sourceColumn: ItemId
+
+		annotation SummarizationSetBy = Automatic
+
+	column BillingType
+		dataType: int64
+		formatString: 0
+		lineageTag: 4822b808-8c1f-4c47-b4f3-7933f96cf4c9
+		summarizeBy: sum
+		sourceColumn: BillingType
+
+		annotation SummarizationSetBy = Automatic
+
+	partition activity = m
+		mode: import
+		source =
+				let
+				  Source = Folder.Files("C:\Projects\tests\monitor\activity"),
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"Content"}),
+				    #"Filtered Hidden Files1" = Table.SelectRows(#"Removed Other Columns", each [Attributes]?[Hidden]? <> true),
+				    #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Hidden Files1", "Transform File", each #"Transform File"([Content])),
+				    #"Removed Other Columns1" = Table.SelectColumns(#"Invoke Custom Function1", {"Transform File"}),
+				    #"Expanded Table Column1" = Table.ExpandTableColumn(#"Removed Other Columns1", "Transform File", Table.ColumnNames(#"Transform File"(#"Sample File"))),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Table Column1",{{"Id", type text}, {"RecordType", Int64.Type}, {"CreationTime", type datetime}, {"Operation", type text}, {"OrganizationId", type text}, {"UserType", Int64.Type}, {"UserKey", type text}, {"Workload", type text}, {"UserId", type text}, {"ClientIP", type text}, {"Activity", type text}, {"ItemName", type text}, {"WorkSpaceName", type text}, {"DatasetName", type text}, {"CapacityId", type text}, {"CapacityName", type text}, {"WorkspaceId", type text}, {"ObjectId", type text}, {"DatasetId", type text}, {"DataConnectivityMode", type text}, {"ArtifactId", type text}, {"ArtifactName", type text}, {"IsSuccess", type logical}, {"RequestId", type text}, {"ActivityId", type text}, {"RefreshType", type text}, {"LastRefreshTime", type datetime}, {"ArtifactKind", type text}, {"RefreshEnforcementPolicy", Int64.Type}, {"ItemId", type text}, {"BillingType", Int64.Type}})
+				in
+				  #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

@@ -1,0 +1,195 @@
+table AudienceUsage
+	lineageTag: a029a5d7-5d75-4242-a505-44f91c60c10b
+
+	column GroupId
+		dataType: string
+		lineageTag: 2824883c-7a71-4868-94c7-bcd9c620fcb3
+		summarizeBy: none
+		sourceColumn: GroupId
+
+		annotation SummarizationSetBy = Automatic
+
+	column GroupDisplayName
+		dataType: string
+		lineageTag: f901dfd2-dd2d-47fb-95f3-207979737523
+		summarizeBy: none
+		sourceColumn: GroupDisplayName
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsPowerBIAudienceGroup
+		dataType: boolean
+		lineageTag: 50412b35-b9f8-4d6e-ab24-02f8f50f2779
+		summarizeBy: none
+		sourceColumn: IsPowerBIAudienceGroup
+
+		annotation SummarizationSetBy = Automatic
+
+	column MemberObjectId
+		dataType: string
+		lineageTag: f3719a6b-699d-4314-a189-2a42955ea4fb
+		summarizeBy: none
+		sourceColumn: MemberObjectId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DisplayName
+		dataType: string
+		lineageTag: 612502db-6587-4067-b588-b067db0bf2a3
+		summarizeBy: none
+		sourceColumn: DisplayName
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserPrincipalName
+		dataType: string
+		lineageTag: fe88b379-e960-4d72-92c0-d164934926e3
+		summarizeBy: none
+		sourceColumn: UserPrincipalName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mail
+		dataType: string
+		lineageTag: e548c7f6-225f-4893-a906-bc76902e65dd
+		summarizeBy: none
+		sourceColumn: Mail
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccountEnabled
+		dataType: boolean
+		lineageTag: 21fbb67c-896d-4853-a683-0d9eb8c8e371
+		summarizeBy: none
+		sourceColumn: AccountEnabled
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserType
+		dataType: string
+		lineageTag: fa39f03f-9b1b-4b78-859a-048c03f7e617
+		summarizeBy: none
+		sourceColumn: UserType
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastActivityDate
+		dataType: dateTime
+		lineageTag: 8e8708ea-0ba0-433b-b572-dbd0aea6f140
+		summarizeBy: none
+		sourceColumn: LastActivityDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column ActivityCount
+		dataType: int64
+		lineageTag: 8b313e97-9399-420f-a97a-eab28e6b70b8
+		summarizeBy: none
+		sourceColumn: ActivityCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column FirstActivityDate
+		dataType: dateTime
+		lineageTag: de609289-da4b-4772-9fba-7a541bbb6ff8
+		summarizeBy: none
+		sourceColumn: FirstActivityDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column DistinctWorkspaces
+		dataType: int64
+		lineageTag: e7029af1-a0c2-416b-9db3-e710582397c5
+		summarizeBy: none
+		sourceColumn: DistinctWorkspaces
+
+		annotation SummarizationSetBy = Automatic
+
+	column DistinctArtifacts
+		dataType: int64
+		lineageTag: 036694fd-8344-471c-9e94-fd4487ff51fc
+		summarizeBy: none
+		sourceColumn: DistinctArtifacts
+
+		annotation SummarizationSetBy = Automatic
+
+	column DaysSinceLastActivity
+		dataType: int64
+		lineageTag: 86e0c3f8-a664-4f84-8025-78a02754517b
+		summarizeBy: none
+		sourceColumn: DaysSinceLastActivity
+
+		annotation SummarizationSetBy = Automatic
+
+	column ActivityStatus
+		dataType: string
+		lineageTag: 968af935-615d-4137-a89f-7de18fcded74
+		summarizeBy: none
+		sourceColumn: ActivityStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column SkuId
+		dataType: string
+		lineageTag: b1133aaf-1da0-4002-8cb9-c4f8b93929d3
+		summarizeBy: none
+		sourceColumn: SkuId
+
+		annotation SummarizationSetBy = Automatic
+
+	column SkuPartNumber
+		dataType: string
+		lineageTag: 34e01d66-2c9c-4690-b007-c1e1feb35e35
+		summarizeBy: none
+		sourceColumn: SkuPartNumber
+
+		annotation SummarizationSetBy = Automatic
+
+	column LicenseName
+		dataType: string
+		lineageTag: 07c869be-e421-48b1-92d0-eb7a28155c49
+		summarizeBy: none
+		sourceColumn: LicenseName
+
+		annotation SummarizationSetBy = Automatic
+
+	column HasPowerBILicense
+		dataType: boolean
+		lineageTag: 11c378ea-b04f-4d13-9236-4e5ca98cc566
+		summarizeBy: none
+		sourceColumn: HasPowerBILicense
+
+		annotation SummarizationSetBy = Automatic
+
+	column HasUsedPowerBI
+		dataType: boolean
+		lineageTag: 9849730f-0322-43cf-a358-4a7127b73f1d
+		summarizeBy: none
+		sourceColumn: HasUsedPowerBI
+
+		annotation SummarizationSetBy = Automatic
+
+	partition AudienceUsage = m
+		mode: import
+		source =
+				let
+				    Members = Table.SelectRows(Table.Buffer(GraphGroupMembers), each [IsPowerBIAudienceGroup] = true or [IsPowerBIAudienceGroup] = null),
+				    ActivityJoin = Table.NestedJoin(Members, {"UserPrincipalName"}, Table.Buffer(UserActivitySummary), {"UserId"}, "Activity", JoinKind.LeftOuter),
+				    ExpandedActivity = Table.ExpandTableColumn(ActivityJoin, "Activity", {"LastActivityDate", "ActivityCount", "FirstActivityDate", "DistinctWorkspaces", "DistinctArtifacts", "DaysSinceLastActivity", "ActivityStatus"}, {"LastActivityDate", "ActivityCount", "FirstActivityDate", "DistinctWorkspaces", "DistinctArtifacts", "DaysSinceLastActivity", "ActivityStatus"}),
+				    LicenseJoin = Table.NestedJoin(ExpandedActivity, {"MemberObjectId"}, Table.Buffer(GraphUserLicenses), {"UserObjectId"}, "Licenses", JoinKind.LeftOuter),
+				    ExpandedLicenses = Table.ExpandTableColumn(LicenseJoin, "Licenses", {"SkuId"}, {"SkuId"}),
+				    SkuJoin = Table.NestedJoin(ExpandedLicenses, {"SkuId"}, Table.Buffer(GraphSubscribedSkus), {"SkuId"}, "Sku", JoinKind.LeftOuter),
+				    ExpandedSku = Table.ExpandTableColumn(SkuJoin, "Sku", {"SkuPartNumber"}, {"SkuPartNumber"}),
+				    AddedLicenseName = Table.AddColumn(ExpandedSku, "LicenseName", each if [SkuPartNumber] = null then "Unlicensed" else [SkuPartNumber], type text),
+				    AddedPowerBI = Table.AddColumn(AddedLicenseName, "HasPowerBILicense", each [SkuPartNumber] <> null and (Text.Contains(Text.Upper([SkuPartNumber]), "POWER_BI") or Text.Contains(Text.Upper([SkuPartNumber]), "PBI") or Text.Contains(Text.Upper([SkuPartNumber]), "FABRIC")), type logical),
+				    FilledCounts = Table.TransformColumns(AddedPowerBI, {{"ActivityCount", each if _ = null then 0 else _, Int64.Type}, {"DistinctWorkspaces", each if _ = null then 0 else _, Int64.Type}, {"DistinctArtifacts", each if _ = null then 0 else _, Int64.Type}}),
+				    FilledStatus = Table.ReplaceValue(FilledCounts, null, "Never active", Replacer.ReplaceValue, {"ActivityStatus"}),
+				    AddedUsed = Table.AddColumn(FilledStatus, "HasUsedPowerBI", each [ActivityCount] > 0, type logical),
+				    Changed = Table.TransformColumnTypes(AddedUsed, {{"GroupId", type text}, {"GroupDisplayName", type text}, {"IsPowerBIAudienceGroup", type logical}, {"MemberObjectId", type text}, {"DisplayName", type text}, {"UserPrincipalName", type text}, {"Mail", type text}, {"AccountEnabled", type logical}, {"UserType", type text}, {"LastActivityDate", type datetime}, {"ActivityCount", Int64.Type}, {"FirstActivityDate", type datetime}, {"DistinctWorkspaces", Int64.Type}, {"DistinctArtifacts", Int64.Type}, {"DaysSinceLastActivity", Int64.Type}, {"ActivityStatus", type text}, {"SkuId", type text}, {"SkuPartNumber", type text}, {"LicenseName", type text}, {"HasPowerBILicense", type logical}, {"HasUsedPowerBI", type logical}})
+				in
+				    Changed
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

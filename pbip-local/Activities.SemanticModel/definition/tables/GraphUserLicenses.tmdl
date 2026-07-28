@@ -1,0 +1,66 @@
+table GraphUserLicenses
+	lineageTag: ced76962-7b79-44a4-8050-4929acaabe07
+
+	column UserObjectId
+		dataType: string
+		lineageTag: 89dc6e96-dffe-47a8-990b-9b3d0d70e9f9
+		summarizeBy: none
+		sourceColumn: UserObjectId
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserPrincipalName
+		dataType: string
+		lineageTag: 66851343-312f-40c0-b6d2-36f1c65da7b9
+		summarizeBy: none
+		sourceColumn: UserPrincipalName
+
+		annotation SummarizationSetBy = Automatic
+
+	column SkuId
+		dataType: string
+		lineageTag: 030dfdd8-2270-4962-a9bd-0326174c1885
+		summarizeBy: none
+		sourceColumn: SkuId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DisabledPlans
+		dataType: string
+		lineageTag: 7275cfb6-6bbb-4a16-b7c0-36d49833077c
+		summarizeBy: none
+		sourceColumn: DisabledPlans
+
+		annotation SummarizationSetBy = Automatic
+
+	partition GraphUserLicenses = m
+		mode: import
+		source =
+				let
+				    LatestFolderFiles = (root as text, fileName as text) as table =>
+				        let
+				            Source = try Folder.Files(root) otherwise #table(type table [Content = binary, Name = text, Extension = text, Date accessed = nullable datetime, Date modified = nullable datetime, Date created = nullable datetime, Attributes = record, Folder Path = text], {}),
+				            Filtered = Table.SelectRows(Source, each [Name] = fileName and Text.Contains(Text.Lower([Folder Path]), "\graph\") and [Attributes]?[Hidden]? <> true)
+				        in
+				            Filtered,
+				
+				    Files = LatestFolderFiles("C:\Projects\Tests\Monitor", "userlicenses.json"),
+				    Empty = #table(type table [UserObjectId = text, UserPrincipalName = text, SkuId = text, DisabledPlans = text], {}),
+				    Output = if Table.RowCount(Files) = 0 then Empty else
+				        let
+				            WithJson = Table.AddColumn(Files, "Json", each Json.Document([Content])),
+				            ExpandedList = Table.ExpandListColumn(Table.SelectColumns(WithJson, {"Json"}), "Json"),
+				            Fields = {"userId", "userPrincipalName", "skuId", "disabledPlans"},
+				            Normalized = Table.TransformColumns(ExpandedList, {{"Json", each if Value.Is(_, type record) then Record.SelectFields(_, Fields, MissingField.UseNull) else _, type record}}),
+				            Expanded = Table.ExpandRecordColumn(Normalized, "Json", Fields, {"UserObjectId", "UserPrincipalName", "SkuId", "DisabledPlans"}),
+				            TextPlans = Table.TransformColumns(Expanded, {{"DisabledPlans", each if _ = null then null else Text.Combine(List.Transform(_, each Text.From(_)), ","), type text}}),
+				            Changed = Table.TransformColumnTypes(TextPlans, {{"UserObjectId", type text}, {"UserPrincipalName", type text}, {"SkuId", type text}, {"DisabledPlans", type text}})
+				        in
+				            Changed
+				in
+				    Output
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+
