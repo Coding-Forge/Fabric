@@ -1,0 +1,61 @@
+table DatasetRefreshScheduleDays
+	lineageTag: ccf12b38-f518-4026-bbd5-facd7ffe741f
+
+	column DatasetId
+		dataType: string
+		lineageTag: 3acd0eeb-7ac4-4183-9aed-afca00ab0a7e
+		summarizeBy: none
+		sourceColumn: DatasetId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetName
+		dataType: string
+		lineageTag: a56de1ad-e528-4632-b127-1e94aca2d436
+		summarizeBy: none
+		sourceColumn: DatasetName
+
+		annotation SummarizationSetBy = Automatic
+
+	column RefreshScheduleDay
+		dataType: string
+		lineageTag: 63789c10-734b-4b83-a659-2ba21868a6ff
+		summarizeBy: none
+		sourceColumn: RefreshScheduleDay
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetRefreshScheduleDayKey
+		dataType: string
+		lineageTag: a8007e62-e702-4a8f-a584-7f00493596d5
+		summarizeBy: none
+		sourceColumn: DatasetRefreshScheduleDayKey
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DatasetRefreshScheduleDays = m
+		mode: import
+		source =
+				let
+				    Source = Base,
+				    #"Selected Workspace Columns" = Table.SelectColumns(Source, {"id", "name", "datasets"}),
+				    #"Renamed Workspace Columns" = Table.RenameColumns(#"Selected Workspace Columns", {{"id", "WorkspaceId"}, {"name", "WorkspaceName"}}),
+				    #"Expanded datasets" = Table.ExpandListColumn(#"Renamed Workspace Columns", "datasets"),
+				    #"Filtered datasets" = Table.SelectRows(#"Expanded datasets", each [datasets] <> null),
+				    DatasetFields = {"id", "name", "refreshSchedule"},
+				    #"Normalized datasets" = Table.TransformColumns(#"Filtered datasets", {{"datasets", each if Value.Is(_, type record) then Record.SelectFields(_, DatasetFields, MissingField.UseNull) else _, type record}}),
+				    #"Expanded dataset records" = Table.ExpandRecordColumn(#"Normalized datasets", "datasets", DatasetFields, {"DatasetId", "DatasetName", "refreshSchedule"}),
+				    #"Filtered refresh schedules" = Table.SelectRows(#"Expanded dataset records", each [refreshSchedule] <> null),
+				    #"Expanded refresh schedule" = Table.ExpandRecordColumn(#"Filtered refresh schedules", "refreshSchedule", {"days"}, {"RefreshScheduleDay"}),
+				    #"Expanded days" = Table.ExpandListColumn(#"Expanded refresh schedule", "RefreshScheduleDay"),
+				    #"Filtered days" = Table.SelectRows(#"Expanded days", each [RefreshScheduleDay] <> null),
+				    #"Added DatasetRefreshScheduleDayKey" = Table.AddColumn(#"Filtered days", "DatasetRefreshScheduleDayKey", each Text.Combine(List.Transform({[DatasetId], [RefreshScheduleDay]}, each if _ = null then "" else Text.From(_)), "|"), type text),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Added DatasetRefreshScheduleDayKey", {"WorkspaceId", "WorkspaceName", "DatasetId", "DatasetName", "RefreshScheduleDay", "DatasetRefreshScheduleDayKey"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Reordered Columns",{"WorkspaceId", "WorkspaceName"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

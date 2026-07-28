@@ -374,6 +374,7 @@
       <nav class="nav-links" aria-label="Primary navigation">
         <a href="#overview">Overview</a>
         <a href="#architecture">Architecture</a>
+        <a href="#catalog-pbip">Catalog PBIP</a>
         <a href="#demo">Video</a>
         <a href="blog/fabric-monitor-solution.html">Blog post</a>
       </nav>
@@ -384,10 +385,11 @@
         <div>
           <p class="eyebrow">Power BI and Microsoft Fabric estate monitoring</p>
           <h1>Turn Fabric and Power BI telemetry into governed reporting.</h1>
-          <p class="lead">Fabric Monitor is a Python-based monitoring accelerator that collects tenant, catalog, activity, capacity, gateway, refresh, app, role, and Microsoft Graph signals, then prepares them for audit, governance, usage, risk, and drill-through reporting.</p>
+          <p class="lead">Fabric Monitor is a Python-based monitoring accelerator that collects tenant, catalog, activity, capacity, gateway, refresh, app, role, and Microsoft Graph signals, then prepares them for audit, governance, usage, catalog schema, datasource, refresh, and drill-through reporting.</p>
           <div class="actions">
             <a class="button primary" href="#demo">Watch the demo</a>
             <a class="button" href="blog/fabric-monitor-solution.html">Read the blog post</a>
+            <a class="button" href="catalog-pbip.html">Catalog PBIP guide</a>
             <a class="button" href="configuration-reference.md">Configuration guide</a>
           </div>
         </div>
@@ -413,7 +415,7 @@
           <div class="flow-step"><span>1</span><h3>Collect</h3><p>Scheduled Python modules call Power BI, Fabric, and Graph APIs using a service principal or managed identity pattern.</p></div>
           <div class="flow-step"><span>2</span><h3>Store</h3><p>Raw outputs land in local files, Blob Storage, ADLS Gen2, or Fabric Lakehouse paths depending on the deployment model.</p></div>
           <div class="flow-step"><span>3</span><h3>Curate</h3><p>Activity and catalog data can be shaped into reporting-ready tables for audit, operations, and governance.</p></div>
-          <div class="flow-step"><span>4</span><h3>Report</h3><p>The PBIP starter provides reusable audit, usage, access, workspace, risk, and drill-through reporting pages.</p></div>
+          <div class="flow-step"><span>4</span><h3>Report</h3><p>The Activity and Catalog PBIP projects provide reusable audit, inventory, schema, datasource, refresh, risk, and drill-through pages.</p></div>
         </div>
       </section>
 
@@ -427,9 +429,49 @@
         </div>
         <div class="grid">
           <article class="card"><span class="pill">Activity</span><h3>Audit events</h3><p>Incremental Power BI activity log extraction for operations, user behavior, failures, and investigation trails.</p></article>
-          <article class="card"><span class="pill">Catalog</span><h3>Workspace metadata</h3><p>Workspace, item, semantic model, datasource, lineage, artifact user, and capacity context through catalog scans.</p></article>
+          <article class="card"><span class="pill">Catalog</span><h3>Estate schema</h3><p>Workspace, report, semantic model, datasource, refresh schedule, table, column, measure, and relationship context through catalog scans.</p></article>
           <article class="card"><span class="pill">Security</span><h3>Users and access</h3><p>Workspace roles, Microsoft Graph group membership, app access, and user-level activity views.</p></article>
           <article class="card"><span class="pill">Operations</span><h3>Platform health</h3><p>Refresh history, refreshables, gateways, capacity metrics, tenant settings, domains, and Fabric item inventory.</p></article>
+        </div>
+      </section>
+
+      <section class="container" id="catalog-pbip">
+        <div class="section-head">
+          <div>
+            <p class="eyebrow">Catalog PBIP</p>
+            <h2>Use the catalog report as a map of the Power BI and Fabric estate.</h2>
+          </div>
+          <p>The Catalog PBIP at <code>pbip-local\Catalog</code> reads catalog scan output and turns it into pages for schema discovery, inventory review, datasource analysis, refresh schedule review, and drill-through investigation.</p>
+        </div>
+        <div class="two-col">
+          <article class="card">
+            <span class="pill">How to use it</span>
+            <h3>Start broad, then drill into a workspace or semantic model.</h3>
+            <ul class="list">
+              <li>Refresh the semantic model after a monitor catalog scan lands in the configured scan folder.</li>
+              <li>Use <strong>Fabric Schema Overview</strong> to understand the total footprint across workspaces, reports, models, tables, columns, and measures.</li>
+              <li>Use <strong>Workspace Inventory</strong> to review active workspaces and the artifacts they contain.</li>
+              <li>Use <strong>Semantic Model Inventory</strong> to inspect datasets, tables, columns, measures, storage modes, and model complexity.</li>
+              <li>Use <strong>Data Sources & Refresh</strong> to identify datasource dependencies, gateway usage, refresh settings, days, and times.</li>
+              <li>Use the workspace and dataset drillthrough pages for detailed investigation and stewardship conversations.</li>
+            </ul>
+          </article>
+          <article class="card">
+            <span class="pill">Questions it answers</span>
+            <h3>Practical governance and operations questions.</h3>
+            <ul class="list">
+              <li>Which workspaces, reports, dashboards, dataflows, datamarts, and semantic models exist?</li>
+              <li>Which reports depend on which semantic models?</li>
+              <li>Which datasets have many tables, columns, or measures and may need design review?</li>
+              <li>Which datasources and gateways are used by which datasets?</li>
+              <li>Which semantic models have refresh schedules, days, times, and notification settings configured?</li>
+              <li>Where are there metadata gaps, unclear ownership patterns, source concentration, or governance review candidates?</li>
+            </ul>
+          </article>
+        </div>
+        <div class="actions">
+          <a class="button primary" href="catalog-pbip.html">Open the Catalog PBIP guide</a>
+          <a class="button" href="blog/fabric-monitor-solution.html#catalog-pbip">Read the catalog section</a>
         </div>
       </section>
 
@@ -437,9 +479,9 @@
         <div class="section-head">
           <div>
             <p class="eyebrow">Demo video</p>
-            <h2>See the solution story in under two minutes.</h2>
+            <h2>See the solution story in about two minutes.</h2>
           </div>
-          <p>The video walks through setup, collection, PBIP reporting pages, governance views, risk analysis, and drill-through investigation.</p>
+          <p>The video walks through setup, collection, the Catalog PBIP schema story, PBIP reporting pages, governance views, risk analysis, and drill-through investigation.</p>
         </div>
         <div class="video-card">
           <video controls preload="metadata" poster="demo/fabric-monitor-demo-poster.png">
@@ -448,10 +490,11 @@
           </video>
         </div>
         <div class="actions">
-          <a class="button primary" href="demo/fabric-monitor-demo.mp4">Open the MP4 directly</a>
-          <a class="button" href="demo/">Open the video page</a>
-          <a class="button" href="blog/fabric-monitor-solution.html">Read the implementation story</a>
-        </div>
+            <a class="button primary" href="demo/fabric-monitor-demo.mp4">Open the MP4 directly</a>
+            <a class="button" href="demo/">Open the video page</a>
+            <a class="button" href="blog/fabric-monitor-solution.html">Read the implementation story</a>
+            <a class="button" href="catalog-pbip.html">Catalog PBIP guide</a>
+          </div>
       </section>
 
       <section class="container">
@@ -482,9 +525,10 @@
         <div class="callout">
           <p class="eyebrow">Read next</p>
           <h2>Why this solution exists and how it is put together.</h2>
-          <p class="lead">The companion blog post explains the problem, architecture, collector modules, PBIP reporting approach, deployment patterns, and suggested next steps for customers who need better visibility into their Power BI and Fabric estates.</p>
+          <p class="lead">The companion blog post explains the problem, architecture, collector modules, Activity and Catalog PBIP reporting approach, deployment patterns, and suggested next steps for customers who need better visibility into their Power BI and Fabric estates.</p>
           <div class="actions">
             <a class="button primary" href="blog/fabric-monitor-solution.html">Open the blog post</a>
+            <a class="button" href="catalog-pbip.html">Catalog PBIP guide</a>
             <a class="button" href="enterprise-deployment-best-practices.md">Enterprise deployment guide</a>
           </div>
         </div>

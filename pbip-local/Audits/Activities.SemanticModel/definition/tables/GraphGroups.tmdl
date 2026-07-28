@@ -1,0 +1,90 @@
+table GraphGroups
+	lineageTag: 651d5509-9eb2-41b0-b7f5-57a08d18a10a
+
+	column GroupId
+		dataType: string
+		lineageTag: a4a1a953-7946-4363-99f7-9d81b72bdc30
+		summarizeBy: none
+		sourceColumn: GroupId
+
+		annotation SummarizationSetBy = Automatic
+
+	column GroupDisplayName
+		dataType: string
+		lineageTag: 72b4f46c-5efe-42fa-b489-00cfcb5ba718
+		summarizeBy: none
+		sourceColumn: GroupDisplayName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Mail
+		dataType: string
+		lineageTag: da9a44be-070d-436e-b975-dcc92c5d6a6b
+		summarizeBy: none
+		sourceColumn: Mail
+
+		annotation SummarizationSetBy = Automatic
+
+	column MailEnabled
+		dataType: boolean
+		lineageTag: 456cf349-672b-44e2-b276-c37e56c0dcb5
+		summarizeBy: none
+		sourceColumn: MailEnabled
+
+		annotation SummarizationSetBy = Automatic
+
+	column SecurityEnabled
+		dataType: boolean
+		lineageTag: 38054134-5a76-4310-b6c0-0adea1a1c709
+		summarizeBy: none
+		sourceColumn: SecurityEnabled
+
+		annotation SummarizationSetBy = Automatic
+
+	column GroupTypes
+		dataType: string
+		lineageTag: da10282b-5d4f-439f-9181-b9c832833dd9
+		summarizeBy: none
+		sourceColumn: GroupTypes
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsPowerBIAudienceGroup
+		dataType: boolean
+		lineageTag: 9d303732-c8cf-4eaf-b5d8-5e7f00b924e8
+		summarizeBy: none
+		sourceColumn: IsPowerBIAudienceGroup
+
+		annotation SummarizationSetBy = Automatic
+
+	partition GraphGroups = m
+		mode: import
+		source =
+				let
+				    LatestFolderFiles = (root as text, fileName as text) as table =>
+				        let
+				            Source = try Folder.Files(root) otherwise #table(type table [Content = binary, Name = text, Extension = text, Date accessed = nullable datetime, Date modified = nullable datetime, Date created = nullable datetime, Attributes = record, Folder Path = text], {}),
+				            Filtered = Table.SelectRows(Source, each [Name] = fileName and Text.Contains(Text.Lower([Folder Path]), "\graph\") and [Attributes]?[Hidden]? <> true)
+				        in
+				            Filtered,
+				
+				    Files = LatestFolderFiles("C:\Projects\Tests\Monitor", "groups.json"),
+				    Empty = #table(type table [GroupId = text, GroupDisplayName = text, Mail = text, MailEnabled = logical, SecurityEnabled = logical, GroupTypes = text, IsPowerBIAudienceGroup = logical], {}),
+				    Output = if Table.RowCount(Files) = 0 then Empty else
+				        let
+				            WithJson = Table.AddColumn(Files, "Json", each Json.Document([Content])),
+				            ExpandedList = Table.ExpandListColumn(Table.SelectColumns(WithJson, {"Json"}), "Json"),
+				            Fields = {"id", "displayName", "mail", "mailEnabled", "securityEnabled", "groupTypes", "isPowerBIAudienceGroup"},
+				            Normalized = Table.TransformColumns(ExpandedList, {{"Json", each if Value.Is(_, type record) then Record.SelectFields(_, Fields, MissingField.UseNull) else _, type record}}),
+				            Expanded = Table.ExpandRecordColumn(Normalized, "Json", Fields, {"GroupId", "GroupDisplayName", "Mail", "MailEnabled", "SecurityEnabled", "GroupTypes", "IsPowerBIAudienceGroup"}),
+				            TextTypes = Table.TransformColumns(Expanded, {{"GroupTypes", each if _ = null then null else Text.Combine(List.Transform(_, each Text.From(_)), ","), type text}}),
+				            Changed = Table.TransformColumnTypes(TextTypes, {{"GroupId", type text}, {"GroupDisplayName", type text}, {"Mail", type text}, {"MailEnabled", type logical}, {"SecurityEnabled", type logical}, {"GroupTypes", type text}, {"IsPowerBIAudienceGroup", type logical}})
+				        in
+				            Changed
+				in
+				    Output
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

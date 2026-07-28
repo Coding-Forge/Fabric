@@ -61,9 +61,10 @@ DESCRIPTION = (
     "It uses a service principal or managed identity pattern to collect tenant, catalog, activity, "
     "refresh, gateway, capacity, app, role, and Microsoft Graph signals, then writes raw output to "
     "local files, Blob Storage, ADLS Gen2, or Fabric Lakehouse paths for downstream curation. The "
-    "included PBIP starter project turns that telemetry into audit and governance reporting pages "
-    "for activity trends, workspace and artifact inventory, users and access, semantic model "
-    "governance, risk anomalies, and drill-through investigation."
+    "included PBIP projects turn that telemetry into audit, governance, and catalog reporting "
+    "pages for activity trends, workspace and artifact inventory, users and access, semantic "
+    "model schema, datasource usage, refresh schedules, risk anomalies, and drill-through "
+    "investigation."
 )
 
 SLIDES = [
@@ -108,6 +109,41 @@ SLIDES = [
         eyebrow="Data pipeline",
     ),
     Slide(
+        "catalog_summary",
+        "Catalog PBIP: schema of the estate",
+        "The Catalog PBIP turns catalog scan JSON into a navigable schema model for workspaces, reports, semantic models, tables, columns, measures, datasources, refresh schedules, and drill-through investigation.",
+        eyebrow="Catalog PBIP",
+        duration=6.0,
+    ),
+    Slide(
+        "image",
+        "Fabric Schema Overview",
+        "Start here to understand the estate footprint across workspaces, reports, datasets, tables, columns, measures, and other cataloged artifacts.",
+        "SchemaOverview.png",
+        eyebrow="Catalog PBIP",
+    ),
+    Slide(
+        "image",
+        "Workspace Inventory",
+        "Use workspace inventory to see which workspaces exist, what state they are in, and which artifacts live inside each workspace.",
+        "Workspace_Inventory.png",
+        eyebrow="Catalog PBIP",
+    ),
+    Slide(
+        "image",
+        "Semantic Model Inventory",
+        "Inspect model complexity by looking at semantic models, tables, columns, measures, storage modes, and report dependencies.",
+        "Semantic_Model_Inventory.png",
+        eyebrow="Catalog PBIP",
+    ),
+    Slide(
+        "image",
+        "Data Sources and Refresh",
+        "Map datasource instances, gateway usage, dataset dependencies, refresh schedule settings, refresh days, and refresh times.",
+        "Data_Source_Refresh.png",
+        eyebrow="Catalog PBIP",
+    ),
+    Slide(
         "image",
         "Audit overview",
         "Executive KPIs summarize activity volume, active users, workspace footprint, artifacts, success rate, and recent platform activity.",
@@ -131,7 +167,7 @@ SLIDES = [
     Slide(
         "image",
         "Workspace and artifact inventory",
-        "Catalog reporting gives admins a searchable view of reports, semantic models, dataflows, dashboards, capacities, and ownership context.",
+        "Catalog reporting gives admins a searchable view of workspaces, reports, semantic models, dataflows, dashboards, capacities, and ownership-style context.",
         "Workspace_Artifacts.png",
         eyebrow="PBIP dashboard",
     ),
@@ -180,7 +216,7 @@ SLIDES = [
     Slide(
         "closing",
         "From API telemetry to governed reporting",
-        "Run it locally, as a container, through notebooks, or as an Azure Function. Use the PBIP starter as the reporting layer for Git-backed Power BI development.",
+        "Run collection locally, in containers, through notebooks, or as an Azure Function. Use the Activity and Catalog PBIP projects as Git-backed reporting layers for audit, governance, schema, and estate inventory.",
         duration=5.5,
     ),
 ]
@@ -350,7 +386,7 @@ def render_architecture(slide: Slide) -> Image.Image:
         ("Scheduled modules", "Activity, Catalog, Tenant, Apps, Capacity, Gateways, Refresh, Roles, Graph"),
         ("Flexible storage", "Local files, Blob Storage, ADLS Gen2, or Fabric Lakehouse paths"),
         ("Cloud profiles", "Commercial, GCC, GCC High, and DoD endpoint selection"),
-        ("PBIP reporting", "Audit, usage, governance, risk, and drill-through pages"),
+        ("PBIP reporting", "Activity audit pages plus Catalog schema, source, refresh, and drill-through pages"),
     ]
     x = 120
     y = 400
@@ -366,6 +402,40 @@ def render_architecture(slide: Slide) -> Image.Image:
             arrow_x = rect[2] + 18
             draw.line((arrow_x, y + 170, arrow_x + 40, y + 170), fill=CYAN, width=5)
             draw.polygon([(arrow_x + 40, y + 170), (arrow_x + 24, y + 160), (arrow_x + 24, y + 180)], fill=CYAN)
+    return frame.convert("RGB")
+
+
+def render_catalog_summary(slide: Slide) -> Image.Image:
+    frame = Image.new("RGBA", (WIDTH, HEIGHT), PAGE + (255,))
+    draw = ImageDraw.Draw(frame)
+    add_header(draw, slide)
+    draw_wrapped(draw, slide.body, (110, 215), FONT_BODY, MUTED, WIDTH - 220, 14)
+
+    cards = [
+        ("What exists?", "Workspaces, reports, dashboards, dataflows, datamarts, semantic models, tables, columns, and measures."),
+        ("How is it connected?", "Dataset-to-report, workspace-to-dataset, table-to-column, measure-to-table, and datasource usage relationships."),
+        ("What feeds models?", "Datasource instances, datasource types, gateway IDs, URLs, extension kinds, and dataset datasource usages."),
+        ("How does it refresh?", "Refresh schedules, enabled state, local time zone, notification options, refresh days, and refresh times."),
+        ("Where do I investigate?", "Workspace and dataset drillthrough pages expose row-level schema and source context."),
+        ("What needs governance?", "Thin or stale semantic models, unowned or confusing workspace inventory, source concentration, and metadata gaps."),
+    ]
+    left = 110
+    top = 390
+    card_w = 540
+    card_h = 178
+    gap_x = 40
+    gap_y = 28
+    for idx, (title, body) in enumerate(cards):
+        col = idx % 3
+        row = idx // 3
+        x1 = left + col * (card_w + gap_x)
+        y1 = top + row * (card_h + gap_y)
+        rect = (x1, y1, x1 + card_w, y1 + card_h)
+        rounded_shadow(frame, rect, radius=26)
+        draw.rounded_rectangle(rect, radius=26, fill=CARD, outline=LINE, width=2)
+        draw.text((x1 + 28, y1 + 24), title, font=FONT_BODY, fill=INK)
+        draw_wrapped(draw, body, (x1 + 28, y1 + 82), FONT_SMALL, MUTED, card_w - 56, 8)
+
     return frame.convert("RGB")
 
 
@@ -431,6 +501,8 @@ def render_slide(slide: Slide) -> Image.Image:
         return render_title(slide)
     if slide.kind == "architecture":
         return render_architecture(slide)
+    if slide.kind == "catalog_summary":
+        return render_catalog_summary(slide)
     if slide.kind == "closing":
         return render_closing(slide)
     return render_image_slide(slide)
@@ -599,7 +671,8 @@ def write_html() -> None:
       <div class="tile"><strong>Collect</strong><span>Scheduled modules gather Power BI, Fabric, and Graph signals with service-principal authentication.</span></div>
       <div class="tile"><strong>Store</strong><span>Raw outputs can land in local files, Blob Storage, ADLS Gen2, or Fabric Lakehouse paths.</span></div>
       <div class="tile"><strong>Curate</strong><span>Activity and catalog data can be shaped into reporting-ready silver-layer datasets.</span></div>
-      <div class="tile"><strong>Report</strong><span>The PBIP starter supplies audit, governance, usage, risk, and drill-through pages.</span></div>
+      <div class="tile"><strong>Catalog</strong><span>The Catalog PBIP answers workspace, semantic model, schema, datasource, refresh, and drill-through questions.</span></div>
+      <div class="tile"><strong>Report</strong><span>The PBIP starters supply audit, governance, catalog, usage, risk, and drill-through pages.</span></div>
     </section>
   </main>
 </body>

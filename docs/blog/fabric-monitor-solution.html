@@ -271,6 +271,31 @@
     td {
       color: var(--cp-text-muted);
     }
+    .screenshot-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+    figure {
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid var(--cp-border);
+      border-radius: 16px;
+      background: var(--cp-surface);
+      box-shadow: var(--cp-shadow);
+    }
+    figure img {
+      display: block;
+      width: 100%;
+      border-bottom: 1px solid var(--cp-border);
+      background: var(--cp-surface-soft);
+    }
+    figcaption {
+      padding: 14px 16px;
+      color: var(--cp-text-muted);
+      font-size: 0.95rem;
+    }
     footer {
       padding: 32px 0 56px;
       border-top: 1px solid var(--cp-border);
@@ -287,6 +312,9 @@
       .toc ul {
         grid-template-columns: 1fr;
       }
+      .screenshot-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -296,6 +324,7 @@
       <a class="brand" href="../index.html">Fabric Monitor</a>
       <div class="nav-links">
         <a href="../index.html">Landing page</a>
+        <a href="../catalog-pbip.html">Catalog PBIP guide</a>
         <a href="../demo/">Video page</a>
         <a href="../demo/fabric-monitor-demo.mp4">MP4</a>
       </div>
@@ -304,7 +333,7 @@
     <header class="container article-hero">
       <p class="eyebrow">Solution story</p>
       <h1>Fabric Monitor: turning Power BI and Fabric telemetry into governed reporting</h1>
-      <p class="dek">Power BI and Microsoft Fabric administrators need a repeatable way to understand what is happening across the estate. Fabric Monitor provides that foundation: scheduled API collection, durable raw output, and a PBIP reporting starter that turns activity and catalog telemetry into operational and governance insight.</p>
+      <p class="dek">Power BI and Microsoft Fabric administrators need a repeatable way to understand what is happening across the estate. Fabric Monitor provides that foundation: scheduled API collection, durable raw output, an Activity PBIP for audit telemetry, and a Catalog PBIP that turns workspace and semantic model metadata into an estate schema.</p>
       <div class="meta">
         <span class="chip">Power BI</span>
         <span class="chip">Microsoft Fabric</span>
@@ -327,6 +356,7 @@
           <li><a href="#solution">What Fabric Monitor does</a></li>
           <li><a href="#architecture">Architecture</a></li>
           <li><a href="#pbip">PBIP reporting layer</a></li>
+          <li><a href="#catalog-pbip">Catalog PBIP questions</a></li>
           <li><a href="#deployment">Deployment patterns</a></li>
           <li><a href="#next">Where to take it next</a></li>
         </ul>
@@ -361,7 +391,7 @@
                 </tr>
                 <tr>
                   <td>Catalog</td>
-                  <td>What workspaces, artifacts, datasets, lineage, and datasource metadata exist?</td>
+                  <td>What workspaces, artifacts, reports, datasets, tables, columns, measures, lineage, refresh schedules, and datasource metadata exist?</td>
                 </tr>
                 <tr>
                   <td>Access</td>
@@ -384,7 +414,7 @@
             <li><strong>Collect:</strong> Scheduled modules call Power BI, Fabric, and Graph endpoints with service-principal authentication.</li>
             <li><strong>Store:</strong> Raw JSON outputs are written to local files, Blob Storage, ADLS Gen2, or OneLake-compatible Lakehouse paths.</li>
             <li><strong>Curate:</strong> Activity and catalog data can be standardized into silver-layer tables for repeatable reporting.</li>
-            <li><strong>Report:</strong> A PBIP starter report provides pages for audit overview, activity operations, users and access, workspace inventory, risk anomalies, and drill-through detail.</li>
+            <li><strong>Report:</strong> The Activity PBIP provides audit pages, while the Catalog PBIP provides estate schema, workspace inventory, semantic model inventory, datasource, refresh, and drill-through pages.</li>
           </ol>
           <div class="callout">
             <strong>Design principle:</strong>
@@ -394,8 +424,8 @@
 
         <section id="pbip">
           <p class="eyebrow">Reporting layer</p>
-          <h2>The PBIP project provides a practical dashboard starting point.</h2>
-          <p>The included Power BI Project is structured as a stable starting point rather than a heavily hand-authored report. It includes an activity semantic model, reusable measures, and report pages that map to common administrator questions.</p>
+          <h2>The PBIP projects provide practical dashboard starting points.</h2>
+          <p>The included Power BI Projects are structured as stable starting points rather than heavily hand-authored reports. The Activity PBIP focuses on audit telemetry. The Catalog PBIP focuses on the shape of the estate: workspaces, reports, semantic models, tables, columns, measures, datasources, refresh schedules, and drillthrough investigation.</p>
           <ul>
             <li><strong>Audit Overview:</strong> executive activity posture, volume, success rate, users, workspaces, and artifacts.</li>
             <li><strong>Activity and Operations:</strong> operation analysis, refresh activity, failures, and workload trends.</li>
@@ -404,6 +434,70 @@
             <li><strong>Risk and Anomalies:</strong> failed activity, unusual IP patterns, suspicious operations, and high-volume users.</li>
             <li><strong>Drillthrough Detail:</strong> row-level investigation with user, workspace, activity, artifact, request, and success context.</li>
           </ul>
+        </section>
+
+        <section id="catalog-pbip">
+          <p class="eyebrow">Catalog PBIP</p>
+          <h2>The Catalog PBIP answers estate schema and governance questions.</h2>
+          <p>The Catalog PBIP is located at <code>pbip-local\Catalog</code>. Its semantic model reads catalog scan JSON and normalizes the metadata into tables for Workspaces, Reports, Datasets, Tables, Columns, DatasetMeasures, DatasourceInstances, DatasetDatasourceUsages, DatasetRefreshSchedules, DatasetRefreshScheduleDays, DatasetRefreshScheduleTimes, Dashboards, Dataflows, and Datamarts.</p>
+          <p>Use this PBIP after a catalog scan completes. Refresh the report against the scan output folder, start with <strong>Fabric Schema Overview</strong>, then move into <strong>Workspace Inventory</strong>, <strong>Semantic Model Inventory</strong>, and <strong>Data Sources & Refresh</strong>. Use the workspace and dataset drillthrough pages when a dashboard or table raises a governance question.</p>
+          <div class="screenshot-grid">
+            <figure>
+              <img src="../assets/catalog/SchemaOverview.png" alt="Fabric Schema Overview page screenshot">
+              <figcaption><strong>Fabric Schema Overview:</strong> all-up estate footprint across workspaces, reports, semantic models, tables, columns, and measures.</figcaption>
+            </figure>
+            <figure>
+              <img src="../assets/catalog/Workspace_Inventory.png" alt="Workspace Inventory page screenshot">
+              <figcaption><strong>Workspace Inventory:</strong> workspace state, artifact mix, and workspace-level inventory review.</figcaption>
+            </figure>
+            <figure>
+              <img src="../assets/catalog/Semantic_Model_Inventory.png" alt="Semantic Model Inventory page screenshot">
+              <figcaption><strong>Semantic Model Inventory:</strong> model structure, schema complexity, and stewardship candidates.</figcaption>
+            </figure>
+            <figure>
+              <img src="../assets/catalog/Data_Source_Refresh.png" alt="Data Sources and Refresh page screenshot">
+              <figcaption><strong>Data Sources & Refresh:</strong> datasource dependencies, gateway usage, and refresh schedule review.</figcaption>
+            </figure>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Page</th>
+                  <th>Use it to answer</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Fabric Schema Overview</td>
+                  <td>How large is the estate across workspaces, reports, datasets, tables, columns, measures, and other artifacts?</td>
+                </tr>
+                <tr>
+                  <td>Workspace Inventory</td>
+                  <td>Which workspaces exist, what state are they in, and which artifacts live inside each workspace?</td>
+                </tr>
+                <tr>
+                  <td>Semantic Model Inventory</td>
+                  <td>Which semantic models have many tables, columns, or measures and may need design, ownership, or governance review?</td>
+                </tr>
+                <tr>
+                  <td>Data Sources & Refresh</td>
+                  <td>Which datasource instances and gateways feed the models, and how are refresh schedules configured?</td>
+                </tr>
+                <tr>
+                  <td>Workspace and Dataset Drillthrough</td>
+                  <td>What is the detailed schema, source, report dependency, and refresh context for a selected workspace or semantic model?</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="callout">
+            <strong>Practical governance use:</strong>
+            <p>The Catalog PBIP can support workspace cleanup, semantic model review, datasource dependency mapping, refresh schedule rationalization, migration planning, and stewardship conversations with report/model owners.</p>
+            <div class="actions">
+              <a class="button primary" href="../catalog-pbip.html">Open the Catalog PBIP guide</a>
+            </div>
+          </div>
         </section>
 
         <section id="deployment">
@@ -420,13 +514,14 @@
         <section id="next">
           <p class="eyebrow">Next steps</p>
           <h2>Use it as a foundation, then tailor it to the estate.</h2>
-          <p>The value of Fabric Monitor is not only the first dashboard. The value is the repeatable telemetry foundation it creates. Once the collection and PBIP starter are in place, teams can extend the model with customer-specific governance rules, risk thresholds, workspace lifecycle policies, adoption metrics, and operational alerts.</p>
-          <p>Start by enabling the service principal, choosing the modules that matter, selecting the storage pattern, running an initial catalog baseline, and publishing the PBIP report against curated activity and catalog data.</p>
+          <p>The value of Fabric Monitor is not only the first dashboard. The value is the repeatable telemetry foundation it creates. Once the collection and PBIP starters are in place, teams can extend the model with customer-specific governance rules, risk thresholds, workspace lifecycle policies, adoption metrics, catalog stewardship rules, and operational alerts.</p>
+          <p>Start by enabling the service principal, choosing the modules that matter, selecting the storage pattern, running an initial catalog baseline, and publishing the Activity and Catalog PBIP reports against curated activity and catalog data.</p>
           <div class="callout">
             <strong>Watch the walkthrough:</strong>
-            <p>The short demo video shows the setup flow, data pipeline, audit pages, governance views, risk analysis, and drill-through experience.</p>
+            <p>The short demo video shows the setup flow, data pipeline, Catalog PBIP schema story, audit pages, governance views, risk analysis, and drill-through experience.</p>
             <div class="actions">
               <a class="button primary" href="../demo/fabric-monitor-demo.mp4">Open the video</a>
+              <a class="button" href="../catalog-pbip.html">Catalog PBIP guide</a>
               <a class="button" href="../index.html">Back to landing page</a>
             </div>
           </div>
