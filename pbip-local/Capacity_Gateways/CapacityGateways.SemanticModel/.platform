@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "CapacityGateways"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "8665abb6-814f-47d5-bff5-743e305d520b"
+  }
+}

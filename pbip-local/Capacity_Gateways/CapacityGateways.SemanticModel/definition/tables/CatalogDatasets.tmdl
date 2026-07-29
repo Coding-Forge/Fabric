@@ -1,0 +1,98 @@
+table CatalogDatasets
+	lineageTag: 983df087-5cd6-4858-8dcd-f9358e48b023
+
+	column DatasetId
+		dataType: string
+		lineageTag: b0cb7189-6fde-4059-900a-b84e0c123621
+		summarizeBy: none
+		sourceColumn: DatasetId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetName
+		dataType: string
+		lineageTag: b06d503f-8d42-4b71-9954-1176916bb04c
+		summarizeBy: none
+		sourceColumn: DatasetName
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceId
+		dataType: string
+		lineageTag: 4346903c-6584-46e0-b9dc-eb6a94c8cf86
+		summarizeBy: none
+		sourceColumn: WorkspaceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceName
+		dataType: string
+		lineageTag: a003b9e0-fb82-49ba-88fa-33df58045443
+		summarizeBy: none
+		sourceColumn: WorkspaceName
+
+		annotation SummarizationSetBy = Automatic
+
+	column ConfiguredBy
+		dataType: string
+		lineageTag: 2c34b73c-e4c3-48a6-a507-c73496e09a86
+		summarizeBy: none
+		sourceColumn: ConfiguredBy
+
+		annotation SummarizationSetBy = Automatic
+
+	column TargetStorageMode
+		dataType: string
+		lineageTag: b143c608-af4a-43ea-a4c9-6cccb0a04e53
+		summarizeBy: none
+		sourceColumn: TargetStorageMode
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsRefreshable
+		dataType: string
+		lineageTag: 429f0611-690d-4871-9f20-15fa0425b544
+		summarizeBy: none
+		sourceColumn: IsRefreshable
+
+		annotation SummarizationSetBy = Automatic
+
+	column SnapshotDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 4b432f89-d8a1-414b-9fa5-6f0ec0b11226
+		summarizeBy: none
+		sourceColumn: SnapshotDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition CatalogDatasets = m
+		mode: import
+		source =
+				let
+								GetSnapshotDate = (folderPath as text) as nullable date =>
+									let
+										parts = List.Select(Text.Split(folderPath, "\"), each _ <> ""),
+										count = List.Count(parts),
+										parsed = try #date(Number.FromText(parts{count - 3}), Number.FromText(parts{count - 2}), Number.FromText(parts{count - 1})) otherwise null
+									in
+										parsed,
+								Source = Folder.Files("C:\Projects\Tests\monitor\catalog\scans"),
+								Filtered = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true and Text.EndsWith(Text.Lower([Name]), ".json")),
+								Rows = List.Combine(List.Transform(Table.ToRecords(Filtered), (file) => let parsed = try Json.Document(file[Content]) otherwise {}, workspaces = if Value.Is(parsed, type record) and Record.HasFields(parsed, "workspaces") and Value.Is(parsed[workspaces], type list) then parsed[workspaces] else {}, snapshot = GetSnapshotDate(file[Folder Path]), records = List.Combine(List.Transform(workspaces, each let workspaceId = Record.FieldOrDefault(_, "id", null), workspaceName = Record.FieldOrDefault(_, "name", null), datasets = Record.FieldOrDefault(_, "datasets", {}) in if Value.Is(datasets, type list) then List.Transform(datasets, (dataset) => Record.Combine({dataset, [WorkspaceId=workspaceId, WorkspaceName=workspaceName, SnapshotDate=snapshot]})) else {})) in records)),
+								Table0 = if List.Count(Rows) = 0 then #table(type table [DatasetId=nullable text, DatasetName=nullable text, WorkspaceId=nullable text, WorkspaceName=nullable text, ConfiguredBy=nullable text, TargetStorageMode=nullable text, IsRefreshable=nullable text, SnapshotDate=nullable date], {}) else Table.FromRecords(Rows, type table [id=nullable text, name=nullable text, configuredBy=nullable text, targetStorageMode=nullable text, isRefreshable=any, WorkspaceId=nullable text, WorkspaceName=nullable text, SnapshotDate=nullable date], MissingField.UseNull),
+								Renamed = Table.RenameColumns(Table0, {{"id", "DatasetId"}, {"name", "DatasetName"}, {"configuredBy", "ConfiguredBy"}, {"targetStorageMode", "TargetStorageMode"}, {"isRefreshable", "IsRefreshable"}}, MissingField.Ignore),
+								Selected = Table.SelectColumns(Renamed, {"DatasetId", "DatasetName", "WorkspaceId", "WorkspaceName", "ConfiguredBy", "TargetStorageMode", "IsRefreshable", "SnapshotDate"}, MissingField.UseNull),
+								FilteredKeys = Table.SelectRows(Selected, each [DatasetId] <> null and [DatasetId] <> ""),
+								Sorted = Table.Sort(FilteredKeys, {{"SnapshotDate", Order.Descending}}),
+								Buffered = Table.Buffer(Sorted),
+								Deduped = Table.Distinct(Buffered, {"DatasetId"})
+				in
+								Deduped
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
