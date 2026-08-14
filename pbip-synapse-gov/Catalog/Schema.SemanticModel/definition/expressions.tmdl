@@ -1,0 +1,158 @@
+expression Parameter1 = #"Sample File" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 4fd676fc-49bb-40e0-8b21-bbe9f96134a1
+	queryGroup: 'Transform File from scans\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression Parameter2 = #"Sample File (2)" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File (2)", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 4f54ff95-1712-4eb3-934c-afa9418207c0
+	queryGroup: 'Transform File from scans (2)\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Sample File' =
+		let
+		  Source = #"Monitor ADLS Files"("catalog/scans"),
+		    #"Removed Other Columns" = Table.SelectColumns(Source,{"Content"}),
+		    Navigation1 = #"Removed Other Columns"{0}[Content]
+		in
+		  Navigation1
+	lineageTag: 9fb32ada-edf4-45a7-9f70-3cfd091b8878
+	queryGroup: 'Transform File from scans\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform Sample File' =
+		let
+		    Source = Json.Document(Parameter1),
+		    #"Converted to Table" = Table.FromRecords({Source}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"workspaces", type any}, {"datasourceInstances", type any}})
+		in
+		    #"Changed Type"
+	lineageTag: cee41d4f-2867-48b8-a01b-9d4ae3912b9d
+	queryGroup: 'Transform File from scans'
+
+	annotation PBI_ResultType = Table
+
+expression 'Transform File' =
+		let
+		    Source = (Parameter1 as binary) => let
+		    Source = Json.Document(Parameter1),
+		    #"Converted to Table" = Table.FromRecords({Source}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"workspaces", type any}, {"datasourceInstances", type any}})
+		in
+		    #"Changed Type"
+		in
+		    Source
+	mAttributes: [ FunctionQueryBinding = "{""exemplarFormulaName"":""Transform Sample File""}" ]
+	lineageTag: 3546f95c-8199-4904-8b0d-20964dbe25b8
+	queryGroup: 'Transform File from scans\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
+expression 'Sample File (2)' =
+		let
+		  Source = #"Monitor ADLS Files"("catalog/scans"),
+		    Navigation1 = Source{0}[Content]
+		in
+		    Navigation1
+	lineageTag: e9550a7d-4194-4648-b280-2062bbdd77b6
+	queryGroup: 'Transform File from scans (2)\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform Sample File (2)' =
+		let
+		    Source = Json.Document(Parameter2),
+		    #"Converted to Table" = Table.FromRecords({Source}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"workspaces", type any}, {"datasourceInstances", type any}})
+		in
+		    #"Changed Type"
+	lineageTag: c82cbb18-abbb-4956-9060-e8f6748e0e18
+	queryGroup: 'Transform File from scans (2)'
+
+	annotation PBI_ResultType = Table
+
+expression 'Transform File (2)' =
+		let
+		    Source = (Parameter2 as binary) => let
+		    Source = Json.Document(Parameter2),
+		    #"Converted to Table" = Table.FromRecords({Source}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"workspaces", type any}, {"datasourceInstances", type any}})
+		in
+		    #"Changed Type"
+		in
+		    Source
+	mAttributes: [ FunctionQueryBinding = "{""exemplarFormulaName"":""Transform Sample File (2)""}" ]
+	lineageTag: 21ac0f8f-f31b-4019-96e7-4d79cef659d2
+	queryGroup: 'Transform File from scans (2)\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
+expression 'Transform File (3)' =
+		let
+		    Source = (Parameter2) => let
+		        Source = Json.Document(Parameter2),
+		        #"Converted to Table" = Table.FromRecords({Source}),
+		        #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"workspaces", type any}, {"datasourceInstances", type any}})
+		    in
+		        #"Changed Type"
+		in
+		    Source
+	lineageTag: ba330b5c-3c18-4a05-8884-64c833b6b107
+
+	annotation PBI_ResultType = Function
+
+expression 'Sample File (3)' =
+		let
+		  Source = #"Monitor ADLS Files"("catalog/scans"),
+		    Navigation1 = Source{0}[Content]
+		in
+		    Navigation1
+	lineageTag: 0d264aae-9948-44d5-83aa-ca7b7f9a16a1
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Binary
+
+expression MonitorStorageAccountName = "<storage-account-name>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000001
+
+annotation PBI_ResultType = Text
+
+expression MonitorStorageContainerName = "<container-name>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000002
+
+annotation PBI_ResultType = Text
+
+expression MonitorStorageRootPath = "fabric-monitor" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000003
+
+annotation PBI_ResultType = Text
+
+expression MonitorDfsEndpointSuffix = "core.usgovcloudapi.net" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000004
+
+annotation PBI_ResultType = Text
+
+expression 'Monitor ADLS Files' =
+let
+    Source = (relativePath as text) as table =>
+        let
+            AccountName = MonitorStorageAccountName,
+            ContainerName = MonitorStorageContainerName,
+            RootPath = Text.Trim(Text.From(MonitorStorageRootPath), "/"),
+            Relative = Text.Trim(Text.From(relativePath), "/"),
+            BaseUrl = "https://" & AccountName & ".dfs." & MonitorDfsEndpointSuffix,
+            AllFiles = AzureStorage.DataLake(BaseUrl),
+            PathParts = List.Select({ContainerName, RootPath, Relative}, each _ <> null and Text.From(_) <> ""),
+            PathNeedle = "/" & Text.Combine(List.Transform(PathParts, each Text.From(_)), "/") & "/",
+            Filtered = Table.SelectRows(AllFiles, each Text.Contains(Text.Replace([Folder Path], "\\", "/"), PathNeedle) and [Attributes]?[Hidden]? <> true)
+        in
+            Filtered
+in
+    Source
+lineageTag: 10000000-0000-4000-8000-000000000005
+
+annotation PBI_ResultType = Function
+

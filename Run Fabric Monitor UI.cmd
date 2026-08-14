@@ -22,13 +22,24 @@ if not exist "%PYTHON_EXE%" (
     exit /b 1
 )
 
-if not exist "%SCRIPT_DIR%.venv\.fabric-monitor-deps-installed" (
+set "DEPS_MARKER=%SCRIPT_DIR%.venv\.fabric-monitor-deps-installed"
+set "REQ_FILE=%SCRIPT_DIR%requirements.txt"
+
+if not exist "%DEPS_MARKER%" (
     echo Installing Fabric Monitor dependencies...
     "%PYTHON_EXE%" -m pip install --upgrade pip
     if errorlevel 1 goto :error
-    "%PYTHON_EXE%" -m pip install -r "%SCRIPT_DIR%requirements.txt"
+    "%PYTHON_EXE%" -m pip install -r "%REQ_FILE%"
     if errorlevel 1 goto :error
-    echo installed>"%SCRIPT_DIR%.venv\.fabric-monitor-deps-installed"
+    copy /y "%REQ_FILE%" "%DEPS_MARKER%" >nul
+)
+
+fc /b "%REQ_FILE%" "%DEPS_MARKER%" >nul 2>nul
+if errorlevel 1 (
+    echo Requirements changed. Updating Fabric Monitor dependencies...
+    "%PYTHON_EXE%" -m pip install -r "%REQ_FILE%"
+    if errorlevel 1 goto :error
+    copy /y "%REQ_FILE%" "%DEPS_MARKER%" >nul
 )
 
 echo Starting Fabric Monitor UI...

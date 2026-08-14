@@ -136,10 +136,9 @@ os.environ["STORAGE_ACCOUNT_CONTAINER_ROOT_PATH"] = "fabric-monitor"
 After the solution is on `sys.path` and configuration is set:
 
 ```python
-from env.config import load_from_environment
+from env.notebook import run
 
-audit = load_from_environment()
-audit.start()
+await run()
 ```
 
 To build settings inline without environment variables:
@@ -156,9 +155,12 @@ settings = {
     "OUTPUT_PATH": "/tmp/fabric-monitor-output",
 }
 
-audit = build_audit(settings)
-audit.start()
+from env.notebook import run
+
+await run(settings)
 ```
+
+For a complete Azure Government setup, including notebook templates and PBIP copies that read from ADLS Gen2, see [Azure Government Synapse Runbook](azure-government-synapse-runbook.md).
 
 ## Reading Monitor Data from ADLS Gen2
 

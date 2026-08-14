@@ -79,12 +79,17 @@ table AudienceUsage
 		summarizeBy: none
 		sourceColumn: LastActivityDate
 
+		variation Variation
+			isDefault
+			relationship: 9ce37c06-8699-4105-86ff-319ab791639b
+			defaultHierarchy: LocalDateTable_e2b7906a-c61c-4f17-9c06-95fc91316aeb.'Date Hierarchy'
+
 		annotation SummarizationSetBy = Automatic
 
 	column ActivityCount
 		dataType: int64
 		lineageTag: 8b313e97-9399-420f-a97a-eab28e6b70b8
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: ActivityCount
 
 		annotation SummarizationSetBy = Automatic
@@ -95,12 +100,17 @@ table AudienceUsage
 		summarizeBy: none
 		sourceColumn: FirstActivityDate
 
+		variation Variation
+			isDefault
+			relationship: 11ac0404-82dd-475e-befc-4658b22d8d91
+			defaultHierarchy: LocalDateTable_e6d02f63-34d8-4e4a-9fa5-29bc8431bde4.'Date Hierarchy'
+
 		annotation SummarizationSetBy = Automatic
 
 	column DistinctWorkspaces
 		dataType: int64
 		lineageTag: e7029af1-a0c2-416b-9db3-e710582397c5
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: DistinctWorkspaces
 
 		annotation SummarizationSetBy = Automatic
@@ -108,7 +118,7 @@ table AudienceUsage
 	column DistinctArtifacts
 		dataType: int64
 		lineageTag: 036694fd-8344-471c-9e94-fd4487ff51fc
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: DistinctArtifacts
 
 		annotation SummarizationSetBy = Automatic
@@ -116,7 +126,7 @@ table AudienceUsage
 	column DaysSinceLastActivity
 		dataType: int64
 		lineageTag: 86e0c3f8-a664-4f84-8025-78a02754517b
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: DaysSinceLastActivity
 
 		annotation SummarizationSetBy = Automatic

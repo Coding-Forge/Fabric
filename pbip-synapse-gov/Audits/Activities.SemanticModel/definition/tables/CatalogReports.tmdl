@@ -1,0 +1,119 @@
+table CatalogReports
+	lineageTag: 7a239dc4-1320-4a0c-864d-0889b7f65002
+
+	column WorkspaceId
+		dataType: string
+		lineageTag: 31279484-f600-4482-ab2d-531b85a6de8d
+		summarizeBy: none
+		sourceColumn: WorkspaceId
+
+	column WorkspaceName
+		dataType: string
+		lineageTag: 2a99709d-5023-4551-9c01-fba818e42896
+		summarizeBy: none
+		sourceColumn: WorkspaceName
+
+	column ReportId
+		dataType: string
+		lineageTag: 6efa4562-4cb7-4a57-8876-ffac7fb81aa0
+		summarizeBy: none
+		sourceColumn: ReportId
+
+	column ReportName
+		dataType: string
+		lineageTag: 48df7888-6853-48f3-aba4-6921f99ecb1d
+		summarizeBy: none
+		sourceColumn: ReportName
+
+	column DatasetId
+		dataType: string
+		lineageTag: 569987a7-2ba1-49c9-94eb-1dd523928ce9
+		summarizeBy: none
+		sourceColumn: DatasetId
+
+	column ReportType
+		dataType: string
+		lineageTag: bafaa5b9-b967-4be3-aac7-81ee82b010c0
+		summarizeBy: none
+		sourceColumn: ReportType
+
+	column Format
+		dataType: string
+		lineageTag: bd269b9a-7db3-4000-9f2a-cd8f5a56fa5d
+		summarizeBy: none
+		sourceColumn: Format
+
+	column AppId
+		dataType: string
+		lineageTag: 50b082b4-6c71-4e25-8016-0049528efb4f
+		summarizeBy: none
+		sourceColumn: AppId
+
+	column CreatedDateTime
+		dataType: dateTime
+		lineageTag: 535d42f2-7771-453c-b2af-ca4cbe7527a1
+		summarizeBy: none
+		sourceColumn: CreatedDateTime
+
+	column ModifiedDateTime
+		dataType: dateTime
+		lineageTag: 6e0a7c76-cd23-4980-930b-e2e3adef096d
+		summarizeBy: none
+		sourceColumn: ModifiedDateTime
+
+	column CreatedBy
+		dataType: string
+		lineageTag: 5ca54f4e-ac04-4202-b1e2-dd26cad38064
+		summarizeBy: none
+		sourceColumn: CreatedBy
+
+	column ModifiedBy
+		dataType: string
+		lineageTag: e0305b86-4e59-4585-a67d-d1f883b7f337
+		summarizeBy: none
+		sourceColumn: ModifiedBy
+
+	column SensitivityLabelId
+		dataType: string
+		lineageTag: d74f8621-a17e-4d7e-857f-d5f6a9f78d5a
+		summarizeBy: none
+		sourceColumn: SensitivityLabelId
+
+	column Endorsement
+		dataType: string
+		lineageTag: a18f1717-3d91-478e-a552-c832f66874af
+		summarizeBy: none
+		sourceColumn: Endorsement
+
+	partition CatalogReports = m
+		mode: import
+		source =
+				let
+				    CatalogScan = #"Latest Catalog Scan",
+				    Empty = #table(type table [WorkspaceId = text, WorkspaceName = text, ReportId = text, ReportName = text, DatasetId = text, ReportType = text, Format = text, AppId = text, CreatedDateTime = datetime, ModifiedDateTime = datetime, CreatedBy = text, ModifiedBy = text, SensitivityLabelId = text, Endorsement = text], {}),
+				    Output = if CatalogScan = null then Empty else
+				        let
+				            Json = CatalogScan,
+				            Workspaces = try Json[workspaces] otherwise {},
+				            WorkspaceRows = Table.FromList(Workspaces, Splitter.SplitByNothing(), {"Workspace"}),
+				            WorkspaceFields = {"id", "name", "reports"},
+				            WorkspaceNormalized = Table.TransformColumns(WorkspaceRows, {{"Workspace", each Record.SelectFields(_, WorkspaceFields, MissingField.UseNull), type record}}),
+				            WorkspaceExpanded = Table.ExpandRecordColumn(WorkspaceNormalized, "Workspace", WorkspaceFields, {"WorkspaceId", "WorkspaceName", "reports"}),
+				            WithReports = Table.SelectRows(WorkspaceExpanded, each [reports] <> null and List.Count([reports]) > 0),
+				            ExpandedList = if Table.RowCount(WithReports) = 0 then Empty else Table.ExpandListColumn(WithReports, "reports"),
+				            ReportFields = {"id", "name", "datasetId", "reportType", "format", "appId", "createdDateTime", "modifiedDateTime", "createdBy", "modifiedBy", "sensitivityLabel", "endorsementDetails"},
+				            ReportNormalized = if Table.RowCount(WithReports) = 0 then Empty else Table.TransformColumns(ExpandedList, {{"reports", each Record.SelectFields(_, ReportFields, MissingField.UseNull), type record}}),
+				            ReportExpanded = if Table.RowCount(WithReports) = 0 then Empty else Table.ExpandRecordColumn(ReportNormalized, "reports", ReportFields, {"ReportId", "ReportName", "DatasetId", "ReportType", "Format", "AppId", "CreatedDateTime", "ModifiedDateTime", "CreatedBy", "ModifiedBy", "sensitivityLabel", "endorsementDetails"}),
+				            AddedSensitivity = if Table.RowCount(WithReports) = 0 then Empty else Table.AddColumn(ReportExpanded, "SensitivityLabelId", each try [sensitivityLabel][labelId] otherwise null, type text),
+				            AddedEndorsement = if Table.RowCount(WithReports) = 0 then Empty else Table.AddColumn(AddedSensitivity, "Endorsement", each try [endorsementDetails][endorsement] otherwise null, type text),
+				            Removed = if Table.RowCount(WithReports) = 0 then Empty else Table.RemoveColumns(AddedEndorsement, {"sensitivityLabel", "endorsementDetails"}),
+				            Changed = if Table.RowCount(WithReports) = 0 then Empty else Table.TransformColumnTypes(Removed, {{"WorkspaceId", type text}, {"WorkspaceName", type text}, {"ReportId", type text}, {"ReportName", type text}, {"DatasetId", type text}, {"ReportType", type text}, {"Format", type text}, {"AppId", type text}, {"CreatedDateTime", type datetime}, {"ModifiedDateTime", type datetime}, {"CreatedBy", type text}, {"ModifiedBy", type text}, {"SensitivityLabelId", type text}, {"Endorsement", type text}})
+				        in
+				            Changed
+				in
+				    Output
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -16,7 +16,7 @@ queryGroup 'Transform File from activity\Helper Queries'
 
 annotation __PBI_TimeIntelligenceEnabled = 1
 
-annotation PBI_QueryOrder = ["activity","Sample File","Parameter1","Transform Sample File","Transform File","Latest Catalog Scan","GraphUsers","GraphUserLicenses","GraphSubscribedSkus","GraphGroups","GraphGroupMembers","UserActivitySummary","UserLicenseActivity","AudienceUsage","CatalogWorkspaces","CatalogReports","CatalogDatasets","CatalogDatasetTables","CatalogDatasetColumns","CatalogDatasetRoles","CatalogDatasetRoleMembers"]
+annotation PBI_QueryOrder = ["activity","Sample File","Parameter1","Transform Sample File","Transform File","Latest Catalog Scan","GraphUsers","GraphUserLicenses","GraphSubscribedSkus","GraphGroups","GraphGroupMembers","UserActivitySummary","UserLicenseActivity","AudienceUsage","CatalogWorkspaces","CatalogReports","CatalogDatasets","CatalogDatasetTables","CatalogDatasetColumns","CatalogDatasetRoles","CatalogDatasetRoleMembers","dimDate"]
 
 annotation PBI_ProTooling = ["DevMode"]
 
@@ -40,6 +40,18 @@ ref table CatalogDatasetTables
 ref table CatalogDatasetColumns
 ref table CatalogDatasetRoles
 ref table CatalogDatasetRoleMembers
+ref table dimDate
+ref table LocalDateTable_c609251c-64c6-4978-91d0-58db4fbde993
+ref table LocalDateTable_2f97de0a-401f-4185-8852-e9312cb8367b
+ref table LocalDateTable_e2b7906a-c61c-4f17-9c06-95fc91316aeb
+ref table LocalDateTable_e6d02f63-34d8-4e4a-9fa5-29bc8431bde4
+ref table LocalDateTable_d8e039d2-b72b-490f-a3ad-8afc24b0a5fc
+ref table LocalDateTable_2cd11665-5d44-455c-b5d8-8f2c8c51f61d
+ref table LocalDateTable_0b72d881-eb55-4139-aa71-7f3c589507d7
+ref table LocalDateTable_1a3537c3-bbac-47e7-bd03-a770dc43ba50
+ref table LocalDateTable_793edab8-61ee-48dd-a006-f9341a1c691d
+ref table LocalDateTable_f89f2390-0a24-46a8-9fc3-8838d4ef2427
+ref table LocalDateTable_c1724fd9-4fe0-494c-8342-37ed8a989076
 
 ref cultureInfo en-US
 

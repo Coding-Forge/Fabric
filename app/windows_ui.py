@@ -354,6 +354,18 @@ class MonitorUi(tk.Tk):
             return value
         return str(value).strip().lower() in ("1", "true", "yes", "y", "on")
 
+    def monitor_python_executable(self) -> str:
+        """Use the project venv for monitor runs, even if the UI was launched globally."""
+        if os.name == "nt":
+            venv_python = self.project_root / ".venv" / "Scripts" / "python.exe"
+        else:
+            venv_python = self.project_root / ".venv" / "bin" / "python"
+
+        if venv_python.exists():
+            return str(venv_python)
+
+        return sys.executable
+
     def run_monitor(self):
         if self.process and self.process.poll() is None:
             messagebox.showinfo("Fabric Monitor", "A monitor run is already in progress.")
@@ -378,7 +390,7 @@ class MonitorUi(tk.Tk):
         self.temp_profile = Path(profile_file.name)
 
         command = [
-            sys.executable,
+            self.monitor_python_executable(),
             "-u",
             "-m",
             "app.monitor",

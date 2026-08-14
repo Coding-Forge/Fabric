@@ -55,11 +55,21 @@ table CatalogReports
 		summarizeBy: none
 		sourceColumn: CreatedDateTime
 
+		variation Variation
+			isDefault
+			relationship: d9c1f0f2-4077-4185-9134-781cd6b92c4c
+			defaultHierarchy: LocalDateTable_0b72d881-eb55-4139-aa71-7f3c589507d7.'Date Hierarchy'
+
 	column ModifiedDateTime
 		dataType: dateTime
 		lineageTag: 6e0a7c76-cd23-4980-930b-e2e3adef096d
 		summarizeBy: none
 		sourceColumn: ModifiedDateTime
+
+		variation Variation
+			isDefault
+			relationship: db358c39-0c41-4585-b320-1c0ebdee52d3
+			defaultHierarchy: LocalDateTable_1a3537c3-bbac-47e7-bd03-a770dc43ba50.'Date Hierarchy'
 
 	column CreatedBy
 		dataType: string

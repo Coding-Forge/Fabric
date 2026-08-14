@@ -52,7 +52,7 @@ table UserLicenseActivity
 	column AssignedLicenseCount
 		dataType: int64
 		lineageTag: 85f703f5-788c-4440-9634-c3ae2db19906
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: AssignedLicenseCount
 
 		annotation SummarizationSetBy = Automatic
@@ -95,12 +95,17 @@ table UserLicenseActivity
 		summarizeBy: none
 		sourceColumn: LastActivityDate
 
+		variation Variation
+			isDefault
+			relationship: b6933549-20f3-4fa0-970b-4e735cd51609
+			defaultHierarchy: LocalDateTable_d8e039d2-b72b-490f-a3ad-8afc24b0a5fc.'Date Hierarchy'
+
 		annotation SummarizationSetBy = Automatic
 
 	column ActivityCount
 		dataType: int64
 		lineageTag: bf64b473-10ce-41da-9919-a70ef8eeb6a4
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: ActivityCount
 
 		annotation SummarizationSetBy = Automatic
@@ -111,12 +116,17 @@ table UserLicenseActivity
 		summarizeBy: none
 		sourceColumn: FirstActivityDate
 
+		variation Variation
+			isDefault
+			relationship: e965a3aa-12ba-4ad5-b42c-fd4cbc855d4d
+			defaultHierarchy: LocalDateTable_2cd11665-5d44-455c-b5d8-8f2c8c51f61d.'Date Hierarchy'
+
 		annotation SummarizationSetBy = Automatic
 
 	column DistinctWorkspaces
 		dataType: int64
 		lineageTag: 502f4b0f-6e7a-4b1e-b93f-e0022ed95a2c
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: DistinctWorkspaces
 
 		annotation SummarizationSetBy = Automatic
@@ -124,7 +134,7 @@ table UserLicenseActivity
 	column DistinctArtifacts
 		dataType: int64
 		lineageTag: feeb010c-1fdd-4b58-8eba-f6adaf1ef9c1
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: DistinctArtifacts
 
 		annotation SummarizationSetBy = Automatic
@@ -132,7 +142,7 @@ table UserLicenseActivity
 	column DaysSinceLastActivity
 		dataType: int64
 		lineageTag: a65db12b-ece3-457b-a2d0-04001654a1ea
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: DaysSinceLastActivity
 
 		annotation SummarizationSetBy = Automatic

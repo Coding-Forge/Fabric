@@ -1,0 +1,74 @@
+table DatasourceInstances
+	lineageTag: 2475d32a-8032-4e79-8abb-3b7702dd546c
+
+	column DatasourceInstanceId
+		dataType: string
+		lineageTag: a2078eee-005a-4796-add0-72c4a275fe2b
+		summarizeBy: none
+		sourceColumn: DatasourceInstanceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasourceType
+		dataType: string
+		lineageTag: 08eeca24-05b3-4913-8767-704d4ac8feac
+		summarizeBy: none
+		sourceColumn: DatasourceType
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayId
+		dataType: string
+		lineageTag: 95d0caa1-02e4-4451-97a6-0742aa25ae1a
+		summarizeBy: none
+		sourceColumn: GatewayId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ExtensionDataSourceKind
+		dataType: string
+		lineageTag: 5a8ad69c-0554-48d2-afc7-692da4797c09
+		summarizeBy: none
+		sourceColumn: ExtensionDataSourceKind
+
+		annotation SummarizationSetBy = Automatic
+
+	column ExtensionDataSourcePath
+		dataType: string
+		lineageTag: fabc4631-bb70-4b4a-9914-623a03305398
+		summarizeBy: none
+		sourceColumn: ExtensionDataSourcePath
+
+		annotation SummarizationSetBy = Automatic
+
+	column Url
+		dataType: string
+		lineageTag: 3557df79-72b5-4944-a7e3-3f1faa6cc278
+		summarizeBy: none
+		sourceColumn: Url
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DatasourceInstances = m
+		mode: import
+		source =
+				let
+				    Source = #"Monitor ADLS Files"("catalog/scans"),
+				    #"Filtered Hidden Files" = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true),
+				    #"Invoke Custom Function" = Table.AddColumn(#"Filtered Hidden Files", "Transform File", each #"Transform File (2)"([Content])),
+				    #"Removed Other Columns" = Table.SelectColumns(#"Invoke Custom Function", {"Transform File"}),
+				    #"Expanded Root" = Table.ExpandTableColumn(#"Removed Other Columns", "Transform File", Table.ColumnNames(#"Transform File (2)"(#"Sample File (2)"))),
+				    #"Selected Datasource Instances" = Table.SelectColumns(#"Expanded Root", {"datasourceInstances"}),
+				    #"Expanded datasourceInstances" = Table.ExpandListColumn(#"Selected Datasource Instances", "datasourceInstances"),
+				    #"Filtered datasourceInstances" = Table.SelectRows(#"Expanded datasourceInstances", each [datasourceInstances] <> null),
+				    #"Expanded datasourceInstance records" = Table.ExpandRecordColumn(#"Filtered datasourceInstances", "datasourceInstances", {"datasourceId", "datasourceType", "gatewayId", "connectionDetails"}, {"DatasourceInstanceId", "DatasourceType", "GatewayId", "connectionDetails"}),
+				    ConnectionFields = {"extensionDataSourceKind", "extensionDataSourcePath", "url"},
+				    #"Normalized connectionDetails" = Table.TransformColumns(#"Expanded datasourceInstance records", {{"connectionDetails", each if Value.Is(_, type record) then Record.SelectFields(_, ConnectionFields, MissingField.UseNull) else _, type record}}),
+				    #"Expanded connectionDetails" = Table.ExpandRecordColumn(#"Normalized connectionDetails", "connectionDetails", ConnectionFields, {"ExtensionDataSourceKind", "ExtensionDataSourcePath", "Url"})
+				in
+				    #"Expanded connectionDetails"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

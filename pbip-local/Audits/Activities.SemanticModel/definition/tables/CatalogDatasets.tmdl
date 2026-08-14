@@ -43,11 +43,21 @@ table CatalogDatasets
 		summarizeBy: none
 		sourceColumn: CreatedDate
 
+		variation Variation
+			isDefault
+			relationship: 6abec294-ba93-47b5-9621-2abe11344e52
+			defaultHierarchy: LocalDateTable_793edab8-61ee-48dd-a006-f9341a1c691d.'Date Hierarchy'
+
 	column ModifiedDateTime
 		dataType: dateTime
 		lineageTag: 0be1b54e-f62a-4001-818d-9e128b612c28
 		summarizeBy: none
 		sourceColumn: ModifiedDateTime
+
+		variation Variation
+			isDefault
+			relationship: b4acd134-b5ec-4518-b201-8b8144d2244c
+			defaultHierarchy: LocalDateTable_f89f2390-0a24-46a8-9fc3-8838d4ef2427.'Date Hierarchy'
 
 	column TargetStorageMode
 		dataType: string

@@ -15,12 +15,17 @@ table UserActivitySummary
 		summarizeBy: none
 		sourceColumn: LastActivityDate
 
+		variation Variation
+			isDefault
+			relationship: 7ca86c7e-61ed-4503-9e63-fcb6cee4b098
+			defaultHierarchy: LocalDateTable_c609251c-64c6-4978-91d0-58db4fbde993.'Date Hierarchy'
+
 		annotation SummarizationSetBy = Automatic
 
 	column ActivityCount
 		dataType: int64
 		lineageTag: db06e312-94b7-4348-8eb1-fd401dbebf1c
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: ActivityCount
 
 		annotation SummarizationSetBy = Automatic
@@ -31,12 +36,17 @@ table UserActivitySummary
 		summarizeBy: none
 		sourceColumn: FirstActivityDate
 
+		variation Variation
+			isDefault
+			relationship: a9417cc0-bb67-4f46-807c-ebd11fe88f38
+			defaultHierarchy: LocalDateTable_2f97de0a-401f-4185-8852-e9312cb8367b.'Date Hierarchy'
+
 		annotation SummarizationSetBy = Automatic
 
 	column DistinctWorkspaces
 		dataType: int64
 		lineageTag: a1a3ea0f-52d5-4e83-bdd8-33a57eb75f56
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: DistinctWorkspaces
 
 		annotation SummarizationSetBy = Automatic
@@ -44,7 +54,7 @@ table UserActivitySummary
 	column DistinctArtifacts
 		dataType: int64
 		lineageTag: 1814972f-afa4-4a4d-ac3f-97bf73de05a3
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: DistinctArtifacts
 
 		annotation SummarizationSetBy = Automatic
@@ -52,7 +62,7 @@ table UserActivitySummary
 	column DaysSinceLastActivity
 		dataType: int64
 		lineageTag: 64b1dad8-cd39-4231-8abe-4c9173f52cfb
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: DaysSinceLastActivity
 
 		annotation SummarizationSetBy = Automatic
@@ -79,5 +89,5 @@ table UserActivitySummary
 
 	annotation PBI_NavigationStepName = Navigation
 
-	annotation PBI_ResultType = Exception
+	annotation PBI_ResultType = Table
 
