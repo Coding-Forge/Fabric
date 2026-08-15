@@ -24,3 +24,7 @@ venv/
 # Ignore local GeneralDynamics content
 GeneralDynamics/
 
+# pbip-local is for local PBIP development only (used to produce PBIT files);
+# it should not be committed to source control
+pbip-local/
+
