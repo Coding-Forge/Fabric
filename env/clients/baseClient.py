@@ -1,41 +1,60 @@
+import threading
+from typing import Optional
+
 import msal
+
 from env.context import Context
 
+
 class Client:
+    """Base client that acquires bearer tokens for a single resource scope.
+
+    One MSAL ``ConfidentialClientApplication`` is created per client and reused,
+    so tokens come from MSAL's in-memory cache until they near expiry.
+    """
 
     def __init__(self, context: Context):
         self.scope = None
         self._context = context
+        self._app: Optional[msal.ConfidentialClientApplication] = None
+        self._app_key: Optional[tuple] = None
+        self._lock = threading.Lock()
+
+    def _get_app(self) -> msal.ConfidentialClientApplication:
+        """Return the cached MSAL application, recreating it when credentials change.
+
+        :return: The confidential client application for the configured service principal.
+        :raises RuntimeError: If the context or service principal credentials are missing.
+        """
+        if self._context is None:
+            raise RuntimeError("Context is None")
+
+        sp = self._context.get_ServicePrincipal() or {}
+        try:
+            key = (sp["TenantId"], sp["AppId"], sp["AppSecret"])
+        except KeyError as ex:
+            raise RuntimeError(f"Service principal is missing {ex}") from ex
+
+        with self._lock:
+            if self._app is None or self._app_key != key:
+                self._app = msal.ConfidentialClientApplication(
+                    client_id=key[1],
+                    client_credential=key[2],
+                    authority=f"https://login.microsoftonline.com/{key[0]}",
+                )
+                self._app_key = key
+            return self._app
 
     def get_headers(self, graph=False, tenant=False):
+        """Return request headers carrying a bearer token for ``self.scope``.
+
+        :param graph: Unused; kept for backwards compatibility.
+        :param tenant: Unused; kept for backwards compatibility.
+        :return: A dict with the ``Authorization`` header.
+        :raises RuntimeError: If credentials are missing or token acquisition fails.
         """
-        Get the access token for the Power BI API
-        """
 
-        try:
-            if self._context is None:
-                print("Context is None")
-
-            sp = self._context.get_ServicePrincipal()
-            tenant_id = sp['TenantId']
-            client_id = sp['AppId']
-            client_secret = sp['AppSecret']
-
-        except Exception as e:
-            self._context.logger.error(f"An exception occurred while reading the file: {str(e)}")
-
-            print("An exception occurred while reading the file:", str(e))
-
-        authority = f"https://login.microsoftonline.com/{tenant_id}"
-
-
-        # Create a ConfidentialClientApplication object
-        app = msal.ConfidentialClientApplication(
-            client_id=client_id,
-            client_credential=client_secret,
-            authority=authority
-        )
-
+        app = self._get_app()
 
         # This needs to stay as a list
         scopes = [self.scope]
@@ -59,10 +78,13 @@ class Client:
                     headers = {'Authorization': f'Bearer {access_token}'}
 
                 else:
-                    print(result.get("error_description", "Authentication failed."))
+                    message = result.get("error_description", "Authentication failed.")
+                    self._context.logger.error(f"Token acquisition failed for {self.scope}: {message}")
+                    raise RuntimeError(f"Token acquisition failed for {self.scope}: {message}")
 
             return headers
-            
+        except RuntimeError:
+            raise
         except Exception as ex:
-            self._context.logger.error(f"An exception occurred while reading the file: {str(ex)}")
-            print(ex)
+            self._context.logger.error(f"An exception occurred while acquiring a token: {str(ex)}")
+            raise

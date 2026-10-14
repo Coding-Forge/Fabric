@@ -1,16 +1,55 @@
+import asyncio
 import sys
 import socket
 import platform
 import aiohttp
 import logging
-from typing import Dict, Any, Coroutine
-from datetime import datetime, timedelta
+from typing import Dict, Any, Coroutine, Optional
+from datetime import datetime, timedelta, timezone
+from env.utility import http_retry
 from env.utility.file_management import File_Management
+
+# Format of the timestamps stored in state.yaml; the values are always UTC
+STATE_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
+
+
+def utc_now() -> datetime:
+    """Return the current UTC time as a naive datetime (matches parsed state timestamps)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+def utc_stamp(moment: Optional[datetime] = None) -> str:
+    """Format a UTC moment as a state timestamp.
+
+    :param moment: Naive UTC datetime; defaults to now.
+    :return: A ``%Y-%m-%dT%H:%M:%S.%fZ`` string.
+    """
+    return (moment or utc_now()).strftime(STATE_TIME_FORMAT)
+
 
 # On Linux/WSL, aiohttp tries IPv6 first which causes SSL handshake timeouts.
 # Force IPv4 on Linux. On Windows, aiohttp resolves correctly without this constraint.
 _CONNECTOR_KWARGS = dict(family=socket.AF_INET) if platform.system() != "Windows" else {}
 _TIMEOUT = aiohttp.ClientTimeout(total=300, connect=60)
+
+async def _error_result(response: aiohttp.ClientResponse) -> Dict[str, Any]:
+    """Build the error payload returned by ``Context.invokeAPI`` for a non-OK response.
+
+    :param response: The non-OK HTTP response.
+    :return: A dict with ``ERROR`` (status description), ``status`` (HTTP code),
+        ``retryAfter`` (header value or ``None``) and ``message`` (response body text).
+    """
+    try:
+        body = await response.text()
+    except (aiohttp.ClientError, asyncio.TimeoutError, TimeoutError):
+        body = ""
+    return {
+        "ERROR": f"HTTP {response.status}",
+        "status": response.status,
+        "retryAfter": response.headers.get("Retry-After"),
+        "message": body,
+    }
+
 
 class Context:
     def __init__(self):
@@ -32,6 +71,11 @@ class Context:
         self.Roles_cron = None
         self.Tenant_cron = None
         self.Workspaces_cron = None
+        self.CapacityMetrics_cron = None
+        self.GitConnections_cron = None
+        self.Tags_cron = None
+        self.DelegatedSettings_cron = None
+        self.WidelySharedLinks_cron = None
         self.ApplicationModules = None
         self.storage_url = None
         self.StorageAccountConnStr = None
@@ -51,6 +95,7 @@ class Context:
         self.on_fabric = True
         self.capacity_metrics_dataset_id = None
         self.impersonatedUserName = None
+        self._api_semaphore: Optional[asyncio.Semaphore] = None
 
     def __set_log_level(self, level):
         """
@@ -146,6 +191,27 @@ class Context:
     def set_Domains_cron(self, Domains_cron):
         self.Domains_cron = Domains_cron
 
+    def set_FabricItems_cron(self, FabricItems_cron):
+        self.FabricItems_cron = FabricItems_cron
+
+    def set_Workspaces_cron(self, Workspaces_cron):
+        self.Workspaces_cron = Workspaces_cron
+
+    def set_GitConnections_cron(self, GitConnections_cron):
+        self.GitConnections_cron = GitConnections_cron
+
+    def set_Tags_cron(self, Tags_cron):
+        self.Tags_cron = Tags_cron
+
+    def set_DelegatedSettings_cron(self, DelegatedSettings_cron):
+        self.DelegatedSettings_cron = DelegatedSettings_cron
+
+    def set_WidelySharedLinks_cron(self, WidelySharedLinks_cron):
+        self.WidelySharedLinks_cron = WidelySharedLinks_cron
+
+    def set_CapacityMetrics_cron(self, CapacityMetrics_cron):
+        self.CapacityMetrics_cron = CapacityMetrics_cron
+
     def set_LakehouseName(self, LakehouseName):
         self.LakehouseName = LakehouseName
     
@@ -221,6 +287,22 @@ class Context:
             return self.Capacity_cron
         elif cron_name == "Roles":
             return self.Roles_cron
+        elif cron_name == "Domains":
+            return self.Domains_cron
+        elif cron_name == "FabricItems":
+            return self.FabricItems_cron
+        elif cron_name == "Workspaces":
+            return self.Workspaces_cron
+        elif cron_name == "CapacityMetrics":
+            return self.CapacityMetrics_cron
+        elif cron_name == "GitConnections":
+            return self.GitConnections_cron
+        elif cron_name == "Tags":
+            return self.Tags_cron
+        elif cron_name == "DelegatedSettings":
+            return self.DelegatedSettings_cron
+        elif cron_name == "WidelySharedLinks":
+            return self.WidelySharedLinks_cron
         else:
             return None
     
@@ -228,34 +310,71 @@ class Context:
         return self.ApplicationModules
 
     def convert_dt_str(self, date_time):
-        """
-        Convert a datetime object to a string
-        date_time: datetime object
+        """Convert a state timestamp string (or datetime) to a datetime.
+
+        :param date_time: A ``%Y-%m-%dT%H:%M:%S.%fZ`` string (UTC) or a datetime;
+            offset-aware datetimes are converted to UTC.
+        :return: The parsed datetime as naive UTC.
+        :raises ValueError: If the value cannot be parsed.
         """
         format = "%Y-%m-%dT%H:%M:%S.%fZ"
 
         if isinstance(date_time, datetime):
+            if date_time.tzinfo is not None:
+                # Normalise offset-aware values to naive UTC before formatting
+                date_time = date_time.astimezone(timezone.utc).replace(tzinfo=None)
             date_time = date_time.strftime(format)
 
         try:
             datetime_str = datetime.strptime(date_time, format)
             return datetime_str
-        except ValueError as ve:
-            self.logger.error(f"An exception occurred while converting the datetime object to a string: {ve}")
-            print(f"An exception occurred while reading the file: {ve}")
-            exit()
+        except (ValueError, TypeError) as ve:
+            self.logger.error(f"An exception occurred while converting the datetime value {date_time!r}: {ve}")
+            raise ValueError(f"Invalid datetime value {date_time!r}: {ve}") from ve
     
     
     async def invokeAPI(self, rest_api, headers=None, json=None)-> Coroutine[Dict[str,Any], None, None]:
+        """Invoke a REST API, honouring throttling.
+
+        Requests share a concurrency cap (``API_MAX_CONCURRENCY``, default 16). Responses
+        with HTTP 429, 503 or 504 are retried up to ``API_MAX_RETRIES`` times (default 3),
+        waiting for ``Retry-After`` when present and exponential backoff otherwise. When
+        retries are exhausted the last error dict is returned.
+
+        :param rest_api: Relative (Power BI root) or absolute URL.
+        :param headers: Request headers.
+        :param json: Optional JSON body; when set the request is a POST.
+        :return: The decoded JSON, or an error dict (see ``_error_result``).
         """
-        Invoke a REST API
+        if self._api_semaphore is None:
+            self._api_semaphore = asyncio.Semaphore(http_retry.max_concurrency())
+
+        retries = http_retry.max_retries()
+        attempt = 0
+        while True:
+            # The slot is released while sleeping so other requests can proceed
+            async with self._api_semaphore:
+                result = await self._invoke_once(rest_api, headers=headers, json=json)
+
+            status = result.get("status") if isinstance(result, dict) and "ERROR" in result else None
+            if status not in http_retry.RETRYABLE_STATUSES or attempt >= retries:
+                return result
+
+            delay = http_retry.retry_delay(attempt, result.get("retryAfter"))
+            self.logger.warning(f"HTTP {status} from {rest_api[:120]}; retrying in {delay:.0f}s ({attempt + 1}/{retries})")
+            await asyncio.sleep(delay)
+            attempt += 1
+
+    async def _invoke_once(self, rest_api, headers=None, json=None)-> Coroutine[Dict[str,Any], None, None]:
+        """
+        Invoke a REST API once (no retry)
         url: str
         headers: dict
         body: dict
         """
         api_root = "https://api.powerbi.com/v1.0/myorg/"
 
-        url = api_root + rest_api
+        url = rest_api if rest_api.startswith("http") else api_root + rest_api
 
         def _log(method, url, status, result=None):
             if result is None:
@@ -285,7 +404,7 @@ class Context:
                             return await response.content
                     else:
                         print(f"[API] GET {rest_api} -> HTTP {response.status} | ERROR")
-                        return {"ERROR" : "429 error thrown", "message": response}
+                        return await _error_result(response)
 
         if json:
             async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(**_CONNECTOR_KWARGS), timeout=_TIMEOUT) as session:
@@ -314,12 +433,12 @@ class Context:
                         finally:
                             if response.status == 429:
                                 print("429 error thrown")
-                                return {"ERROR" : "429 error thrown", "message": response}
+                                return await _error_result(response)
                             else:
                                 pass
                     else:
                         print(f"[API] POST {url} -> HTTP {response.status} | ERROR")
-                        return {"ERROR" : "429 error thrown", "message": response}
+                        return await _error_result(response)
 
                     
         else:
@@ -337,14 +456,10 @@ class Context:
                                 return await response.content
                         else:
                             print(f"[API] GET {url} -> HTTP {response.status} | ERROR")
-                            return {"ERROR" : "429 error thrown", "message": response}
+                            return await _error_result(response)
             else:
 
-                p = rest_api.find("api.fabric.microsoft")
-
-                url = api_root + rest_api
-                if p > 0:
-                    url = rest_api
+                url = rest_api if rest_api.startswith("http") else api_root + rest_api
 
                 async with aiohttp.ClientSession(connector=aiohttp.TCPConnector(**_CONNECTOR_KWARGS), timeout=_TIMEOUT) as session:
                     async with session.get(url, headers=headers) as response:
@@ -353,7 +468,7 @@ class Context:
                             _log("GET", url, response.status, result)
                             return result
                         print(f"[API] GET {url} -> HTTP {response.status} | ERROR")
-                        return {"ERROR" : "429 error thrown", "message": response}
+                        return await _error_result(response)
 
 
 

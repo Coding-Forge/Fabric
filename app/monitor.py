@@ -7,14 +7,31 @@ def _get_bool(key: str, default: bool = False) -> bool:
     return os.environ.get(key, str(default)).lower() in ("1", "true", "yes")
 
 
+def _get_env(*names: str) -> str:
+    """Return the first non-empty environment variable among ``names``.
+
+    The first name is canonical; later names are legacy aliases kept so that
+    existing ``.env`` files (``TenantId``/``ClientId``/``ClientSecret``) still work.
+
+    :param names: Environment variable names in priority order.
+    :return: The value of the first variable that is set and non-empty.
+    :raises KeyError: If none of the variables is set.
+    """
+    for name in names:
+        value = os.environ.get(name)
+        if value:
+            return value
+    raise KeyError(names[0])
+
+
 async def main():
     audit = Audits()
 
     # --- Service Principal (required) ---
     audit.set_ServicePrincipal(
-        tenant_id=os.environ["TENANT_ID"],
-        client_id=os.environ["CLIENT_ID"],
-        client_secret=os.environ["CLIENT_SECRET"],
+        tenant_id=_get_env("TENANT_ID", "TenantId"),
+        client_id=_get_env("CLIENT_ID", "ClientId"),
+        client_secret=_get_env("CLIENT_SECRET", "ClientSecret"),
     )
 
     # --- Modules to run (required) ---
@@ -26,7 +43,7 @@ async def main():
     #     STORAGE_ACCOUNT_URL (e.g. https://<account>.blob.core.windows.net) uses
     #     credential-based auth (Managed Identity / service principal) and works even when
     #     shared key access is disabled on the storage account. ---
-    storage_conn_str = os.environ.get("STORAGE_ACCOUNT_CONN_STR") or None
+    storage_conn_str = os.environ.get("STORAGE_ACCOUNT_CONN_STR") or os.environ.get("STORAGE_ACCOUNT_CONNECTION_STRING") or None
     storage_url = os.environ.get("STORAGE_ACCOUNT_URL") or None
     if storage_conn_str:
         audit.set_StorageAccountConnStr(storage_conn_str)
@@ -72,6 +89,13 @@ async def main():
         "CAPACITY_CRON": audit.set_Capacity_cron,
         "CATALOG_CRON": audit.set_Catalog_cron,
         "DOMAINS_CRON": audit.set_Domains_cron,
+        "FABRICITEMS_CRON": audit.set_FabricItems_cron,
+        "WORKSPACES_CRON": audit.set_Workspaces_cron,
+        "CAPACITYMETRICS_CRON": audit.set_CapacityMetrics_cron,
+        "GITCONNECTIONS_CRON": audit.set_GitConnections_cron,
+        "TAGS_CRON": audit.set_Tags_cron,
+        "DELEGATEDSETTINGS_CRON": audit.set_DelegatedSettings_cron,
+        "WIDELYSHAREDLINKS_CRON": audit.set_WidelySharedLinks_cron,
         "GATEWAY_CRON": audit.set_Gateway_cron,
         "GRAPH_CRON": audit.set_Graph_cron,
         "REFRESHABLES_CRON": audit.set_Refreshables_cron,

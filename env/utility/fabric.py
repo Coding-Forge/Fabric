@@ -1,6 +1,7 @@
 import os
 import json
 
+from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import ClientSecretCredential
 from azure.storage.filedatalake import FileSystemClient, DataLakeDirectoryClient
 from azure.storage.blob import BlobClient
@@ -93,7 +94,7 @@ class File_Table_Management:
         try:
             download = file_client.download_file()
             return download.readall()
-        except Exception as e:
+        except ResourceNotFoundError as e:
             print(f"File not found: {e}")
             return None
 

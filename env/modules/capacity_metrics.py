@@ -1,10 +1,7 @@
 import asyncio
-import json
-from datetime import datetime, timedelta
-import random
-import time
 
-import requests
+from env.context import utc_now
+
 
 async def main(context=None):
     """
@@ -49,17 +46,16 @@ async def main(context=None):
             return
 
         content = response
-        pivotDate = datetime.now()
+        pivotDate = utc_now()
         index = str(pageCount).zfill(5)
 
         Path = f"capacity_metrics/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
-        await context.fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.capacity_metrics.json", content=content)
+        await context.fm.save(path=Path, file_name=f"{pivotDate.strftime('%Y%m%d')}_{index}.capacity_metrics.json", content=content)
 
         try:
             continuationUri = response.get("continuationUri")
         except Exception as e:
             context.logger.error("ERROR", f"Error: {e}")
-            pass
 
         if continuationUri:
             if "continuationToken" in continuationUri:

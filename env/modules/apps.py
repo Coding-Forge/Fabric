@@ -1,15 +1,13 @@
-import os
+import asyncio
 import json
 
-import asyncio
-import time
-
 #from ..utility.fab2 import File_Table_Management
-from datetime import datetime, timedelta
+from datetime import timedelta
+
+from env.context import utc_now, utc_stamp
 
 ####### CATALOG PRECONFIGURATION #######
 catalog_types = ["scan","snapshots"]
-today = datetime.now()
 getInfoDetails = "lineage=true&datasourceDetails=true&getArtifactUsers=true&datasetSchema=false&datasetExpressions=false"
 getModifiedWorkspacesParams = "excludePersonalWorkspaces=False&excludeInActiveWorkspaces=False"
 FullScanAfterDays = 30
@@ -24,7 +22,8 @@ async def main(context=None):
         raise RuntimeError("Context is None")
 
     headers = context.clients['pbi'].get_headers()
-    lakehouse_catalog = f"catalog/"
+    lakehouse_catalog = "catalog/"
+    today = utc_now()
 
     if isinstance(context.current_state, str):
         LastRun = json.loads(context.current_state).get("activity").get("lastRun")
@@ -34,10 +33,10 @@ async def main(context=None):
         LastFullScan = context.current_state.get("catalog").get("lastFullScan")
 
     if LastRun is None:
-        LastRun = datetime.now()
+        LastRun = utc_stamp()
 
     if LastFullScan is None:
-        LastFullScan = datetime.now()        
+        LastFullScan = utc_stamp()
 
     lastRun_tm = context.convert_dt_str(LastRun)
     lastFullScan_tm = context.convert_dt_str(LastFullScan)

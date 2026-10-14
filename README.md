@@ -152,7 +152,12 @@ you may not have to change the <capacity> but if you do you can find the capacit
 You can also use the FabricMonitor and provide the name of the Storage account and the container name plus the UTC offset, RangeStart and RangeEnd along with your SAS or Account Key.
 
 # Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+Run the unit tests from the repository root:
+```
+python3 -m unittest discover -s tests -t .
+```
+
+See [docs/changelog.md](docs/changelog.md) for recent bug fixes (B1–B16), behaviour notes (state/`lastRun`, 7-day first run, 30-day Activity limit, catalog polling caps) and known gaps, the opt-in E5 modules (`GitConnections`, `Tags`, `DelegatedSettings`, `WidelySharedLinks`), and [docs/configuration-reference.md](docs/configuration-reference.md) for environment variables.
 
 # Contribute
 TODO: Explain how other users and developers can contribute to make your code better. 

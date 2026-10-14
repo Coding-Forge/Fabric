@@ -11,6 +11,8 @@ All settings are environment variables. Locally they are set in `local.settings.
 | `TENANT_ID` | Azure AD tenant ID. Used by MSAL for Power BI / Fabric API token acquisition. |
 | `CLIENT_ID` | App registration (service principal) client ID. |
 | `CLIENT_SECRET` | App registration client secret. **Use a Key Vault reference in production.** |
+
+> The legacy names `TenantId`, `ClientId` and `ClientSecret` are still accepted as fallbacks; the canonical names above take priority when both are set.
 | `APPLICATION_MODULES` | Comma-separated list of modules to run. See [Modules](#modules) below. |
 
 ---
@@ -65,31 +67,57 @@ Used when running inside a Fabric environment.
 | `ALL_WORKSPACES` | `false` | When `true`, retrieves all workspaces regardless of modification date. |
 | `IMPERSONATED_USER_NAME` | _(none)_ | UPN of a user to impersonate for API calls. |
 | `CAPACITY_METRICS_DATASET_ID` | _(none)_ | Dataset ID for the Capacity Metrics module. |
+| `API_MAX_RETRIES` | `3` | Maximum retries for throttled or transient API responses (HTTP 429, 503, 504). |
+| `API_MAX_CONCURRENCY` | `16` | Maximum concurrent API requests. |
+| `API_MAX_RETRY_DELAY` | `120` | Cap, in seconds, on a single retry wait. |
+
+### Throttling and retries
+
+API calls retry on 429, 503 and 504. When the response has a `Retry-After` header, that delay is used, up to `API_MAX_RETRY_DELAY` seconds. If a throttle asks for a longer wait than the cap (this can happen with long scanner throttles), the call is not held; it fails and the module is retried on the next run, because `lastRun` does not advance on failure.
+
+`Roles` also has its own retry loop, which runs on top of the shared retry. A failing call can therefore take longer than the settings above suggest.
+
+If you use `env/.env.example`, you can set these variables there as well. The file is not changed by this documentation update.
 
 ---
 
 ## Per-Module Cron Overrides
 
-Each module runs on the global timer schedule (`0 0 */4 * * *` — every 4 hours). You can override the effective schedule per module using cron syntax. If not set, the module runs every time the function fires.
+Each module runs on the global timer schedule (`0 0 2 * * *` — daily at 02:00 UTC, defined in `function_app.py`). You can override the effective schedule per module using cron syntax. If not set, the module runs every time the function fires.
 
 | Variable | Module |
 |---|---|
 | `ACTIVITY_CRON` | Activity Events |
 | `APPS_CRON` | Apps |
 | `CAPACITY_CRON` | Capacity |
+| `CAPACITYMETRICS_CRON` | Capacity Metrics |
 | `CATALOG_CRON` | Catalog Scans |
 | `DOMAINS_CRON` | Domains |
+| `FABRICITEMS_CRON` | Fabric Items |
+| `DELEGATEDSETTINGS_CRON` | Delegated Settings |
 | `GATEWAY_CRON` | Gateways |
+| `GITCONNECTIONS_CRON` | Git Connections |
 | `GRAPH_CRON` | Graph (AAD Groups) |
 | `REFRESHABLES_CRON` | Refreshables |
 | `REFRESHHISTORY_CRON` | Refresh History |
 | `ROLES_CRON` | Workspace Roles |
+| `TAGS_CRON` | Tags |
 | `TENANT_CRON` | Tenant Settings |
+| `WIDELYSHAREDLINKS_CRON` | Widely Shared Links |
+| `WORKSPACES_CRON` | Workspaces |
+
+A module's cron is evaluated against its `lastRun` in `state.yaml`. `lastRun` advances only when the module succeeds, so a failed module is retried on the next timer. With no state, the first run looks back 7 days; Activity never looks back more than 30 days. See [changelog.md](changelog.md).
 
 **Example:** run Catalog only once a day at midnight UTC:
 ```
 CATALOG_CRON=0 0 * * *
 ```
+
+### Time zones
+
+All module clocks are UTC. Module cron expressions (the `*_CRON` variables, evaluated with `croniter`) are evaluated in UTC, whatever the host's local time zone. `WEBSITE_TIME_ZONE` affects only the Azure Functions timer trigger in `function_app.py`. It does not change module crons, `lastRun` values or folder dates.
+
+Date folders (`<module>/YYYY/MM/DD/`) use the UTC date. On a non-UTC host, a run near local midnight can land in a different folder than it did before this change. Wire timestamps are ISO strings ending in `Z`.
 
 ---
 
@@ -103,15 +131,44 @@ All available module names for `APPLICATION_MODULES`:
 | `Apps` | Published Power BI apps |
 | `Capacity` | Capacity details |
 | `Catalog` | Full workspace/item catalog scan |
+| `DelegatedSettings` | Delegated tenant-setting overrides for capacities, domains and workspaces (opt-in) |
 | `Domains` | Fabric domains |
 | `FabricItems` | All Fabric items across the tenant |
 | `Gateway` | On-premise and VNet gateways |
+| `GitConnections` | Workspace Git connections, preview API (opt-in) |
 | `Graph` | Azure AD group membership |
 | `Refreshables` | Refreshable datasets |
 | `RefreshHistory` | Dataset refresh history |
 | `Roles` | Workspace role assignments |
+| `Tags` | Tenant tags (opt-in) |
 | `Tenant` | Tenant settings |
+| `WidelySharedLinks` | Links shared to the whole organization and published to web (opt-in) |
 | `Workspaces` | Workspace metadata |
+
+### E5 admin modules
+
+`GitConnections`, `Tags`, `DelegatedSettings` and `WidelySharedLinks` are **opt-in**. They are not in the default modules, so add them to `APPLICATION_MODULES`, for example:
+
+```
+APPLICATION_MODULES=Activity,Catalog,GitConnections,Tags,DelegatedSettings,WidelySharedLinks
+```
+
+**Permissions.** The caller must be a Fabric admin, or a service principal with `Tenant.Read.All`. For a service principal, enable the tenant setting **Service principals can access read-only admin APIs**.
+
+**Rate limits.** The admin APIs allow 25 requests per minute. The shared links API allows 200 per hour.
+
+| Module | Endpoint | Output path (each ends in `YYYY/MM/DD`) |
+|---|---|---|
+| `GitConnections` | `GET /v1/admin/workspaces/discoverGitConnections` (preview) | `gitconnections/` |
+| `Tags` | `/v1/admin/tags` | `tags/` |
+| `DelegatedSettings` | `/v1/admin/capacities/delegatedTenantSettingOverrides`, `/v1/admin/domains/...`, `/v1/admin/workspaces/...` | `delegatedsettings/<scope>/` (scope = capacities, domains or workspaces) |
+| `WidelySharedLinks` | Power BI admin `widelySharedArtifacts/linksSharedToWholeOrganization` and `.../publishedToWeb` | `widelysharedlinks/` (two files) |
+
+**Snapshot semantics.** Modules that list full state write a full copy on each run. A same-day rerun overwrites the earlier files, so compare days to see changes. `Activity` and `Catalog` write delta/event data instead of full state. The `domains` folder date is the current UTC run date.
+
+**Failures.** A 403 or 404 is logged as a warning and the module returns `False`. `lastRun` does not advance, so the module retries on the next tick. For modules with several endpoints (`DelegatedSettings`, `WidelySharedLinks`), data from endpoints that succeeded is still saved. `GitConnections` uses a preview API, so it keeps retrying each tick if the API is unavailable. An empty `{}` response from `admin_paging` is treated as a failure.
+
+Active items are not a separate module: `FabricItems` already calls `/v1/admin/items`. `state=active` and tags handling there is a follow-up.
 
 ---
 
@@ -120,10 +177,10 @@ All available module names for `APPLICATION_MODULES`:
 The function is triggered on a CRON schedule defined in `function_app.py`:
 
 ```python
-@app.schedule(schedule="0 0 */4 * * *", ...)
+@app.schedule(schedule="0 0 2 * * *", ...)
 ```
 
-This fires every 4 hours at the top of the hour (UTC). Azure Functions uses a 6-field NCRONTAB format:
+This fires once a day at 02:00 UTC. If you set `WEBSITE_TIME_ZONE`, the timer trigger follows that zone; module crons stay in UTC (see [Time zones](#time-zones)). Azure Functions uses a 6-field NCRONTAB format:
 
 ```
 {second} {minute} {hour} {day} {month} {day-of-week}

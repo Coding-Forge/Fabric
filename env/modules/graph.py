@@ -1,21 +1,6 @@
-import os
-import json
-
 import asyncio
-import time
-import requests
 
-#from ..utility.fab2 import File_Table_Management
-from datetime import datetime, timedelta
-
-####### CATALOG PRECONFIGURATION #######
-catalog_types = ["scan","snapshots"]
-today = datetime.now()
-getInfoDetails = "lineage=true&datasourceDetails=true&getArtifactUsers=true&datasetSchema=false&datasetExpressions=false"
-getModifiedWorkspacesParams = "excludePersonalWorkspaces=False&excludeInActiveWorkspaces=False"
-FullScanAfterDays = 30
-reset  = True
-####### CATALOG PRECONFIGURATION #######
+from env.context import utc_now
 
 
 async def main(context=None):
@@ -31,7 +16,7 @@ async def main(context=None):
     headers = context.clients['graph'].get_headers()
     headers['Content-Type'] = 'application/json'
 
-    today = datetime.now()
+    today = utc_now()
 
     lakehouse_catalog = f"graph/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
     Groups = bool(context.GraphExtractGroups)
@@ -65,20 +50,21 @@ async def main(context=None):
             }
         )
 
+    failures = 0
     for call in graphCalls:
         for key, value in call.items():
 
-            response = requests.get(value['GraphURL'], headers=headers)
-            if response.status_code == 200:
-                result = response.json()
+            result = await context.invokeAPI(rest_api=value['GraphURL'], headers=headers)
+            if not result or "ERROR" in result:
+                failures += 1
+                context.logger.error(f"Graph call {key} failed: {result}")
+                continue
 
-                info = result.get("value")
+            info = result.get("value")
 
-                await context.fm.save(path=lakehouse_catalog, file_name=value['FilePath'], content=info)
+            await context.fm.save(path=lakehouse_catalog, file_name=value['FilePath'], content=info)
 
-                #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=lakehouse_catalog)
-                #await FF.write_json_to_file(directory_client=dc, file_name=value['FilePath'], json_data=result)
-
+    return failures == 0
 # TODO: Fix error that comes from return application/json
 # doesn't kill the job but does throw an error
 

@@ -1,10 +1,6 @@
 import asyncio
-import json
 
-import random
-import time
-
-from datetime import datetime, timedelta
+from env.context import utc_now
 
 
 async def main(context=None):
@@ -15,7 +11,7 @@ async def main(context=None):
 
     headers = context.clients['pbi'].get_headers()
 
-    today = datetime.now()
+    today = utc_now()
     async def get_data(url, pageIndex=1):
         file_index = str(pageIndex).zfill(5)
         response = await context.invokeAPI(url, headers=headers)

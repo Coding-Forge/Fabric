@@ -1,12 +1,36 @@
 import asyncio
-import requests
-import json
+from urllib.parse import quote
 
-import random
-import time
-from time import sleep
+from env.context import utc_now
 
-from datetime import datetime, timedelta
+MAX_ATTEMPTS = 3
+DEFAULT_RETRY_SECONDS = 30
+WORKSPACES_URL = "https://api.fabric.microsoft.com/v1/admin/workspaces"
+
+
+async def _get_with_retry(context, rest_api, headers):
+    """Call ``context.invokeAPI`` and retry transient failures a bounded number of times.
+
+    :param context: The application context.
+    :param rest_api: Relative or absolute API URL.
+    :param headers: Request headers.
+    :return: The decoded JSON response.
+    :raises RuntimeError: If the request still fails after ``MAX_ATTEMPTS`` attempts.
+    """
+    result = None
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        result = await context.invokeAPI(rest_api=rest_api, headers=headers)
+        if isinstance(result, dict) and "ERROR" not in result:
+            return result
+
+        status = result.get("status") if isinstance(result, dict) else None
+        context.logger.error(f"Roles request failed (attempt {attempt}/{MAX_ATTEMPTS}): {rest_api} -> {status}")
+        if attempt < MAX_ATTEMPTS:
+            retry_after = result.get("retryAfter") if isinstance(result, dict) else None
+            delay = int(retry_after) if retry_after and str(retry_after).isdigit() else DEFAULT_RETRY_SECONDS
+            await asyncio.sleep(delay)
+
+    raise RuntimeError(f"Roles request failed after {MAX_ATTEMPTS} attempts: {rest_api}: {result}")
 
 
 async def main(context=None):
@@ -21,52 +45,34 @@ async def main(context=None):
 
 
     items = set()
-    continuationToken = None
-    while True:
+    next_url = WORKSPACES_URL
+    while next_url:
+        results = await _get_with_retry(context, next_url, headers)
 
-        if continuationToken == None:
-            response = requests.get("https://api.fabric.microsoft.com/v1/admin/workspaces", headers=headers)
-        else:
-            response = requests.get(f"https://api.fabric.microsoft.com/v1/admin/workspaces?continuationToken='{continuationToken}'",headers=headers)
+        for item in results.get("workspaces") or []:
+            items.add(item["id"])
 
-        if response.ok:
-            results = response.json()
-
-            workspace = results.get("workspaces")
-
-            for item in workspace:
-                items.add(item["id"])
-
-            continuationToken =  results.get("continuationToken",[])
-
-            if continuationToken == None:
-                break
+        continuationToken = results.get("continuationToken")
+        next_url = f"{WORKSPACES_URL}?continuationToken={quote(continuationToken)}" if continuationToken else None
 
     ceiling = len(items)
     cnt = 0
 
-    base_url = 'https://api.powerbi.com/v1.0/myorg/admin/groups?$expand=users&$top=5000'
+    base_url = 'admin/groups?$expand=users&$top=5000'
 
     all_groups = []
     for i in range(0, ceiling, 5000):
-        url = f'{base_url}&$skip={i}'
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            groups = response.json().get('value', [])
-            all_groups.extend(groups)
-        else:
-            print(f'Error: {response.status_code}')
-            break
-
+        results = await _get_with_retry(context, f'{base_url}&$skip={i}', headers)
+        all_groups.extend(results.get('value', []))
     print(f'Total groups retrieved: {len(all_groups)}')
     
     
-    pivotDate = datetime.now()
+    pivotDate = utc_now()
     content = all_groups
     index = str(cnt).zfill(5)
 
     Path = f"roles/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
-    await context.fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.roles.json",content=content)
+    await context.fm.save(path=Path, file_name=f"{pivotDate.strftime('%Y%m%d')}_{index}.roles.json",content=content)
 
 
 if __name__ == "__main__":

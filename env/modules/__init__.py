@@ -4,7 +4,11 @@ from .capacity import main as Capacity
 from .catalog import main as Catalog
 from .domains import main as Domains
 from .fabricitems import main as FabricItems
+from .delegatedsettings import main as DelegatedSettings
 from .gateway import main as Gateway
+from .gitconnections import main as GitConnections
+from .tags import main as Tags
+from .widelysharedlinks import main as WidelySharedLinks
 from .graph import main as Graph
 from .refreshables import main as Refreshables
 from .refreshhistory import main as RefreshHistory

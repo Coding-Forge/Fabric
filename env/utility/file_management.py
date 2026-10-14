@@ -121,8 +121,8 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                     print(f"[READ] Successfully read blob: {path}")
                 
             elif self.context.OutputPath:
-                await self.lfm.save(path=path, file_name=file_name, content=content)    
-            
+                content = await self.lfm.read(path=path, file_name=file_name)
+
             elif self.context.LakehouseName:
                 #TODO: create a directory
                 #TODO: upload/stream to location
@@ -130,7 +130,8 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                 path = f"{self.context.LakehouseName}.Lakehouse/Files/{self.context.PathInLakehouse}/{path}"   
                 path = path.replace("//","/")
                 content = await self.ftm.read(file_name=file_name, path=path)
-                content = content.decode('utf-8')
+                if content is not None:
+                    content = content.decode('utf-8')
 
             
                 # await self.ftm.write_json_to_file(path=path, file_name=file_name, json_data=content)
@@ -140,5 +141,7 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
 
             return content
         except Exception as e:
-            self.context.logger.error("Error reading file")
+            # Re-raise so callers can tell a failed read from a genuinely missing file (None)
+            self.context.logger.error(f"Error reading file: {e}")
             print(f"Error: {e}")
+            raise
