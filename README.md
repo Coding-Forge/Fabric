@@ -151,6 +151,8 @@ you may not have to change the <capacity> but if you do you can find the capacit
 ```
 You can also use the FabricMonitor and provide the name of the Storage account and the container name plus the UTC offset, RangeStart and RangeEnd along with your SAS or Account Key.
 
+A third option is the Power BI Project in [Fabric/MonitorRaw/](Fabric/MonitorRaw/README.md). It reads the raw JSON output directly, from a local folder (`LOCAL_OUTPUT_PATH`) or from Blob Storage, and covers capacity metrics, activity, Git connections, tags, delegated settings and widely shared links. It has **not been validated in Power BI Desktop yet**; read its README (validation status and acceptance checklist) first.
+
 # Build and Test
 Run the unit tests from the repository root:
 ```

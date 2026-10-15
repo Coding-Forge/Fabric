@@ -1,0 +1,62 @@
+/// Latest snapshot of tenant tags (tags/YYYY/MM/DD/tags.json); older days are not summed.
+table Tags
+
+	measure 'Tag Count' = CALCULATE(COUNTROWS('Tags'), 'Tags'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+
+	column 'Tag Id'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Tag Id
+
+	column 'Display Name'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Display Name
+
+	column 'Scope Type'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Scope Type
+
+	column 'Domain Id'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Domain Id
+
+	column 'Snapshot Date'
+		dataType: dateTime
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: Snapshot Date
+
+	column 'Source File'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Source File
+
+	column 'Load Error'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Load Error
+
+	partition Tags = m
+		mode: import
+		source =
+				let
+					Items = ExpandItems(KeepLatestPerGroup(GetFiles("tags"), "Group")),
+					WithColumns = AddColumns(Items, {
+						{"Tag Id", each ToText(JsonField([Item], "id")), type text},
+						{"Display Name", each ToText(JsonField([Item], "displayName")), type text},
+						{"Scope Type", each ToText(JsonField(JsonField([Item], "scope"), "type")), type text},
+						{"Domain Id", each ToText(JsonField(JsonField([Item], "scope"), "domainId")), type text},
+						{"Snapshot Date", each [FileDate], type nullable date},
+						{"Source File", each if [ParseError] <> null then [RelPath] else null, type text},
+						{"Load Error", each [ParseError], type text}
+					}),
+					Result = Table.SelectColumns(WithColumns, {"Tag Id", "Display Name", "Scope Type", "Domain Id", "Snapshot Date", "Source File", "Load Error"})
+				in
+					Result
+
+	annotation PBI_ResultType = Table

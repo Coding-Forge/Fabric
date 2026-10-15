@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "cap_card_interactive",
+  "position": { "x": 980, "y": 90, "width": 280, "height": 100, "z": 5000, "tabOrder": 5000 },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "Capacity Metrics" } }, "Property": "Avg Interactive Billable %" } }, "queryRef": "Capacity Metrics.Avg Interactive Billable %", "nativeQueryRef": "Avg Interactive Billable %" }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

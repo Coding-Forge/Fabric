@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "co_card_burndown",
+  "position": { "x": 980, "y": 90, "width": 280, "height": 100, "z": 4000, "tabOrder": 4000 },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "Capacity Metrics" } }, "Property": "Max Expected Burndown (min)" } }, "queryRef": "Capacity Metrics.Max Expected Burndown (min)", "nativeQueryRef": "Max Expected Burndown (min)" }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

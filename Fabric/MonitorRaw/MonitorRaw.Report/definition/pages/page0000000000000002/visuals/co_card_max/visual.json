@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "co_card_max",
+  "position": { "x": 660, "y": 90, "width": 300, "height": 100, "z": 3000, "tabOrder": 3000 },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "Capacity Metrics" } }, "Property": "Max Carry Over %" } }, "queryRef": "Capacity Metrics.Max Carry Over %", "nativeQueryRef": "Max Carry Over %" }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

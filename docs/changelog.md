@@ -1,5 +1,17 @@
 # Changelog
 
+## Enhancement E10: MonitorRaw Power BI Project
+
+Reviewed and approved by Code Reviewer. **Not validated in Power BI Desktop**: the project was never opened or refreshed there. No code, tests or infrastructure changed.
+
+- New PBIP `Fabric/MonitorRaw/MonitorRaw.pbip`: TMDL semantic model (Import mode) and PBIR report with 8 pages (capacity utilization, carry-over, activity overview, git connections, tags, delegated settings, widely shared links, about and setup).
+- Reads the raw JSON output directly (no silver/gold layer). Source is selected with `SourceType` (`Local` or `Blob`), plus `LocalFolder`, `BlobAccountUrl`, `BlobContainer` and `BlobRootPath`.
+- Dates come from the `<module>/YYYY/MM/DD` folders, not modified time. E5 modules use the latest snapshot (not summed); capacity metrics reruns use latest-run-wins. Malformed JSON shows as Load Error rows.
+- Privacy: the Activity table includes `UserId` (UPN/email).
+- Known risks: Desktop-only behaviours and unverified field names for Git connections, Tags, Delegated settings and Widely shared links (wrong names give null columns, not errors). A wrong `LocalFolder` that exists but has no module folders gives empty tables without an error.
+- `Fabric/MonitorRaw/.gitignore` re-includes `*.json`, which the root `.gitignore` ignores.
+- Details and the acceptance checklist: [Fabric/MonitorRaw/README.md](../Fabric/MonitorRaw/README.md). Plan status: [enhancement-plan.md](enhancement-plan.md#e10-outcome).
+
 ## Local-folder PoC mode
 
 Reviewed and approved by Code Reviewer; 406 tests pass.

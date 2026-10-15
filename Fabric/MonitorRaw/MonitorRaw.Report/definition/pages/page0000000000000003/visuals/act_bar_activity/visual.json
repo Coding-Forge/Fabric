@@ -1,0 +1,34 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "act_bar_activity",
+  "position": { "x": 20, "y": 450, "width": 610, "height": 250, "z": 5000, "tabOrder": 5000 },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "Activity" } }, "Property": "Activity" } }, "queryRef": "Activity.Activity", "nativeQueryRef": "Activity", "active": true }
+          ]
+        },
+        "Y": {
+          "projections": [
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "Activity" } }, "Property": "Activity Count" } }, "queryRef": "Activity.Activity Count", "nativeQueryRef": "Activity Count" }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "Activity" } }, "Property": "Activity Count" } }, "direction": "Descending" }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+    "title": [
+      { "properties": { "show": { "expr": { "Literal": { "Value": "true" } } }, "text": { "expr": { "Literal": { "Value": "'Top activities'" } } } } }
+    ]
+    }
+  }
+}

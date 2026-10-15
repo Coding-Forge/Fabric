@@ -43,7 +43,7 @@ B1-B16 are implemented and were approved by Code Reviewer (127 passing unit test
 | E7 | done (validated live against the real Capacity Metrics model; 355 tests pass) | Capacity Metrics DAX per Metrics-app version and table | `01_Transfer_CapacityMetricData_Timepoints_Unit`, `02_..._ItemKind_Unit`, `03_..._ItemOperation_Unit` | `env/modules/capacity_metrics.py` | Keep `executeQueries` REST; do not use `sempy.evaluate_dax` |
 | E8 | partial (optional retention infra done, default off; delayed pseudonymisation deferred; see "E8 and E9 outcome") | Anonymisation after N days, retention | `02_Transfer_Activities_Unit` (`anonymize_after_days`), `01_FUAM_Lakehouse_Backup` | Hash step in transform; lifecycle rule in `infra/core/storage/storage-account.bicep` | Blob lifecycle management |
 | E9 | in-progress (MSAL token cache done; Key Vault reference wiring done in Bicep, not live-validated) | Auth hardening: token cache, Key Vault/cert secret | `media/documentation/FUAM_Authorization.md` | `env/clients/baseClient.py` | One MSAL `ConfidentialClientApplication` per client; Key Vault reference in Function App settings |
-| E10 | todo (blocked; see "E10 status") | Reporting on gold layer | `FUAM_Core_SM.SemanticModel`, `Generate_Calendar_Table` | `Fabric/*.pbit` | Import or DirectQuery (Direct Lake needs Fabric) |
+| E10 | built, awaiting Desktop validation (see "E10 outcome") | Reporting on raw JSON (no gold layer) | `FUAM_Core_SM.SemanticModel`, `Generate_Calendar_Table` | `Fabric/*.pbit`; new `Fabric/MonitorRaw/` PBIP | Import of raw JSON from a local folder or Blob (Direct Lake needs Fabric) |
 | E11 | done (366 tests pass; no remote check, by design) | Version check, changelog, update guide | `Check_FUAM_Version.Notebook`, `how-to/How_to_update_FUAM.md` | Version file, `docs/` | None needed |
 | E12 | todo | Tests | Neither project has them | New `tests/` | Unit tests: `is_function_due`, pagination, state handling |
 
@@ -64,14 +64,18 @@ Code Reviewer approved the infrastructure (Bicep) work for E8 and E9. It was **c
 - Not live-validated: no deployment has been run. The first deploy can show the reference as unresolved until RBAC propagates.
 - Not done: certificate-based credentials.
 
-### E10 status
+### E10 outcome
 
-E10 stays `todo` and is blocked. It needs:
-- An editable PBIP project with the semantic model, saved from **Windows Power BI Desktop**. This cannot be produced from this Linux environment.
-- A plan for a source selector that switches between a local folder and Blob Storage (the local-folder PoC mode now exists; see [local-development.md](local-development.md#local-folder-poc-mode)).
-- A data coverage plan for the E5 modules (Git connections, tags, delegated settings, widely shared links) and the E7 Capacity Metrics output.
+Status: **built, awaiting Desktop validation.** Code Reviewer approved the PBIP as a static review. It was **never opened or refreshed in Power BI Desktop**, so it is not validated.
 
-Because E4 (silver/gold) is not pursued, any report would read the raw JSON layout directly, not a gold layer.
+- Location: `Fabric/MonitorRaw/MonitorRaw.pbip` (TMDL semantic model, PBIR report, 8 pages). Guide: [Fabric/MonitorRaw/README.md](../Fabric/MonitorRaw/README.md).
+- No medallion layer: E4 is not pursued, so the model reads the raw dated JSON (`<module>/YYYY/MM/DD/`) in **Import** mode.
+- Source selector: `SourceType` switches between a local folder (`LocalFolder`, the `LOCAL_OUTPUT_PATH` output; see [local-development.md](local-development.md#local-folder-poc-mode)) and Blob Storage (`BlobAccountUrl`, `BlobContainer`, `BlobRootPath`).
+- E7 coverage: Capacity Metrics and Capacities tables (utilization and carry-over; latest run wins on reruns).
+- E5 coverage: Git connections, Tags, Delegated settings and Widely shared links (latest snapshot, not summed across days). Activity is also covered.
+- Open risks: Desktop-only behaviours and unverified E5 field names are listed in the [Validation status](../Fabric/MonitorRaw/README.md#validation-status). Field names for the four E5 tables were not checked against real payloads.
+- Privacy: the Activity table holds `UserId` (UPN/email). E8 retention is optional deletion, not anonymisation.
+- To close E10: run the acceptance checklist in the MonitorRaw README in Desktop (Local, then Blob).
 
 ### E7 outcome
 
@@ -116,7 +120,7 @@ E6 was approved by Code Reviewer (269 tests passing) and is marked done with the
 | E7 | Now done; see "E7 outcome" above. |
 | E8 | Partial. Optional retention infra is done (default off, compile-validated only). Delayed pseudonymisation is deferred until a field-by-field policy exists. A native lifecycle rule is not anonymisation. |
 | E9 (Key Vault part) | Key Vault reference wiring is done in Bicep (compile-validated only, not live-validated). Certificate credentials are not done. |
-| E10 | Blocked. Needs an editable PBIP with the semantic model saved from Windows Power BI Desktop, a local/Blob source selector plan, and data coverage for E5 and E7. No medallion layer, so reports would read raw JSON. |
+| E10 | Built, awaiting Desktop validation. The PBIP exists (`Fabric/MonitorRaw/`, raw JSON Import, Local/Blob switch, E5 and E7 coverage) and was approved by Code Reviewer, but it has never been refreshed in Power BI Desktop. E5 field names are unverified against real payloads. See "E10 outcome". |
 | E11 | Now done (approved by Code Reviewer, 366 tests passing); see [updating.md](updating.md). Remaining gap: container images do not copy `VERSION` or `env/`, so containers log `unknown`. |
 | E12 | Initial tests exist (226); add further tests as needed. |
 

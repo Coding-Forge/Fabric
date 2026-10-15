@@ -1,0 +1,25 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "git_table",
+  "position": { "x": 540, "y": 210, "width": 720, "height": 490, "z": 4000, "tabOrder": 4000 },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "Git Connections" } }, "Property": "Workspace Id" } }, "queryRef": "Git Connections.Workspace Id", "nativeQueryRef": "Workspace Id" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "Git Connections" } }, "Property": "Git Provider Type" } }, "queryRef": "Git Connections.Git Provider Type", "nativeQueryRef": "Git Provider Type" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "Git Connections" } }, "Property": "Organization Name" } }, "queryRef": "Git Connections.Organization Name", "nativeQueryRef": "Organization Name" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "Git Connections" } }, "Property": "Project Name" } }, "queryRef": "Git Connections.Project Name", "nativeQueryRef": "Project Name" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "Git Connections" } }, "Property": "Repository Name" } }, "queryRef": "Git Connections.Repository Name", "nativeQueryRef": "Repository Name" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "Git Connections" } }, "Property": "Branch Name" } }, "queryRef": "Git Connections.Branch Name", "nativeQueryRef": "Branch Name" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "Git Connections" } }, "Property": "Connection State" } }, "queryRef": "Git Connections.Connection State", "nativeQueryRef": "Connection State" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "Git Connections" } }, "Property": "Load Error" } }, "queryRef": "Git Connections.Load Error", "nativeQueryRef": "Load Error" }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

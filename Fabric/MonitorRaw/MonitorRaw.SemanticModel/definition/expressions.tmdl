@@ -1,0 +1,189 @@
+/// Where the monitor JSON output is read from: "Local" (a folder) or "Blob" (Azure Blob Storage).
+expression SourceType = "Local" meta [IsParameterQuery = true, List = {"Local", "Blob"}, DefaultValue = "Local", Type = "Text", IsParameterQueryRequired = true]
+	annotation PBI_ResultType = Text
+
+/// Local source: absolute path of the folder that contains the module folders (activity, capacity_metrics, ...). Use the LOCAL_OUTPUT_PATH value that monitor writes to.
+expression LocalFolder = "C:\path\to\monitor-output" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	annotation PBI_ResultType = Text
+
+/// Blob source: storage account URL, e.g. https://<account>.blob.core.windows.net/
+expression BlobAccountUrl = "https://<storage-account>.blob.core.windows.net/" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = false]
+	annotation PBI_ResultType = Text
+
+/// Blob source: container name (STORAGE_ACCOUNT_CONTAINER_NAME).
+expression BlobContainer = "<container>" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = false]
+	annotation PBI_ResultType = Text
+
+/// Blob source: root path prefix inside the container (STORAGE_ACCOUNT_CONTAINER_ROOT_PATH). Leave empty when the modules sit directly in the container.
+expression BlobRootPath = "" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = false]
+	annotation PBI_ResultType = Text
+
+/// Converts any value to text; null or unconvertible values become null.
+expression ToText =
+		(value as any) as nullable text =>
+			if value = null then null else try Text.From(value) otherwise null
+	annotation PBI_ResultType = Function
+
+/// Converts any value to a number; null or unconvertible values become null.
+expression ToNumber =
+		(value as any) as nullable number =>
+			if value = null then null else try Number.From(value) otherwise null
+	annotation PBI_ResultType = Function
+
+/// Returns the value when it is a logical, otherwise null.
+expression ToLogical =
+		(value as any) as nullable logical =>
+			if value is logical then value else null
+	annotation PBI_ResultType = Function
+
+/// Parses the date part (yyyy-MM-dd) of an ISO text value; anything else becomes null.
+expression ToDate =
+		(value as any) as nullable date =>
+			if value is date then value
+			else if value is datetime then DateTime.Date(value)
+			else if value is text and Text.Length(value) >= 10 then
+				try Date.FromText(Text.Start(value, 10), [Format = "yyyy-MM-dd", Culture = "en-US"]) otherwise null
+			else null
+	annotation PBI_ResultType = Function
+
+/// Parses an ISO timestamp as a UTC datetime without time zone. Values ending in Z or carrying a +offset are converted to UTC; values without a zone are taken as already UTC.
+expression ToUtcDateTime =
+		(value as any) as nullable datetime =>
+			if value is datetime then value
+			else if value is text then
+				if Text.EndsWith(value, "Z") or Text.Contains(value, "+") then
+					try DateTimeZone.RemoveZone(DateTimeZone.SwitchZone(DateTimeZone.FromText(value), 0)) otherwise null
+				else
+					try DateTime.FromText(value, [Culture = "en-US"]) otherwise null
+			else null
+	annotation PBI_ResultType = Function
+
+/// Returns the fallback when the value is null.
+expression Coalesce =
+		(value as any, fallback as any) as any =>
+			if value = null then fallback else value
+	annotation PBI_ResultType = Function
+
+/// Reads a field from a record; null when the value is not a record or the field is missing.
+expression JsonField =
+		(value as any, name as text) as any =>
+			if value is record then Record.FieldOrDefault(value, name, null) else null
+	annotation PBI_ResultType = Function
+
+/// Reads the first non-null field of a record from a list of candidate field names.
+expression JsonFirst =
+		(value as any, names as list) as any =>
+			List.First(List.RemoveNulls(List.Transform(names, (n) => JsonField(value, n))), null)
+	annotation PBI_ResultType = Function
+
+/// Reads the first present key of an executeQueries result row from a list of candidate keys.
+expression GetRowValue =
+		(row as any, names as list) as any =>
+			JsonFirst(row, names)
+	annotation PBI_ResultType = Function
+
+/// Reads a measure value from a capacity metrics row. executeQueries names the key "[Measure name]"; the bare name is accepted too.
+expression CmMeasure =
+		(row as any, measure as text) as nullable number =>
+			ToNumber(GetRowValue(row, {"[" & measure & "]", measure, "All Measures[" & measure & "]"}))
+	annotation PBI_ResultType = Function
+
+/// Adds several columns to a table. specs is a list of {name, each generator, type}.
+expression AddColumns =
+		(source as table, specs as list) as table =>
+			List.Accumulate(specs, source, (state, spec) => Table.AddColumn(state, spec{0}, spec{1}, spec{2}))
+	annotation PBI_ResultType = Function
+
+/// Lists the .json files below <root>/<moduleFolder>/ for the selected SourceType. Returns RelPath (relative to the root, always with / separators), FileName and Content. A missing local folder or no matching blobs gives an empty table. Other errors (bad credentials, wrong container) are raised.
+expression ListModuleFiles =
+		(moduleFolder as text) as table =>
+		let
+			Normalize = (t as text) as text => Text.Replace(t, "\", "/"),
+			Module = Text.Trim(Normalize(moduleFolder), "/"),
+			EmptyFiles = #table(type table [RelPath = text, FileName = text, Content = binary], {}),
+
+			FromBlob = () as table =>
+				let
+					Root = Text.Trim(Normalize(Coalesce(BlobRootPath, "")), "/"),
+					StripLength = if Root = "" then 0 else Text.Length(Root) + 1,
+					Prefix = if Root = "" then Module & "/" else Root & "/" & Module & "/",
+					Containers = AzureStorage.Blobs(BlobAccountUrl),
+					Data = Containers{[Name = BlobContainer]}[Data],
+					Matching = Table.SelectRows(Data, each Text.StartsWith(Normalize([Name]), Prefix) and Text.EndsWith(Text.Lower([Name]), ".json")),
+					WithPath = Table.AddColumn(Matching, "RelPath", each Text.Middle(Normalize([Name]), StripLength), type text),
+					WithName = Table.AddColumn(WithPath, "FileName", each List.Last(Text.Split([RelPath], "/")), type text)
+				in
+					Table.SelectColumns(WithName, {"RelPath", "FileName", "Content"}),
+
+			FromLocal = () as table =>
+				let
+					Root = Text.TrimEnd(Normalize(LocalFolder), "/"),
+					Separator = if Text.Contains(LocalFolder, "\") then "\" else "/",
+					ModulePath = Text.Replace(Root & "/" & Module, "/", Separator),
+					Attempt = try Folder.Files(ModulePath),
+					Raw =
+						if not Attempt[HasError] then Attempt[Value]
+						else if Attempt[Error][Reason] = "DataSource.NotFound" then null
+						else error Attempt[Error],
+					Matching = Table.SelectRows(Raw, each Text.Lower([Extension]) = ".json"),
+					WithPath = Table.AddColumn(Matching, "RelPath", each Text.Middle(Normalize([Folder Path]), Text.Length(Root) + 1) & [Name], type text),
+					WithName = Table.AddColumn(WithPath, "FileName", each [Name], type text)
+				in
+					if Raw = null then EmptyFiles else Table.SelectColumns(WithName, {"RelPath", "FileName", "Content"})
+		in
+			if SourceType = "Blob" then FromBlob()
+			else if SourceType = "Local" then FromLocal()
+			else error Error.Record("Expression.Error", "SourceType must be Local or Blob", SourceType)
+	annotation PBI_ResultType = Function
+
+/// Lists and parses the JSON files of a module folder (for example "activity" or "delegatedsettings"). FileDate is the UTC date from the <module>/[scope/]YYYY/MM/DD/ folder layout (never the modified time). Group is any scope folder between the module and the year. Json holds the parsed document; ParseError holds the message when a file is malformed. Empty files give no Json and no error.
+expression GetFiles =
+		(moduleFolder as text) as table =>
+		let
+			Module = Text.Trim(Text.Replace(moduleFolder, "\", "/"), "/"),
+			ModuleDepth = List.Count(Text.Split(Module, "/")),
+			Files = ListModuleFiles(moduleFolder),
+			PathInfo = (rel as text) as record =>
+				let
+					Parts = Text.Split(rel, "/"),
+					N = List.Count(Parts),
+					FileDate = try (if Text.Length(Parts{N - 4}) = 4 then #date(Number.FromText(Parts{N - 4}, "en-US"), Number.FromText(Parts{N - 3}, "en-US"), Number.FromText(Parts{N - 2}, "en-US")) else null) otherwise null,
+					Group = try Text.Combine(List.Skip(List.FirstN(Parts, N - 4), ModuleDepth), "/") otherwise ""
+				in
+					[FileDate = FileDate, Group = Group],
+			WithInfo = Table.ExpandRecordColumn(Table.AddColumn(Files, "Info", each PathInfo([RelPath])), "Info", {"FileDate", "Group"}),
+			Typed = Table.TransformColumnTypes(WithInfo, {{"FileDate", type date}, {"Group", type text}}),
+			Parsed = Table.AddColumn(Typed, "Parsed", each try (if Binary.Length([Content]) = 0 then null else Json.Document([Content]))),
+			WithJson = Table.AddColumn(Parsed, "Json", each if [Parsed][HasError] then null else [Parsed][Value], type any),
+			WithError = Table.AddColumn(WithJson, "ParseError", each if [Parsed][HasError] then [Parsed][Error][Message] else null, type text)
+		in
+			Table.SelectColumns(WithError, {"RelPath", "FileName", "FileDate", "Group", "Json", "ParseError"})
+	annotation PBI_ResultType = Function
+
+/// Keeps only the files of the most recent snapshot date within each group (full-state modules write a complete copy per day, so older days must not be summed).
+expression KeepLatestPerGroup =
+		(files as table, groupColumn as text) as table =>
+		let
+			Latest = Table.Group(files, groupColumn, {{"LatestDate", each List.Max([FileDate]), type nullable date}}),
+			Joined = Table.NestedJoin(files, {groupColumn}, Latest, {groupColumn}, "Latest", JoinKind.Inner),
+			Expanded = Table.ExpandTableColumn(Joined, "Latest", {"LatestDate"}),
+			Kept = Table.SelectRows(Expanded, each [FileDate] = [LatestDate])
+		in
+			Table.RemoveColumns(Kept, {"LatestDate"})
+	annotation PBI_ResultType = Function
+
+/// Turns the file-level table from GetFiles into one row per record in the JSON documents (column Item). A malformed file stays as one row with Item = null and ParseError set.
+expression ExpandItems =
+		(files as table) as table =>
+		let
+			AsItems = (json as any, failed as logical) as list =>
+				if json = null then (if failed then {null} else {})
+				else if json is list then List.Select(json, (x) => x is record)
+				else if json is record then {json}
+				else {},
+			WithItems = Table.AddColumn(files, "Item", each AsItems([Json], [ParseError] <> null)),
+			Expanded = Table.ExpandListColumn(WithItems, "Item"),
+			Kept = Table.SelectRows(Expanded, each [Item] <> null or [ParseError] <> null)
+		in
+			Table.RemoveColumns(Kept, {"Json"})
+	annotation PBI_ResultType = Function

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "MonitorRaw"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "d15602ab-60cf-4cac-8e3a-7f6282204c9d"
+  }
+}

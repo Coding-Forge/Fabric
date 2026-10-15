@@ -1,0 +1,21 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "lnk_slicer_type",
+  "position": { "x": 20, "y": 10, "width": 300, "height": 60, "z": 0, "tabOrder": 0 },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "Widely Shared Links" } }, "Property": "Link Type" } }, "queryRef": "Widely Shared Links.Link Type", "nativeQueryRef": "Link Type", "active": true }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "data": [ { "properties": { "mode": { "expr": { "Literal": { "Value": "'Dropdown'" } } } } } ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
