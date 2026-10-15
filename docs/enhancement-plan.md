@@ -41,13 +41,37 @@ B1-B16 are implemented and were approved by Code Reviewer (127 passing unit test
 | E5 | done (active items part not changed; see note below) | New modules: Git connections, tags, delegated tenant-setting overrides, widely shared links, active items | `01_Transfer_Git_Connections_Unit`, `01_Tags_Unit`, `Load_Delegated_Tenant_Settings_Overrides_E2E`, `01_Transfer_WidelyShared_*_Unit`, `01_Transfer_Active_Items_Unit` | New files in `env/modules/`; export in `env/modules/__init__.py` | Plain REST calls |
 | E6 | done, with open concerns | Dated snapshot history (capacities, workspaces, items): raw dated layout exists (`<module>/YYYY/MM/DD/`); history tables (`*_history`) deferred along with E4, which is intentionally not pursued | `01_Create_Snapshot_Tables_Unit` | Domains folder date fix (`env/modules/domains.py`); see open concerns below | Raw dated folders in Blob; no `*_history` tables |
 | E7 | done (validated live against the real Capacity Metrics model; 355 tests pass) | Capacity Metrics DAX per Metrics-app version and table | `01_Transfer_CapacityMetricData_Timepoints_Unit`, `02_..._ItemKind_Unit`, `03_..._ItemOperation_Unit` | `env/modules/capacity_metrics.py` | Keep `executeQueries` REST; do not use `sempy.evaluate_dax` |
-| E8 | todo | Anonymisation after N days, retention | `02_Transfer_Activities_Unit` (`anonymize_after_days`), `01_FUAM_Lakehouse_Backup` | Hash step in transform; lifecycle rule in `infra/core/storage/storage-account.bicep` | Blob lifecycle management |
-| E9 | in-progress (MSAL token cache done; Key Vault not done) | Auth hardening: token cache, Key Vault/cert secret | `media/documentation/FUAM_Authorization.md` | `env/clients/baseClient.py` | One MSAL `ConfidentialClientApplication` per client; Key Vault reference in Function App settings |
-| E10 | todo | Reporting on gold layer | `FUAM_Core_SM.SemanticModel`, `Generate_Calendar_Table` | `Fabric/*.pbit` | Import or DirectQuery (Direct Lake needs Fabric) |
+| E8 | partial (optional retention infra done, default off; delayed pseudonymisation deferred; see "E8 and E9 outcome") | Anonymisation after N days, retention | `02_Transfer_Activities_Unit` (`anonymize_after_days`), `01_FUAM_Lakehouse_Backup` | Hash step in transform; lifecycle rule in `infra/core/storage/storage-account.bicep` | Blob lifecycle management |
+| E9 | in-progress (MSAL token cache done; Key Vault reference wiring done in Bicep, not live-validated) | Auth hardening: token cache, Key Vault/cert secret | `media/documentation/FUAM_Authorization.md` | `env/clients/baseClient.py` | One MSAL `ConfidentialClientApplication` per client; Key Vault reference in Function App settings |
+| E10 | todo (blocked; see "E10 status") | Reporting on gold layer | `FUAM_Core_SM.SemanticModel`, `Generate_Calendar_Table` | `Fabric/*.pbit` | Import or DirectQuery (Direct Lake needs Fabric) |
 | E11 | done (366 tests pass; no remote check, by design) | Version check, changelog, update guide | `Check_FUAM_Version.Notebook`, `how-to/How_to_update_FUAM.md` | Version file, `docs/` | None needed |
 | E12 | todo | Tests | Neither project has them | New `tests/` | Unit tests: `is_function_due`, pagination, state handling |
 
 E1, E2, E3 are implemented and E9 is partly implemented. Code Reviewer approved the implementation and tests (226 passing, independent of the local time zone). Details are in [changelog.md](changelog.md).
+
+### E8 and E9 outcome
+
+Code Reviewer approved the infrastructure (Bicep) work for E8 and E9. It was **compile-validated only** (`az bicep build`); it has not been deployed. Parameters are described in [deployment.md](deployment.md) and [configuration-reference.md](configuration-reference.md#bicep-parameters-e08-and-e09).
+
+**E8 (partial)**
+- Done: optional blob retention through a storage lifecycle management policy (`infra/core/storage/storage-lifecycle-policy.bicep`, wired in `infra/main.bicep`). It is **off by default** (`enableRetention=false`).
+- Deferred: delayed pseudonymisation or anonymisation after N days. It needs a field-by-field policy first (which fields are personal data, and how each is hashed or dropped).
+- A native lifecycle rule is **not** anonymisation. It only deletes whole blobs by age. It does not alter or hash content, and it does not cover blob versions or snapshots.
+- Default no-medallion scope: there is no silver/gold layer (E4 is not pursued), so retention applies only to raw module folders. There is no transform step in which a hash could run.
+
+**E9 (Key Vault part)**
+- Done in Bicep: `CLIENT_SECRET` can be set as a Key Vault reference to an existing secret, with opt-in RBAC (`Key Vault Secrets User`) for the Function App identity.
+- Not live-validated: no deployment has been run. The first deploy can show the reference as unresolved until RBAC propagates.
+- Not done: certificate-based credentials.
+
+### E10 status
+
+E10 stays `todo` and is blocked. It needs:
+- An editable PBIP project with the semantic model, saved from **Windows Power BI Desktop**. This cannot be produced from this Linux environment.
+- A plan for a source selector that switches between a local folder and Blob Storage (the local-folder PoC mode now exists; see [local-development.md](local-development.md#local-folder-poc-mode)).
+- A data coverage plan for the E5 modules (Git connections, tags, delegated settings, widely shared links) and the E7 Capacity Metrics output.
+
+Because E4 (silver/gold) is not pursued, any report would read the raw JSON layout directly, not a gold layer.
 
 ### E7 outcome
 
@@ -78,7 +102,7 @@ E6 was approved by Code Reviewer (269 tests passing) and is marked done with the
 - Snapshots do not record who changed an item. Use Activity events, and consider joining them to inventory.
 
 **Missing features**
-- No retention until E8 (an infrastructure change).
+- Retention is optional and off by default (E8, see "E8 and E9 outcome").
 - No `latest` pointer and no per-run manifest.
 
 **Positioning.** Dated snapshots complement Terraform and Fabric CI/CD drift detection. They do not replace them.
@@ -90,9 +114,9 @@ E6 was approved by Code Reviewer (269 tests passing) and is marked done with the
 | E4 | Needs a schema design decision first (silver/gold layout). Intentionally not pursued. |
 | E5 (active items) | Done for `GitConnections`, `Tags`, `DelegatedSettings`, `WidelySharedLinks` (264 tests passing, approved by Code Reviewer). The "active items" part is unchanged: `FabricItems` already calls `/v1/admin/items`; `state=active`/tags handling is a follow-up. |
 | E7 | Now done; see "E7 outcome" above. |
-| E8 | Blob lifecycle rule is an infrastructure (Bicep) change. |
-| E9 (Key Vault part) | Key Vault reference / certificate secret is an infrastructure change. |
-| E10 | Report (`.pbit`) work is frontend, outside this code change. |
+| E8 | Partial. Optional retention infra is done (default off, compile-validated only). Delayed pseudonymisation is deferred until a field-by-field policy exists. A native lifecycle rule is not anonymisation. |
+| E9 (Key Vault part) | Key Vault reference wiring is done in Bicep (compile-validated only, not live-validated). Certificate credentials are not done. |
+| E10 | Blocked. Needs an editable PBIP with the semantic model saved from Windows Power BI Desktop, a local/Blob source selector plan, and data coverage for E5 and E7. No medallion layer, so reports would read raw JSON. |
 | E11 | Now done (approved by Code Reviewer, 366 tests passing); see [updating.md](updating.md). Remaining gap: container images do not copy `VERSION` or `env/`, so containers log `unknown`. |
 | E12 | Initial tests exist (226); add further tests as needed. |
 

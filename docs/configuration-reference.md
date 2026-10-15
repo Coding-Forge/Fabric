@@ -46,6 +46,19 @@ Uses `DefaultAzureCredential` (Managed Identity in Azure, service principal loca
 
 > Not recommended if "Allow storage account key access" is disabled on your storage account.
 
+### Option D — Local folder (proof of concept)
+
+Opt-in. When `LOCAL_OUTPUT_PATH` is set, it takes precedence over Options A–C: the Blob and Lakehouse settings are ignored, so a PoC run cannot write to production storage. See [local-development.md](local-development.md#local-folder-poc-mode).
+
+| Variable | Required | Description |
+|---|---|---|
+| `LOCAL_OUTPUT_PATH` | Yes (for this mode) | Folder that receives all output, including `state.yaml`. `~` is expanded. Created if missing; startup fails if it is not a writable directory. |
+| `COMMERCIAL_TENANT_ID` | No | Alias for `TENANT_ID`, honoured **only** when `LOCAL_OUTPUT_PATH` is set. |
+| `COMMERCIAL_CLIENT_ID` | No | Alias for `CLIENT_ID`, honoured only in local mode. |
+| `COMMERCIAL_CLIENT_SECRET` | No | Alias for `CLIENT_SECRET`, honoured only in local mode. |
+
+In local mode the credential precedence is `COMMERCIAL_*` > canonical (`TENANT_ID`, `CLIENT_ID`, `CLIENT_SECRET`) > legacy (`TenantId`, `ClientId`, `ClientSecret`). Outside local mode the `COMMERCIAL_*` variables are ignored. They are never used for storage credentials. `DRY_RUN` does not affect local mode.
+
 ### Option C — Fabric Lakehouse
 
 Used when running inside a Fabric environment.
@@ -56,6 +69,23 @@ Used when running inside a Fabric environment.
 | `WORKSPACE_NAME` | Yes | Name of the Fabric workspace |
 | `PATH_IN_LAKEHOUSE` | No | Subfolder path inside the Lakehouse Files, e.g. `stage` |
 | `ON_FABRIC` | No | `true` if running inside Fabric runtime (uses `/lakehouse/default/Files/...`). Default: `true` |
+
+---
+
+## Bicep parameters (E08 and E09)
+
+These are parameters of `infra/main.bicep`, not app settings. Both features are optional. The infrastructure was compile-validated only (`az bicep build`) and has not been deployed. Full guidance is in [deployment.md](deployment.md#key-vault-reference-and-blob-retention-e09-and-e08).
+
+| Parameter | Default | Description |
+|---|---|---|
+| `clientSecretKeyVaultSecretUri` | _(empty = off)_ | Versionless URI of an existing Key Vault secret. Sets the Function App `CLIENT_SECRET` to a Key Vault reference and enables a managed identity. |
+| `assignKeyVaultAccess` | `false` | Grants the Function App identity `Key Vault Secrets User` on the existing vault. Only works if the vault uses RBAC authorization. Requires `keyVaultName` and `clientSecretKeyVaultSecretUri`, otherwise the deployment fails. |
+| `keyVaultName` | _(empty)_ | Existing vault name. Required when `assignKeyVaultAccess` is true. |
+| `keyVaultResourceGroupName` | main resource group | Resource group of the existing vault. |
+| `enableRetention` | `false` | Creates a storage lifecycle rule that deletes old output blobs. Replaces any existing management policy on the storage account. |
+| `retentionDays` | `90` | Days since last modification before deletion. Minimum 1. |
+| `storageRetentionRootPath` | _(empty)_ | Root path inside the container (same as `STORAGE_ACCOUNT_CONTAINER_ROOT_PATH`). No leading or trailing slash. |
+| `retentionModules` | `[]` | Module folder names to expire, for example `["activity"]`. Required and non-empty when `enableRetention` is true; entries must not contain slashes. |
 
 ---
 

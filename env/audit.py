@@ -1,8 +1,8 @@
 import asyncio
-import json
 import re
 from datetime import datetime, timedelta
 
+import yaml
 from codetiming import Timer
 from croniter import croniter
 
@@ -74,10 +74,15 @@ class Audits:
             print(f"what is the current state {current_state}")
 
             if isinstance(current_state, str):
+                # Local/Lakehouse reads return text (blob returns parsed YAML).
+                # JSON is valid YAML, so safe_load handles both formats.
                 # Blank content (e.g. a zero-byte file) means no state yet.
                 current_state = (
-                    json.loads(current_state) if current_state.strip() else None
+                    yaml.safe_load(current_state) if current_state.strip() else None
                 )
+
+            if current_state is not None and not isinstance(current_state, dict):
+                raise ValueError("state.yaml does not contain a mapping")
 
             if not current_state:
                 current_state = await self.create_state()

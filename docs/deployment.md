@@ -128,6 +128,43 @@ azd deploy
 
 ---
 
+## Key Vault reference and blob retention (E09 and E08)
+
+Both features are optional parameters of `infra/main.bicep` (used by `azd up`). The Bicep was **compile-validated only** (`az bicep build`) and has **not been deployed**. Parameter summaries are in [configuration-reference.md](configuration-reference.md#bicep-parameters-e08-and-e09).
+
+> **Prerequisite:** `infra/main.bicep` loads `infra/abbreviations.json`. In this working copy that file is not in `infra/` and `*.json` is gitignored (`git ls-files` could not be run when writing this, so check it yourself: `git ls-files infra/abbreviations.json`). The file must exist locally for `main.bicep` to compile.
+
+### E09: CLIENT_SECRET from Key Vault
+
+| Parameter | Notes |
+|---|---|
+| `clientSecretKeyVaultSecretUri` | Versionless URI of an **existing** secret, `https://<vault>.vault.azure.net/secrets/<name>`. Sets `CLIENT_SECRET` to a Key Vault reference and enables a managed identity on the Function App. Empty = off. |
+| `assignKeyVaultAccess` | Opt-in, default `false`. Grants the Function App identity `Key Vault Secrets User` on the vault. |
+| `keyVaultName` | Existing vault name. Required with `assignKeyVaultAccess`. |
+| `keyVaultResourceGroupName` | Resource group of the vault; defaults to the main resource group. |
+
+- The role assignment works **only if the vault uses RBAC authorization**. The template does not change the vault's authorization model. If the vault uses access policies, leave `assignKeyVaultAccess` false and grant the identity secret read access yourself.
+- If `assignKeyVaultAccess` is true but `keyVaultName` or `clientSecretKeyVaultSecretUri` is missing, the deployment fails with an error naming the cause.
+- **First deploy:** the role assignment is created in the same deployment, and RBAC can take several minutes to propagate. The `CLIENT_SECRET` reference may show as unresolved until then. Restart the Function App once it has propagated.
+- **Rotation and caching:** a versionless reference is re-resolved by App Service periodically, not instantly. After rotating the secret, restart the Function App to pick it up immediately.
+
+### E08: optional blob retention
+
+| Parameter | Default | Notes |
+|---|---|---|
+| `enableRetention` | `false` | Off by default. |
+| `retentionDays` | `90` | Minimum 1. |
+| `storageRetentionRootPath` | _(empty)_ | Same value as `STORAGE_ACCOUNT_CONTAINER_ROOT_PATH`. No leading or trailing slash. |
+| `retentionModules` | `[]` | Required and non-empty when enabled. Module folder names, for example `["activity"]`; no slashes. |
+
+- Rule prefixes are always `<container>/<root>/<module>/`, so `state.yaml` (at the root path) and the `azure-webjobs*` containers never match.
+- The rule uses the blob **last-modified time** and runs **asynchronously** (typically within about a day), not immediately.
+- It deletes base blobs only. Blob versions and snapshots are not handled, and soft-delete recovery still applies to deleted blobs.
+- A storage account has exactly **one** management policy. Enabling retention **replaces any existing policy**. Check first, for example with `az storage account management-policy show`.
+- This is deletion, not anonymisation. See [enhancement-plan.md](enhancement-plan.md#e8-and-e9-outcome).
+
+---
+
 ## 5. Verify the Deployment
 
 ### Check logs in real time

@@ -271,6 +271,42 @@ Because `run_on_startup=True` is set in `function_app.py`, the function fires im
 
 ---
 
+## Local-folder PoC mode
+
+For a proof of concept you can write output to a local folder instead of Blob Storage. This needs no storage account, but it is **not an offline mode**: the monitor still calls the real Microsoft APIs (Power BI, Fabric, Graph) with a real service principal.
+
+### Set it up
+
+1. Set `LOCAL_OUTPUT_PATH` to a folder, for example `~/monitor-poc-output`. It is created if missing; startup fails if it is not a writable directory.
+2. Provide credentials. In this mode `COMMERCIAL_TENANT_ID`, `COMMERCIAL_CLIENT_ID` and `COMMERCIAL_CLIENT_SECRET` are accepted from the environment. Precedence is `COMMERCIAL_*` > `TENANT_ID`/`CLIENT_ID`/`CLIENT_SECRET` > legacy `TenantId`/`ClientId`/`ClientSecret`. The aliases are ignored when `LOCAL_OUTPUT_PATH` is not set.
+3. Set `APPLICATION_MODULES` as usual.
+4. Start the host with `func start` (Azurite is still needed for `AzureWebJobsStorage`).
+
+When `LOCAL_OUTPUT_PATH` is set, Blob and Lakehouse settings are ignored. Output uses the same layout as Blob mode, for example `<LOCAL_OUTPUT_PATH>/activity/YYYY/MM/DD/...`.
+
+### Things to know
+
+- **A run starts immediately.** The timer has `run_on_startup=True`, so starting the Functions host triggers a run straight away, which calls the real APIs.
+- **`local.settings.json` wins over your shell.** Core Tools loads `Values` from `local.settings.json` and these override variables exported in the shell. A stale `TENANT_ID`, `CLIENT_ID` or similar left in that file will take precedence over what you exported. Remove or update it. Note that `COMMERCIAL_*` still outranks the canonical names if both end up in the environment.
+- **`DRY_RUN` does not affect local mode.** Local runs write real files.
+- **Keep the output folder out of git.** The output can contain tenant data. Put it outside the repository or make sure it is gitignored, and do not commit it.
+- **`state.yaml` lives in the output folder.** Delete it to force a fresh first run; keep it to continue incrementally.
+- **A failed local write fails the module.** The module returns failure and `lastRun` does not advance, so it is retried on the next run.
+- **`azure-identity` must still be installed.** It comes with `requirements.txt`; local mode does not remove the dependency.
+
+Example `Values` additions (placeholders only):
+
+```json
+"LOCAL_OUTPUT_PATH": "~/monitor-poc-output",
+"COMMERCIAL_TENANT_ID": "<tenant-id>",
+"COMMERCIAL_CLIENT_ID": "<client-id>",
+"COMMERCIAL_CLIENT_SECRET": "<client-secret>"
+```
+
+See [configuration-reference.md](configuration-reference.md#option-d--local-folder-proof-of-concept).
+
+---
+
 ## Dry Run Mode
 
 To see what would be written to blob storage without actually writing anything, set:

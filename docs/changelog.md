@@ -1,5 +1,25 @@
 # Changelog
 
+## Local-folder PoC mode
+
+Reviewed and approved by Code Reviewer; 406 tests pass.
+
+- New opt-in setting `LOCAL_OUTPUT_PATH`. When set, the monitor writes all output (including `state.yaml`) to that local folder instead of Blob Storage or a Lakehouse. Blob and Lakehouse settings are ignored in this mode.
+- In local mode only, `COMMERCIAL_TENANT_ID`, `COMMERCIAL_CLIENT_ID` and `COMMERCIAL_CLIENT_SECRET` are accepted as service principal credentials. Precedence: `COMMERCIAL_*` > `TENANT_ID`/`CLIENT_ID`/`CLIENT_SECRET` > legacy `TenantId`/`ClientId`/`ClientSecret`. Without `LOCAL_OUTPUT_PATH` the aliases are ignored. They are never used for storage credentials, and values are not logged.
+- The folder is created if missing; an unusable or non-writable path raises an error at startup.
+- A failed local write fails the module, so `lastRun` does not advance.
+- Local mode still calls the real Microsoft APIs; it is not an offline mode. See [local-development.md](local-development.md#local-folder-poc-mode).
+
+## Enhancements E8 and E9: optional Bicep infrastructure
+
+Reviewed and approved by Code Reviewer. Compile-validated only (`az bicep build`); **not deployed**, so not live-validated.
+
+- **E9, Key Vault reference.** New parameter `clientSecretKeyVaultSecretUri` sets the Function App `CLIENT_SECRET` setting to a Key Vault reference to an existing secret. When it is set, the Function App gets a managed identity. New opt-in `assignKeyVaultAccess` (with `keyVaultName` and optional `keyVaultResourceGroupName`) assigns `Key Vault Secrets User` on the existing vault. This works only if the vault uses RBAC authorization. The deployment fails with a clear message if `assignKeyVaultAccess` is true without `keyVaultName` or the secret URI. On first deploy the reference can be unresolved until RBAC propagates; restart the app.
+- **E8, retention.** New parameters `enableRetention` (default `false`), `retentionDays` (default 90, minimum 1), `storageRetentionRootPath` and `retentionModules`. When enabled, a storage lifecycle rule deletes block blobs under `<container>/<root>/<module>/` older than `retentionDays` (by last-modified time). `state.yaml` and `azure-webjobs*` containers never match. The deployment fails if `retentionModules` is empty or contains a slash. A storage account has one management policy, so enabling this replaces any existing policy.
+- Delayed pseudonymisation is deferred until a field-by-field policy exists. A lifecycle rule is deletion, not anonymisation.
+- `infra/main.bicep` loads `infra/abbreviations.json`. That file is not in `infra/` in this working copy and `*.json` is gitignored, so it must be present for `main.bicep` to compile. See [deployment.md](deployment.md#key-vault-reference-and-blob-retention-e09-and-e08).
+- Details: [deployment.md](deployment.md), [managed-identity.md](managed-identity.md) and [configuration-reference.md](configuration-reference.md#bicep-parameters-e08-and-e09).
+
 ## Enhancement E11: Version file, startup version log, update guide
 
 Reviewed and approved by Code Reviewer; 366 tests pass. Version `0.2.0` is the baseline.

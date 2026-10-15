@@ -20,8 +20,13 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
     def content(self, context):
         self.context = context
 
-        print("storage account container name", self.context.StorageAccountContainerName)
-        if self.context.StorageAccountContainerName:
+        # An explicit local OutputPath takes precedence over Blob/Lakehouse settings
+        # so a proof-of-concept run can never write to production storage.
+        if self.context.OutputPath:
+            self.lfm = Local_File_Management()
+            self.lfm.set_context(self.context)
+
+        elif self.context.StorageAccountContainerName:
             self.bfm = Blob_File_Management()
             self.bfm.set_context(self.context)
         
@@ -59,7 +64,9 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                 content = content.encode('utf-8')
 
         #save file to storage
-            if self.context.StorageAccountContainerName:
+            if self.context.OutputPath:
+                await self.lfm.save(path=path, file_name=file_name, content=content)
+            elif self.context.StorageAccountContainerName:
                 root = self.context.StorageAccountContainerRootPath
                 if root:
                     path = f"{root}/{path}{file_name}"
@@ -77,8 +84,6 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                     print(f"{'='*60}\n")
                 else:
                     await self.bfm.write_to_file(blob_name=path, content=content)
-            elif self.context.OutputPath:
-                await self.lfm.save(path=path, file_name=file_name, content=content)    
             elif self.context.LakehouseName:
                 if self.context.on_fabric:
                     path = f"/lakehouse/default/Files/{self.context.PathInLakehouse}/{path}"
@@ -95,6 +100,9 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
         except Exception as e:
             self.context.logger.error("Error saving file to storage")
             print(f"Error: {e}")
+            if self.context.OutputPath and isinstance(e, OSError):
+                # Local writes must not look successful; Blob/Lakehouse keep log-only behaviour.
+                raise
 
 
     async def read(self, path="", file_name=""):
@@ -106,7 +114,10 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
         """
         try:
 
-            if self.context.StorageAccountContainerName:
+            if self.context.OutputPath:
+                content = await self.lfm.read(path=path, file_name=file_name)
+
+            elif self.context.StorageAccountContainerName:
                 root = self.context.StorageAccountContainerRootPath
                 if root:
                     path = f"{root}/{path}{file_name}"
@@ -120,9 +131,6 @@ class File_Management(File_Table_Management, Blob_File_Management, Local_File_Ma
                 else:
                     print(f"[READ] Successfully read blob: {path}")
                 
-            elif self.context.OutputPath:
-                content = await self.lfm.read(path=path, file_name=file_name)
-
             elif self.context.LakehouseName:
                 #TODO: create a directory
                 #TODO: upload/stream to location

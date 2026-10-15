@@ -11,16 +11,57 @@ def _get_bool(key: str, default: bool = False) -> bool:
     return os.environ.get(key, str(default)).lower() in ("1", "true", "yes")
 
 
+# Canonical credential variable -> alias honoured only in local output mode.
+_COMMERCIAL_ALIASES = {
+    "TENANT_ID": "COMMERCIAL_TENANT_ID",
+    "CLIENT_ID": "COMMERCIAL_CLIENT_ID",
+    "CLIENT_SECRET": "COMMERCIAL_CLIENT_SECRET",
+}
+
+
+def _resolve_local_output_path(raw_path: str) -> str:
+    """Resolve and prepare the local output folder for a proof-of-concept run.
+
+    :param raw_path: Value of ``LOCAL_OUTPUT_PATH`` (``~`` is expanded).
+    :return: The absolute path of the existing, writable directory.
+    :raises RuntimeError: If the folder cannot be created or is not writable.
+    """
+    path = os.path.abspath(os.path.expanduser(raw_path))
+    try:
+        os.makedirs(path, exist_ok=True)
+    except OSError as e:
+        raise RuntimeError(f"LOCAL_OUTPUT_PATH is unusable ({path}): {e}") from e
+    if not os.path.isdir(path) or not os.access(path, os.W_OK | os.X_OK):
+        raise RuntimeError(f"LOCAL_OUTPUT_PATH is not a writable directory: {path}")
+    return path
+
+
 def _get_env(*names: str) -> str:
     """Return the first non-empty environment variable among ``names``.
 
     The first name is canonical; later names are legacy aliases kept so that
     existing ``.env`` files (``TenantId``/``ClientId``/``ClientSecret``) still work.
 
+    Precedence for the service principal credentials:
+
+    * Default: ``TENANT_ID`` > ``TenantId`` (likewise for CLIENT_ID/CLIENT_SECRET).
+    * Only when ``LOCAL_OUTPUT_PATH`` is set (local proof-of-concept mode):
+      ``COMMERCIAL_TENANT_ID`` / ``COMMERCIAL_CLIENT_ID`` /
+      ``COMMERCIAL_CLIENT_SECRET`` come first, then ``TENANT_ID`` etc., then the
+      legacy ``TenantId`` etc. These aliases are never used for storage credentials.
+
+    Values are never logged.
+
     :param names: Environment variable names in priority order.
     :return: The value of the first variable that is set and non-empty.
     :raises KeyError: If none of the variables is set.
     """
+    if (
+        os.environ.get("LOCAL_OUTPUT_PATH")
+        and names
+        and names[0] in _COMMERCIAL_ALIASES
+    ):
+        names = (_COMMERCIAL_ALIASES[names[0]], *names)
     for name in names:
         value = os.environ.get(name)
         if value:
@@ -53,7 +94,15 @@ async def main():
         or None
     )
     storage_url = os.environ.get("STORAGE_ACCOUNT_URL") or None
-    if storage_conn_str:
+    local_output_path = os.environ.get("LOCAL_OUTPUT_PATH") or None
+    if local_output_path:
+        # Explicit opt-in local mode: takes precedence over Blob/Lakehouse settings
+        # (which are ignored) so a PoC run cannot write to production storage.
+        resolved_path = _resolve_local_output_path(local_output_path)
+        audit.set_OutputPath(resolved_path)
+        audit.set_on_fabric(False)
+        logger.info("Local output mode enabled; writing to %s", resolved_path)
+    elif storage_conn_str:
         audit.set_StorageAccountConnStr(storage_conn_str)
         audit.set_StorageAccountContainerName(
             os.environ["STORAGE_ACCOUNT_CONTAINER_NAME"]
