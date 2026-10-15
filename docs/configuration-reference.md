@@ -66,7 +66,9 @@ Used when running inside a Fabric environment.
 | `DRY_RUN` | `false` | When `true`, prints what would be written to blob instead of writing it. Useful for local testing. |
 | `ALL_WORKSPACES` | `false` | When `true`, retrieves all workspaces regardless of modification date. |
 | `IMPERSONATED_USER_NAME` | _(none)_ | UPN of a user to impersonate for API calls. |
-| `CAPACITY_METRICS_DATASET_ID` | _(none)_ | Dataset ID for the Capacity Metrics module. |
+| `CAPACITY_METRICS_DATASET_ID` | _(none)_ | Dataset ID of the Capacity Metrics app semantic model. If unset, the `CapacityMetrics` module logs a warning and returns success. See [Capacity Metrics](#capacity-metrics-capacitymetrics). |
+| `CAPACITY_METRICS_DAYS_BACK` | `3` | Days of history to query, minimum 1, maximum 30. |
+| `CAPACITY_METRICS_INCLUDE_SUSPENDED` | _(unset)_ | When `1`, `true`, `yes` or `on`, capacities that are not Active are also queried. |
 | `API_MAX_RETRIES` | `3` | Maximum retries for throttled or transient API responses (HTTP 429, 503, 504). |
 | `API_MAX_CONCURRENCY` | `16` | Maximum concurrent API requests. |
 | `API_MAX_RETRY_DELAY` | `120` | Cap, in seconds, on a single retry wait. |
@@ -130,6 +132,7 @@ All available module names for `APPLICATION_MODULES`:
 | `Activity` | Power BI activity log events |
 | `Apps` | Published Power BI apps |
 | `Capacity` | Capacity details |
+| `CapacityMetrics` | Capacity Metrics app data (utilization, carry-over) via `executeQueries`; see [below](#capacity-metrics-capacitymetrics) |
 | `Catalog` | Full workspace/item catalog scan |
 | `DelegatedSettings` | Delegated tenant-setting overrides for capacities, domains and workspaces (opt-in) |
 | `Domains` | Fabric domains |
@@ -144,6 +147,28 @@ All available module names for `APPLICATION_MODULES`:
 | `Tenant` | Tenant settings |
 | `WidelySharedLinks` | Links shared to the whole organization and published to web (opt-in) |
 | `Workspaces` | Workspace metadata |
+
+### Capacity Metrics (`CapacityMetrics`)
+
+Queries the Capacity Metrics app semantic model through the Power BI `executeQueries` REST API.
+
+**Prerequisites**
+- Tenant setting **Dataset Execute Queries REST API** is enabled.
+- The service principal is allowed to use Power BI APIs and is a member of the workspace that holds the Metrics app.
+- `CAPACITY_METRICS_DATASET_ID` is set to that semantic model's dataset ID.
+
+**Settings:** `CAPACITY_METRICS_DATASET_ID`, `CAPACITY_METRICS_DAYS_BACK` (default 3, range 1-30) and `CAPACITY_METRICS_INCLUDE_SUSPENDED` (see [Optional Settings](#optional-settings)); schedule with `CAPACITYMETRICS_CRON`.
+
+**Behaviour**
+- Capacities are read from the `Capacities` table. Non-Active capacities are skipped unless `CAPACITY_METRICS_INCLUDE_SUSPENDED` is truthy. Capacity IDs are validated as GUIDs.
+- Window: UTC days from `max(today - DAYS_BACK, lastRun date - 1 day)` through today.
+- For each capacity and UTC day, a scoped `SUMMARIZECOLUMNS` query runs over `'All Measures'`. Scoping uses `DEFINE MPARAMETER 'CapacitiesList'` plus `TREATAS` on `'Capacities'[Capacity Id]` and `'Dates'[Date]`. DirectQuery tables return empty results without this scoping.
+- Version probe: if the measure `Cumulative carry over %` exists, groups `utilization` and `carryover` are queried; otherwise only `utilization`.
+- A failed query makes the run return `False` (`lastRun` does not advance) while the remaining queries continue. A 429 or 5xx after retries aborts the run. An empty result for an Active capacity logs a warning.
+
+**Output.** `capacity_metrics/YYYY/MM/DD/{runYYYYMMDD}_{capacityId}_{group}_{metricDayYYYYMMDD}.capacity_metrics.json`, containing `{capacityId, capacityName, sku, date, group, rows}`. Empty results are not saved. This replaces the earlier paged raw files and is a breaking change for consumers.
+
+**Caveats.** Microsoft does not support consuming this model, so its schema may change. Upgrading the app with "update workspace and app" can change the workspace and dataset IDs; update `CAPACITY_METRICS_DATASET_ID` afterwards.
 
 ### E5 admin modules
 

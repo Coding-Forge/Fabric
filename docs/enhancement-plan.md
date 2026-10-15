@@ -40,7 +40,7 @@ B1-B16 are implemented and were approved by Code Reviewer (127 passing unit test
 | E4 | todo | Silver/gold layer (keep raw JSON as bronze) | `02_Transfer_Activities_Unit`, `01_Tags_Unit`, `03_Aggregate_Activities_Unit`, `Init_FUAM_Lakehouse_Tables` | New `env/transform/` package | pandas/pyarrow to Parquet/Delta in same container |
 | E5 | done (active items part not changed; see note below) | New modules: Git connections, tags, delegated tenant-setting overrides, widely shared links, active items | `01_Transfer_Git_Connections_Unit`, `01_Tags_Unit`, `Load_Delegated_Tenant_Settings_Overrides_E2E`, `01_Transfer_WidelyShared_*_Unit`, `01_Transfer_Active_Items_Unit` | New files in `env/modules/`; export in `env/modules/__init__.py` | Plain REST calls |
 | E6 | done, with open concerns | Dated snapshot history (capacities, workspaces, items): raw dated layout exists (`<module>/YYYY/MM/DD/`); history tables (`*_history`) deferred along with E4, which is intentionally not pursued | `01_Create_Snapshot_Tables_Unit` | Domains folder date fix (`env/modules/domains.py`); see open concerns below | Raw dated folders in Blob; no `*_history` tables |
-| E7 | todo | Capacity Metrics DAX per Metrics-app version and table | `01_Transfer_CapacityMetricData_Timepoints_Unit`, `02_..._ItemKind_Unit`, `03_..._ItemOperation_Unit` | `env/modules/capacity_metrics.py` | Keep `executeQueries` REST; do not use `sempy.evaluate_dax` |
+| E7 | done (validated live against the real Capacity Metrics model; 355 tests pass) | Capacity Metrics DAX per Metrics-app version and table | `01_Transfer_CapacityMetricData_Timepoints_Unit`, `02_..._ItemKind_Unit`, `03_..._ItemOperation_Unit` | `env/modules/capacity_metrics.py` | Keep `executeQueries` REST; do not use `sempy.evaluate_dax` |
 | E8 | todo | Anonymisation after N days, retention | `02_Transfer_Activities_Unit` (`anonymize_after_days`), `01_FUAM_Lakehouse_Backup` | Hash step in transform; lifecycle rule in `infra/core/storage/storage-account.bicep` | Blob lifecycle management |
 | E9 | in-progress (MSAL token cache done; Key Vault not done) | Auth hardening: token cache, Key Vault/cert secret | `media/documentation/FUAM_Authorization.md` | `env/clients/baseClient.py` | One MSAL `ConfidentialClientApplication` per client; Key Vault reference in Function App settings |
 | E10 | todo | Reporting on gold layer | `FUAM_Core_SM.SemanticModel`, `Generate_Calendar_Table` | `Fabric/*.pbit` | Import or DirectQuery (Direct Lake needs Fabric) |
@@ -48,6 +48,12 @@ B1-B16 are implemented and were approved by Code Reviewer (127 passing unit test
 | E12 | todo | Tests | Neither project has them | New `tests/` | Unit tests: `is_function_due`, pagination, state handling |
 
 E1, E2, E3 are implemented and E9 is partly implemented. Code Reviewer approved the implementation and tests (226 passing, independent of the local time zone). Details are in [changelog.md](changelog.md).
+
+### E7 outcome
+
+E7 was approved by Code Reviewer (355 tests passing) and validated live against the real Capacity Metrics semantic model. `env/modules/capacity_metrics.py` was rewritten; the old query used a table (`CUDetail`) that does not exist. The new module runs scoped `SUMMARIZECOLUMNS` queries per capacity and per UTC day, and selects a measure set by probing for the `Cumulative carry over %` measure. It still uses the `executeQueries` REST API (no `sempy`). The output format changed and is breaking for consumers. Details: [changelog.md](changelog.md) and [configuration-reference.md](configuration-reference.md#capacity-metrics-capacitymetrics).
+
+Remaining risks: Microsoft does not support consuming the model, so the schema may change between app versions, and an app upgrade can change the workspace and dataset IDs. The measure-set probe covers the two known versions only.
 
 ### E6 open concerns
 
@@ -83,7 +89,7 @@ E6 was approved by Code Reviewer (269 tests passing) and is marked done with the
 |---|-----------------------|
 | E4 | Needs a schema design decision first (silver/gold layout). Intentionally not pursued. |
 | E5 (active items) | Done for `GitConnections`, `Tags`, `DelegatedSettings`, `WidelySharedLinks` (264 tests passing, approved by Code Reviewer). The "active items" part is unchanged: `FabricItems` already calls `/v1/admin/items`; `state=active`/tags handling is a follow-up. |
-| E7 | Depends on the Capacity Metrics app DAX schema, which must be confirmed per app version. |
+| E7 | Now done; see "E7 outcome" above. |
 | E8 | Blob lifecycle rule is an infrastructure (Bicep) change. |
 | E9 (Key Vault part) | Key Vault reference / certificate secret is an infrastructure change. |
 | E10 | Report (`.pbit`) work is frontend, outside this code change. |

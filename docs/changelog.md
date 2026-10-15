@@ -1,5 +1,19 @@
 # Changelog
 
+## Enhancement E7: Capacity Metrics module rewritten
+
+Reviewed and approved by Code Reviewer; 355 tests pass. Validated live against the real Capacity Metrics semantic model. Full settings are in [configuration-reference.md](configuration-reference.md#capacity-metrics-capacitymetrics).
+
+- `env/modules/capacity_metrics.py` queries the Capacity Metrics app semantic model through the Power BI `executeQueries` REST API. The old query used a nonexistent `CUDetail` table.
+- DirectQuery tables return empty results unless scoped. For each capacity and each UTC day, the module runs `SUMMARIZECOLUMNS` over `'All Measures'` measures, with `DEFINE MPARAMETER 'CapacitiesList'` and `TREATAS` on `'Capacities'[Capacity Id]` and `'Dates'[Date]`. Without the `MPARAMETER` the result is empty (verified).
+- Version probe: if the measure `Cumulative carry over %` exists, the carry-over measure set is used (groups `utilization` and `carryover`). Otherwise the baseline set is used (`utilization` only). An HTTP 400 or error body means the measure is missing; any other failure fails the run.
+- Capacities come from the `Capacities` table. Capacities that are not Active are skipped unless `CAPACITY_METRICS_INCLUDE_SUSPENDED` is set. Capacity IDs are validated as GUIDs.
+- Window: UTC days from `max(today - CAPACITY_METRICS_DAYS_BACK, lastRun date - 1 day)` through today. `CAPACITY_METRICS_DAYS_BACK` defaults to 3 (min 1, max 30).
+- If `CAPACITY_METRICS_DATASET_ID` is unset, the module logs a warning and returns success.
+- Failures: a failed query makes the run return `False`, so `lastRun` does not advance, but the other queries continue. A 429 or 5xx after retries aborts the run. An empty result for an Active capacity logs a warning.
+- **Breaking change: output format.** Previously the module wrote paged raw files. It now writes `capacity_metrics/YYYY/MM/DD/{runYYYYMMDD}_{capacityId}_{group}_{metricDayYYYYMMDD}.capacity_metrics.json`, with content `{capacityId, capacityName, sku, date, group, rows}`. Empty results are not saved. Update any consumer that reads the old files.
+- Caveats: Microsoft does not support consuming this model, so the schema may change. Upgrading the app with "update workspace and app" can change the workspace and dataset IDs; update `CAPACITY_METRICS_DATASET_ID` afterwards.
+
 ## All clocks are UTC
 
 Reviewed and approved by Code Reviewer; 288 tests pass under the default, UTC, Asia/Tokyo and America/Los_Angeles time zones.

@@ -21,3 +21,8 @@ venv/
 !Fabric/*.json
 .python_packages
 
+# Local Power BI project copy of the Capacity Metrics app (schema inspection only)
+MetricApp/
+# Local exports of the Capacity Metrics model schema/samples (may contain capacity names)
+capacity_data/
+

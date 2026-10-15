@@ -62,10 +62,26 @@ def build_context():
         "settings": [],
         "results": [],
     }
+    def respond(*args, **kwargs):
+        # capacity_metrics talks to executeQueries and expects its result shape
+        if args and str(args[0]).endswith("/executeQueries"):
+            query = kwargs["json"]["queries"][0]["query"]
+            if "SELECTCOLUMNS(Capacities" in query:
+                rows = [{
+                    "[id]": "11111111-2222-3333-4444-555555555555",
+                    "[state]": "Active",
+                    "[name]": "cap",
+                    "[sku]": "F2",
+                }]
+            else:
+                rows = [{"Timepoints[Timepoint]": "2024-01-01T00:00:00", "[CU limit]": 1}]
+            return {"results": [{"tables": [{"rows": rows}]}]}
+        return dict(payload)
+
     ctx = make_context(
         state={"catalog": {"lastRun": "2024-01-01T00:00:00.000000Z",
                            "lastFullScan": "2024-01-01T00:00:00.000000Z"}},
-        invoke=AsyncMock(side_effect=lambda *a, **k: dict(payload)),
+        invoke=AsyncMock(side_effect=respond),
     )
     for name in ("tenant", "graph"):
         ctx.clients[name] = MagicMock()
