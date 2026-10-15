@@ -1,5 +1,17 @@
 # Changelog
 
+## Enhancement E11: Version file, startup version log, update guide
+
+Reviewed and approved by Code Reviewer; 366 tests pass. Version `0.2.0` is the baseline.
+
+- The top-level `VERSION` file (`0.2.0`) is the single source of truth.
+- `env/version.py` `get_version()` returns the stripped contents, or `"unknown"` if the file is missing, unreadable or empty. It makes no network call.
+- `app/monitor.py` logs `Starting Fabric Monitor run (version X)` at startup. INFO logs may not show unless logging is configured.
+- No automatic remote update check, by design.
+- `VERSION` ships with Function App deploys (`azure.yaml` and `.funcignore` do not exclude it).
+- Known gap (pre-existing): `containers/Dockerfile` and `Dockerfile2` copy only `app/`, not `VERSION` or `env/`, so containers log the version as `unknown`. When fixed, add `COPY VERSION .` and `COPY env ./env`.
+- New guide: [updating.md](updating.md).
+
 ## Enhancement E7: Capacity Metrics module rewritten
 
 Reviewed and approved by Code Reviewer; 355 tests pass. Validated live against the real Capacity Metrics semantic model. Full settings are in [configuration-reference.md](configuration-reference.md#capacity-metrics-capacitymetrics).

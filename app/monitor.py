@@ -1,6 +1,10 @@
-import os
 import logging
+import os
+
 from env.audit import Audits
+from env.version import get_version
+
+logger = logging.getLogger(__name__)
 
 
 def _get_bool(key: str, default: bool = False) -> bool:
@@ -43,18 +47,26 @@ async def main():
     #     STORAGE_ACCOUNT_URL (e.g. https://<account>.blob.core.windows.net) uses
     #     credential-based auth (Managed Identity / service principal) and works even when
     #     shared key access is disabled on the storage account. ---
-    storage_conn_str = os.environ.get("STORAGE_ACCOUNT_CONN_STR") or os.environ.get("STORAGE_ACCOUNT_CONNECTION_STRING") or None
+    storage_conn_str = (
+        os.environ.get("STORAGE_ACCOUNT_CONN_STR")
+        or os.environ.get("STORAGE_ACCOUNT_CONNECTION_STRING")
+        or None
+    )
     storage_url = os.environ.get("STORAGE_ACCOUNT_URL") or None
     if storage_conn_str:
         audit.set_StorageAccountConnStr(storage_conn_str)
-        audit.set_StorageAccountContainerName(os.environ["STORAGE_ACCOUNT_CONTAINER_NAME"])
+        audit.set_StorageAccountContainerName(
+            os.environ["STORAGE_ACCOUNT_CONTAINER_NAME"]
+        )
         root_path = os.environ.get("STORAGE_ACCOUNT_CONTAINER_ROOT_PATH", "")
         if root_path:
             audit.set_StorageAccountContainerRootPath(root_path)
         audit.set_on_fabric(False)
     elif storage_url:
         audit.set_storage_url(storage_url)
-        audit.set_StorageAccountContainerName(os.environ["STORAGE_ACCOUNT_CONTAINER_NAME"])
+        audit.set_StorageAccountContainerName(
+            os.environ["STORAGE_ACCOUNT_CONTAINER_NAME"]
+        )
         root_path = os.environ.get("STORAGE_ACCOUNT_CONTAINER_ROOT_PATH", "")
         if root_path:
             audit.set_StorageAccountContainerRootPath(root_path)
@@ -108,6 +120,6 @@ async def main():
         if value:
             setter(value)
 
-    logging.info("Starting Fabric Monitor run")
+    logger.info("Starting Fabric Monitor run (version %s)", get_version())
     await audit.run()
-    logging.info("Fabric Monitor run complete")
+    logger.info("Fabric Monitor run complete")

@@ -44,7 +44,7 @@ B1-B16 are implemented and were approved by Code Reviewer (127 passing unit test
 | E8 | todo | Anonymisation after N days, retention | `02_Transfer_Activities_Unit` (`anonymize_after_days`), `01_FUAM_Lakehouse_Backup` | Hash step in transform; lifecycle rule in `infra/core/storage/storage-account.bicep` | Blob lifecycle management |
 | E9 | in-progress (MSAL token cache done; Key Vault not done) | Auth hardening: token cache, Key Vault/cert secret | `media/documentation/FUAM_Authorization.md` | `env/clients/baseClient.py` | One MSAL `ConfidentialClientApplication` per client; Key Vault reference in Function App settings |
 | E10 | todo | Reporting on gold layer | `FUAM_Core_SM.SemanticModel`, `Generate_Calendar_Table` | `Fabric/*.pbit` | Import or DirectQuery (Direct Lake needs Fabric) |
-| E11 | todo | Version check, changelog, update guide | `Check_FUAM_Version.Notebook`, `how-to/How_to_update_FUAM.md` | Version file, `docs/` | None needed |
+| E11 | done (366 tests pass; no remote check, by design) | Version check, changelog, update guide | `Check_FUAM_Version.Notebook`, `how-to/How_to_update_FUAM.md` | Version file, `docs/` | None needed |
 | E12 | todo | Tests | Neither project has them | New `tests/` | Unit tests: `is_function_due`, pagination, state handling |
 
 E1, E2, E3 are implemented and E9 is partly implemented. Code Reviewer approved the implementation and tests (226 passing, independent of the local time zone). Details are in [changelog.md](changelog.md).
@@ -93,7 +93,7 @@ E6 was approved by Code Reviewer (269 tests passing) and is marked done with the
 | E8 | Blob lifecycle rule is an infrastructure (Bicep) change. |
 | E9 (Key Vault part) | Key Vault reference / certificate secret is an infrastructure change. |
 | E10 | Report (`.pbit`) work is frontend, outside this code change. |
-| E11 | Version check and update guide not started. |
+| E11 | Now done (approved by Code Reviewer, 366 tests passing); see [updating.md](updating.md). Remaining gap: container images do not copy `VERSION` or `env/`, so containers log `unknown`. |
 | E12 | Initial tests exist (226); add further tests as needed. |
 
 ## C. Suggested order of work

@@ -159,6 +159,8 @@ python3 -m unittest discover -s tests -t .
 
 See [docs/changelog.md](docs/changelog.md) for recent bug fixes (B1–B16), behaviour notes (state/`lastRun`, 7-day first run, 30-day Activity limit, catalog polling caps) and known gaps, the opt-in E5 modules (`GitConnections`, `Tags`, `DelegatedSettings`, `WidelySharedLinks`), and [docs/configuration-reference.md](docs/configuration-reference.md) for environment variables.
 
+To check your version and upgrade, see [docs/updating.md](docs/updating.md). The version is in the top-level `VERSION` file and is logged at startup.
+
 The `CapacityMetrics` module was rewritten (plan item E7). It reads the Capacity Metrics app semantic model through the `executeQueries` REST API and writes a new output format, which is a breaking change for consumers of the old files. See the [changelog](docs/changelog.md) and [Capacity Metrics settings](docs/configuration-reference.md#capacity-metrics-capacitymetrics).
 
 # Contribute
