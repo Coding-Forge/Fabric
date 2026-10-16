@@ -1,0 +1,450 @@
+table activity
+	lineageTag: 90867da0-dc82-4034-8424-40821f324f36
+
+	column Id
+		dataType: string
+		lineageTag: 1e1fbd5c-023b-4687-91e1-88c2dcf5dcca
+		summarizeBy: none
+		sourceColumn: Id
+
+		annotation SummarizationSetBy = Automatic
+
+	column RecordType
+		dataType: int64
+		formatString: 0
+		lineageTag: 295d6773-11bd-4fbf-bdca-c8f475759807
+		summarizeBy: sum
+		sourceColumn: RecordType
+
+		annotation SummarizationSetBy = Automatic
+
+	column CreationTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9ccafcac-da25-43cf-9f49-2fa4f8b7f4c5
+		summarizeBy: none
+		sourceColumn: CreationTime
+
+		variation Variation
+			isDefault
+			relationship: 05c57fbb-ce0f-45fe-85e8-e7039968472f
+			defaultHierarchy: LocalDateTable_cba74368-764f-470d-923a-7cc8e4d59c03.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Operation
+		dataType: string
+		lineageTag: b777a97d-6e3f-4ae7-b7c6-413101bd4de6
+		summarizeBy: none
+		sourceColumn: Operation
+
+		annotation SummarizationSetBy = Automatic
+
+	column OrganizationId
+		dataType: string
+		lineageTag: b3213226-15e1-4160-bc5b-9ac74e8eaf36
+		summarizeBy: none
+		sourceColumn: OrganizationId
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserType
+		dataType: int64
+		formatString: 0
+		lineageTag: 81ae3130-a9d8-47c2-902b-ff02666e6588
+		summarizeBy: sum
+		sourceColumn: UserType
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserKey
+		dataType: string
+		lineageTag: 4ff4262f-f877-425f-95a2-0ad3f8e349b4
+		summarizeBy: none
+		sourceColumn: UserKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Workload
+		dataType: string
+		lineageTag: b701be0d-5359-43a8-8c81-75881b738606
+		summarizeBy: none
+		sourceColumn: Workload
+
+		annotation SummarizationSetBy = Automatic
+
+	column UserId
+		dataType: string
+		lineageTag: d9c943c4-6d03-4ed2-94d5-2bafca10a1af
+		summarizeBy: none
+		sourceColumn: UserId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ClientIP
+		dataType: string
+		lineageTag: adc7a1e0-e2bc-445d-a36f-2b619cab9dfd
+		summarizeBy: none
+		sourceColumn: ClientIP
+
+		annotation SummarizationSetBy = Automatic
+
+	column Activity
+		dataType: string
+		lineageTag: c9a09cc7-d1f5-4b30-8129-08b9f2009083
+		summarizeBy: none
+		sourceColumn: Activity
+
+		annotation SummarizationSetBy = Automatic
+
+	column ItemName
+		dataType: string
+		lineageTag: 029098df-ee29-40ef-ac27-d4e107b80e0b
+		summarizeBy: none
+		sourceColumn: ItemName
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkSpaceName
+		dataType: string
+		lineageTag: 30ffd9a1-a0bf-437a-9d56-88dc234a73e1
+		summarizeBy: none
+		sourceColumn: WorkSpaceName
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetName
+		dataType: string
+		lineageTag: b6bc0684-9657-4e33-bd27-adffe13a505f
+		summarizeBy: none
+		sourceColumn: DatasetName
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapacityId
+		dataType: string
+		lineageTag: 24215b95-11be-46e2-aab3-9381cdc68bd8
+		summarizeBy: none
+		sourceColumn: CapacityId
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapacityName
+		dataType: string
+		lineageTag: 959db4e8-bd15-468f-8353-5e285bef65a3
+		summarizeBy: none
+		sourceColumn: CapacityName
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceId
+		dataType: string
+		lineageTag: 65bb7183-a56d-43a1-823f-3b0a1077b27b
+		summarizeBy: none
+		sourceColumn: WorkspaceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ObjectId
+		dataType: string
+		lineageTag: 9f4fcde5-cfe6-47f8-8187-5346871db3e2
+		summarizeBy: none
+		sourceColumn: ObjectId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetId
+		dataType: string
+		lineageTag: dc92e7f8-c64d-4ae3-9df1-01fc3ca24adf
+		summarizeBy: none
+		sourceColumn: DatasetId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataConnectivityMode
+		dataType: string
+		lineageTag: 06c35206-6758-49e7-a442-6691777e289e
+		summarizeBy: none
+		sourceColumn: DataConnectivityMode
+
+		annotation SummarizationSetBy = Automatic
+
+	column ArtifactId
+		dataType: string
+		lineageTag: e99a7316-f65a-452f-8243-469325ddb2c9
+		summarizeBy: none
+		sourceColumn: ArtifactId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ArtifactName
+		dataType: string
+		lineageTag: 6b10ed9d-5ee7-47c0-9351-471eba1b4737
+		summarizeBy: none
+		sourceColumn: ArtifactName
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsSuccess
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 86ee3e19-9ec7-4110-98ed-2f1872701b0b
+		summarizeBy: none
+		sourceColumn: IsSuccess
+
+		annotation SummarizationSetBy = Automatic
+
+	column RequestId
+		dataType: string
+		lineageTag: 962c3648-d313-4a12-a32e-02a55b197445
+		summarizeBy: none
+		sourceColumn: RequestId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ActivityId
+		dataType: string
+		lineageTag: 455b5052-96b8-4540-bbfa-c3ef5b58f97e
+		summarizeBy: none
+		sourceColumn: ActivityId
+
+		annotation SummarizationSetBy = Automatic
+
+	column RefreshType
+		dataType: string
+		lineageTag: 5dfe780a-21d8-4c03-9e0a-b881cf44bf63
+		summarizeBy: none
+		sourceColumn: RefreshType
+
+		annotation SummarizationSetBy = Automatic
+
+	column LastRefreshTime
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 37ec5be4-91b3-4b17-9e5f-39400e4fc515
+		summarizeBy: none
+		sourceColumn: LastRefreshTime
+
+		variation Variation
+			isDefault
+			relationship: 9def52f3-9ad2-4f35-a623-1fcab7930192
+			defaultHierarchy: LocalDateTable_ee0c90c1-d213-4433-a5ce-32eabeac4f1f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column ArtifactKind
+		dataType: string
+		lineageTag: 35040587-8e5b-4c73-8efa-97b0df35e6e6
+		summarizeBy: none
+		sourceColumn: ArtifactKind
+
+		annotation SummarizationSetBy = Automatic
+
+	column RefreshEnforcementPolicy
+		dataType: int64
+		formatString: 0
+		lineageTag: d5b96b58-9073-4f99-9ca3-d4b8b033089e
+		summarizeBy: sum
+		sourceColumn: RefreshEnforcementPolicy
+
+		annotation SummarizationSetBy = Automatic
+
+	column ItemId
+		dataType: string
+		lineageTag: f57b01c6-480b-4abd-9a5b-828fb2c96e97
+		summarizeBy: none
+		sourceColumn: ItemId
+
+		annotation SummarizationSetBy = Automatic
+
+	column BillingType
+		dataType: int64
+		formatString: 0
+		lineageTag: 4822b808-8c1f-4c47-b4f3-7933f96cf4c9
+		summarizeBy: sum
+		sourceColumn: BillingType
+
+		annotation SummarizationSetBy = Automatic
+
+	/// CreationTime (UTC) shifted by the 'Local UTC Offset Hours' parameter (fixed offset, no DST handling).
+	column 'Event Time Local'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 5599c195-e4d6-4b68-82c6-b641ca0f33b3
+		summarizeBy: none
+		sourceColumn: Event Time Local
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Local calendar date of the event (date part of Event Time Local). Used as the daily trend axis.
+	column 'Event Date'
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 2c890f7f-3028-435a-a4bf-d254eea61c5d
+		summarizeBy: none
+		sourceColumn: Event Date
+
+		variation Variation
+			isDefault
+			relationship: e1ced913-b425-4cad-8f35-39ab452e5f30
+			defaultHierarchy: LocalDateTable_6af3c45c-c1ba-4224-94c2-907ae6c2b905.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Hour of Day'
+		dataType: int64
+		formatString: 0
+		lineageTag: bc41ecd8-a839-4eb0-ac15-058eafff789e
+		summarizeBy: sum
+		sourceColumn: Hour of Day
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Day of Week'
+		dataType: string
+		lineageTag: 5296f4e1-b2d6-4f8e-9bea-454671e6d5dd
+		summarizeBy: none
+		sourceColumn: Day of Week
+		sortByColumn: 'Day of Week Sort'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// 1 = Monday ... 7 = Sunday
+	column 'Day of Week Sort'
+		dataType: int64
+		formatString: 0
+		lineageTag: 6d7c949a-01f4-43cf-9a0e-ec0ff90ccd77
+		summarizeBy: sum
+		sourceColumn: Day of Week Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Human, Service principal (UserType 3, 5 or 6, or admin API activity) or External app.
+	column 'Actor Type'
+		dataType: string
+		lineageTag: 19726348-1986-4c07-9fbc-a18052fb74a6
+		summarizeBy: none
+		sourceColumn: Actor Type
+		sortByColumn: 'Actor Type Sort'
+
+		annotation SummarizationSetBy = Automatic
+
+	/// 1 = Human, 2 = Service principal, 3 = External app
+	column 'Actor Type Sort'
+		dataType: int64
+		formatString: 0
+		lineageTag: e616287d-052a-4534-b604-9819cd0c13f1
+		summarizeBy: sum
+		sourceColumn: Actor Type Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	/// View, Refresh, Edit, Admin API, Sharing, Export, Security, External app or Other (first rule that matches wins).
+	column 'Operation Category'
+		dataType: string
+		lineageTag: d0797a7a-7e74-4e4f-a891-5cb17c2d2686
+		summarizeBy: none
+		sourceColumn: Operation Category
+
+		annotation SummarizationSetBy = Automatic
+
+	/// True for the monitor's own noise: service principal actors or Admin API operations.
+	column 'Is System Activity'
+		dataType: boolean
+		formatString: """System activity"";""System activity"";""User activity"""
+		lineageTag: 9a6b1a68-5ee1-45ca-9913-9e3ad6666408
+		summarizeBy: none
+		sourceColumn: Is System Activity
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Activity when it is filled, otherwise Operation (same rule the Operation Category column uses).
+	column 'Effective Activity' = IF(ISBLANK(activity[Activity]) || activity[Activity] = "", activity[Operation], activity[Activity])
+		lineageTag: 3c5d7a10-8e2f-4b64-a1d9-70f2c4e9b001
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	/// CapacityId upper-cased so it matches Capacities[Capacity Id] and CapacityMetrics[Capacity Id] (stored as upper-case GUIDs). Relationship key to Capacities.
+	column 'Capacity Key' = UPPER(activity[CapacityId])
+		lineageTag: 3c5d7a10-8e2f-4b64-a1d9-70f2c4e9b002
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	/// UTC calendar date of CreationTime (not the local Event Date). Relationship key to dimDate so activity lines up with the UTC Metric Date of CapacityMetrics.
+	column 'Event Date UTC' = DATE(YEAR(activity[CreationTime]), MONTH(activity[CreationTime]), DAY(activity[CreationTime]))
+		formatString: Short Date
+		lineageTag: 3c5d7a10-8e2f-4b64-a1d9-70f2c4e9b003
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// UTC hour (0-23) of CreationTime; compared with the UTC hour of CapacityMetrics[Timepoint].
+	column 'Event Hour UTC' = HOUR(activity[CreationTime])
+		formatString: 0
+		lineageTag: 3c5d7a10-8e2f-4b64-a1d9-70f2c4e9b004
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	partition activity = m
+		mode: import
+		source =
+				let
+				  Source = Folder.Files("C:\Projects\Tests\monitor-poc-output\activity"),
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"Content"}),
+				    #"Filtered Hidden Files1" = Table.SelectRows(#"Removed Other Columns", each [Attributes]?[Hidden]? <> true),
+				    #"Invoke Custom Function1" = Table.AddColumn(#"Filtered Hidden Files1", "Transform File", each #"Transform File"([Content])),
+				    #"Removed Other Columns1" = Table.SelectColumns(#"Invoke Custom Function1", {"Transform File"}),
+				    #"Expanded Table Column1" = Table.ExpandTableColumn(#"Removed Other Columns1", "Transform File", Table.ColumnNames(#"Transform File"(#"Sample File"))),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Table Column1",{{"Id", type text}, {"RecordType", Int64.Type}, {"CreationTime", type datetime}, {"Operation", type text}, {"OrganizationId", type text}, {"UserType", Int64.Type}, {"UserKey", type text}, {"Workload", type text}, {"UserId", type text}, {"ClientIP", type text}, {"Activity", type text}, {"ItemName", type text}, {"WorkSpaceName", type text}, {"DatasetName", type text}, {"CapacityId", type text}, {"CapacityName", type text}, {"WorkspaceId", type text}, {"ObjectId", type text}, {"DatasetId", type text}, {"DataConnectivityMode", type text}, {"ArtifactId", type text}, {"ArtifactName", type text}, {"IsSuccess", type logical}, {"RequestId", type text}, {"ActivityId", type text}, {"RefreshType", type text}, {"LastRefreshTime", type datetime}, {"ArtifactKind", type text}, {"RefreshEnforcementPolicy", Int64.Type}, {"ItemId", type text}, 				    {"BillingType", Int64.Type}}),
+				    				    // Event Id dedupe: keep one row per Id so overlapping reruns are not double counted (rows without an Id are all kept).
+				    #"Deduplicated by Id" = Table.Combine({Table.Distinct(Table.SelectRows(#"Changed Type", each [Id] <> null and [Id] <> ""), {"Id"}), Table.SelectRows(#"Changed Type", each [Id] = null or [Id] = "")}),
+				    // Local time: CreationTime is UTC; shift by the fixed 'Local UTC Offset Hours' parameter (default -4, no DST handling).
+				    #"Added Event Time Local" = Table.AddColumn(#"Deduplicated by Id", "Event Time Local", each [CreationTime] + #duration(0, #"Local UTC Offset Hours", 0, 0), type nullable datetime),
+				    #"Added Event Date" = Table.AddColumn(#"Added Event Time Local", "Event Date", each DateTime.Date([Event Time Local]), type nullable date),
+				    #"Added Hour of Day" = Table.AddColumn(#"Added Event Date", "Hour of Day", each if [Event Time Local] = null then null else Time.Hour(DateTime.Time([Event Time Local])), Int64.Type),
+				    DayNames = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"},
+				    #"Added Day of Week Sort" = Table.AddColumn(#"Added Hour of Day", "Day of Week Sort", each if [Event Date] = null then null else Date.DayOfWeek([Event Date], Day.Monday) + 1, Int64.Type),
+				    #"Added Day of Week" = Table.AddColumn(#"Added Day of Week Sort", "Day of Week", each if [Day of Week Sort] = null then null else DayNames{[Day of Week Sort] - 1}, type nullable text),
+				    // Classification helpers. Rules are evaluated top to bottom and the first match wins.
+				    AdminApiNames = {"ExportActivityEvents", "GetCapacitiesAsAdmin", "GetModifiedWorkspacesAPI", "GetWorkspacesInfoAPI", "GetWorkspacesInfoResult", "GetWorkspacesViaAdminApi", "GetTenantSettingsViaAdminApi"},
+				    ExternalAppNames = {"AnalyzedByExternalApplication", "ConnectFromExternalApplication"},
+				    StartsWithAny = (t as text, p as list) as logical => List.AnyTrue(List.Transform(p, each Text.StartsWith(t, _))),
+				    ContainsAny = (t as text, p as list) as logical => List.AnyTrue(List.Transform(p, each Text.Contains(t, _))),
+				    EffectiveActivity = (r as record) as nullable text => if r[Activity] <> null and r[Activity] <> "" then r[Activity] else r[Operation],
+				    IsAdminApi = (a as nullable text) as logical => a <> null and (List.Contains(AdminApiNames, a) or (Text.StartsWith(a, "Get") and (Text.EndsWith(a, "ViaAdminApi") or Text.EndsWith(a, "AsAdmin")))),
+				    // UserType values treated as non-human: 3 (as specified), 4 (System), 5 (Application) and 6 (ServicePrincipal) - the sample refresh events carry UserType 6.
+				    				    ServicePrincipalUserTypes = {3, 4, 5, 6},
+				    ClassifyActor = (r as record) as text =>
+				        let a = EffectiveActivity(r)
+				        in if List.Contains(ServicePrincipalUserTypes, r[UserType]) or IsAdminApi(a) then "Service principal"
+				           else if a <> null and List.Contains(ExternalAppNames, a) then "External app"
+				           else "Human",
+				    ClassifyOperation = (a as nullable text) as text =>
+				        if a = null then "Other"
+				        else if List.Contains(ExternalAppNames, a) then "External app"
+				        else if IsAdminApi(a) or Text.StartsWith(a, "GetWorkspacesInfo") then "Admin API"
+				        else if Text.Contains(a, "Refresh") then "Refresh"
+				        else if StartsWithAny(a, {"View", "Read"}) then "View"
+				        else if Text.StartsWith(a, "Share") or ContainsAny(a, {"Permission", "Link", "Access"}) then "Sharing"
+				        else if StartsWithAny(a, {"Export", "Print", "Download"}) then "Export"
+				        else if ContainsAny(a, {"Role", "Credentials", "Label"}) or (Text.Contains(a, "Tenant") and Text.Contains(a, "Settings")) then "Security"
+				        else if StartsWithAny(a, {"Update", "Create", "Edit", "Delete", "Import", "Install"}) then "Edit"
+				        else "Other",
+				    #"Added Actor Type" = Table.AddColumn(#"Added Day of Week", "Actor Type", each ClassifyActor(_), type text),
+				    #"Added Actor Type Sort" = Table.AddColumn(#"Added Actor Type", "Actor Type Sort", each if [Actor Type] = "Human" then 1 else if [Actor Type] = "Service principal" then 2 else 3, Int64.Type),
+				    #"Added Operation Category" = Table.AddColumn(#"Added Actor Type Sort", "Operation Category", each ClassifyOperation(EffectiveActivity(_)), type text),
+				    #"Added Is System Activity" = Table.AddColumn(#"Added Operation Category", "Is System Activity", each [Actor Type] = "Service principal" or [Operation Category] = "Admin API", type logical)
+				in
+				  #"Added Is System Activity"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

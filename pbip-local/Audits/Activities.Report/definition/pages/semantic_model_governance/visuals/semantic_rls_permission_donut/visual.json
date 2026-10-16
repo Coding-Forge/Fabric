@@ -1,0 +1,83 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "semantic_rls_permission_donut",
+  "position": {
+    "x": 1300,
+    "y": 270,
+    "z": 8,
+    "height": 330,
+    "width": 580
+  },
+  "visual": {
+    "visualType": "donutChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetRoles"
+                    }
+                  },
+                  "Property": "ModelPermission"
+                }
+              },
+              "queryRef": "CatalogDatasetRoles.ModelPermission",
+              "nativeQueryRef": "ModelPermission",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "CatalogDatasetRoles"
+                        }
+                      },
+                      "Property": "RoleName"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(CatalogDatasetRoles.RoleName)",
+              "nativeQueryRef": "Count of RoleName"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'RLS roles by model permission'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,209 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "ula_user_detail",
+  "position": {
+    "x": 40,
+    "y": 730,
+    "z": 40,
+    "height": 300,
+    "width": 1810,
+    "tabOrder": 40
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "DisplayName"
+                }
+              },
+              "queryRef": "UserLicenseActivity.DisplayName",
+              "nativeQueryRef": "DisplayName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "UserPrincipalName"
+                }
+              },
+              "queryRef": "UserLicenseActivity.UserPrincipalName",
+              "nativeQueryRef": "UserPrincipalName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "AccountEnabled"
+                }
+              },
+              "queryRef": "UserLicenseActivity.AccountEnabled",
+              "nativeQueryRef": "AccountEnabled"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "LicenseName"
+                }
+              },
+              "queryRef": "UserLicenseActivity.LicenseName",
+              "nativeQueryRef": "LicenseName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "IsPowerBILicense"
+                }
+              },
+              "queryRef": "UserLicenseActivity.IsPowerBILicense",
+              "nativeQueryRef": "IsPowerBILicense"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "LastActivityDate"
+                }
+              },
+              "queryRef": "UserLicenseActivity.LastActivityDate",
+              "nativeQueryRef": "LastActivityDate"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "DaysSinceLastActivity"
+                }
+              },
+              "queryRef": "UserLicenseActivity.DaysSinceLastActivity",
+              "nativeQueryRef": "DaysSinceLastActivity"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "ActivityStatus"
+                }
+              },
+              "queryRef": "UserLicenseActivity.ActivityStatus",
+              "nativeQueryRef": "ActivityStatus"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "ActivityCount"
+                }
+              },
+              "queryRef": "UserLicenseActivity.ActivityCount",
+              "nativeQueryRef": "ActivityCount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "DistinctWorkspaces"
+                }
+              },
+              "queryRef": "UserLicenseActivity.DistinctWorkspaces",
+              "nativeQueryRef": "DistinctWorkspaces"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'User license and activity detail'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "howCreated": "Copilot"
+}

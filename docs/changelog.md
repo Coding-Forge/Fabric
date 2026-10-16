@@ -1,5 +1,24 @@
 # Changelog
 
+## Audit PBIP: risk and anomaly analytics
+
+Reviewed and approved by Code Reviewer. **Not validated in Power BI Desktop**: the project was never opened or refreshed there. No code, tests or infrastructure changed.
+
+- `pbip-local/Audits` `activity` table: new columns `Event Time Local`, `Event Date`, `Hour of Day`, `Day of Week` (+ sort), `Actor Type` (+ sort), `Operation Category` and `Is System Activity`. Rows are de-duplicated on `Id`.
+- New Power Query parameter `Local UTC Offset Hours` (default `-4`, fixed offset, no daylight saving handling).
+- 19 new measures in `_Measures` under `Risk & Anomalies` (spike detection against a prior-7-day baseline, off-hours share, failure rate, sharing/export/security counts, first-seen client IPs).
+- `Risk & Anomalies` page rebuilt; `Customer Audit Overview` gained Actor Type and "Hide system activity" slicers and an hour-by-weekday matrix. System activity is hidden by default.
+- Known risks: hand-written PBIR pieces (saved slicer state, TopN, measure filter) may need a check in Desktop; `First-Seen IPs` is 0 when the range starts at the first recorded event; `audit_date_slicer` has a hard-coded saved range.
+- Details: [pbip-local/Audits/AUDIT_DASHBOARD_BUILD_GUIDE.md](../pbip-local/Audits/AUDIT_DASHBOARD_BUILD_GUIDE.md).
+- **Refresh Health page** (`refresh_health`): slicers for Event Date, workspace, dataset and Actor Type; KPIs for refreshes, failures, failure rate, datasets refreshed and credential/parameter changes; charts by day, refresh type, hour and dataset; a last-refresh-per-dataset table and a credential/parameter changes table.
+- **Activity vs Capacity page** (`activity_vs_capacity`): capacity and UTC date slicers; KPIs for peak utilization, activities, refreshes and throttled days; combo charts by UTC day and UTC hour (activity columns on `Y`, utilization line on `Y2`); a capacity table and a workspace bar chart.
+- `activity` table: new DAX columns `Effective Activity`, `Capacity Key` (`UPPER(CapacityId)`), `Event Date UTC` and `Event Hour UTC`. New `UTC Hours` table (0-23), a disconnected axis for the hour chart.
+- New relationships `activity[Capacity Key]` -> `Capacities[Capacity Id]` and `activity[Event Date UTC]` -> `dimDate[Date]`. Both are many-to-one, single direction, on unique dimension keys, and unmatched activity rows are ignored, not errors.
+- 18 new measures in `_Measures`: 11 in folder `Refresh Health` and 7 in folder `Activity vs Capacity`.
+- Fixes: the `risk_kpi_spikes` card had no query and now shows `Spike Days`; the `audit_top_reports` TopN is now restricted to `ViewReport` and `ReadArtifact`.
+- Known risks: **not validated in Power BI Desktop**; combo chart roles `Y`/`Y2` were hand-written; `CapacityMetrics[Timepoint]` is assumed to be UTC (sample `2026-10-14T21:23:00`; the app can offset it); `Hours Since Last Refresh` uses UTC now; `Activities on Capacity` scans the table and may need optimising; the Activity vs Capacity date slicer is UTC while Refresh Health is local time.
+- Graph tables (groups, group members, user licences) are empty: `GraphExtractGroups` defaults to off, and the module does not fetch group members or per-user licence assignment (`users.json` `assignedLicenses` is available).
+
 ## Enhancement E10: MonitorRaw Power BI Project
 
 Reviewed and approved by Code Reviewer. **Not validated in Power BI Desktop**: the project was never opened or refreshed there. No code, tests or infrastructure changed.

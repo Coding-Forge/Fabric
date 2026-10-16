@@ -1,0 +1,19 @@
+/// Disconnected axis table (0-23) for the hour-of-day comparison on the Activity vs Capacity page. Use it only with the '... by Hour (UTC)' measures.
+table 'UTC Hours'
+	lineageTag: 5b2e8f31-4c6a-4d97-8e15-a93d0c7f1001
+
+	column 'Hour (UTC)'
+		dataType: int64
+		formatString: 0
+		lineageTag: 5b2e8f31-4c6a-4d97-8e15-a93d0c7f1002
+		summarizeBy: none
+		sourceColumn: [Hour (UTC)]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'UTC Hours' = calculated
+		mode: import
+		source = SELECTCOLUMNS(GENERATESERIES(0, 23, 1), "Hour (UTC)", [Value])
+
+	annotation PBI_ResultType = Table
+

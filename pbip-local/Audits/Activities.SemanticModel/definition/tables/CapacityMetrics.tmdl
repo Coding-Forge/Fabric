@@ -1,0 +1,305 @@
+/// One row per capacity and ~30-second timepoint. The utilization and carry-over files of the monitor are merged on (Capacity Id, Timepoint). The latest run (largest run date prefix in the file name) wins per capacity, group and timepoint, so reruns are not double counted. Percent columns are fractions: 1.0 = 100%.
+table CapacityMetrics
+	lineageTag: 84dfa221-f791-4eda-b95e-eeb438b3ea74
+
+	measure 'Peak Utilization %' =
+			MAXX(
+				CapacityMetrics,
+				COALESCE(CapacityMetrics[Background billable CU %], 0) + COALESCE(CapacityMetrics[Interactive billable CU %], 0)
+			)
+		formatString: 0.0%
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: 4eb03bdd-b4fb-47a8-a248-c627d64968df
+
+	measure 'Avg Utilization %' =
+			AVERAGEX(
+				CapacityMetrics,
+				COALESCE(CapacityMetrics[Background billable CU %], 0) + COALESCE(CapacityMetrics[Interactive billable CU %], 0)
+			)
+		formatString: 0.0%
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: 3cba22b1-e16c-4fca-b829-748e8fbfc90d
+
+	measure 'Avg Background Billable %' = AVERAGE(CapacityMetrics[Background billable CU %])
+		formatString: 0.00%
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: 5794d452-4177-4e2b-95b9-342392b7395e
+
+	measure 'Max Background Billable %' = MAX(CapacityMetrics[Background billable CU %])
+		formatString: 0.00%
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: e2555eb6-d5b4-4594-9ea9-a15932758732
+
+	measure 'Avg Interactive Billable %' = AVERAGE(CapacityMetrics[Interactive billable CU %])
+		formatString: 0.00%
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: 407eac4f-1c3b-467d-b53f-1b678e56e476
+
+	measure 'Max Interactive Billable %' = MAX(CapacityMetrics[Interactive billable CU %])
+		formatString: 0.00%
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: 17a9b71f-8216-4336-bc3c-6dfd29d9f1a6
+
+	measure 'Avg Background Non-billable %' = AVERAGE(CapacityMetrics[Background non billable CU %])
+		formatString: 0.00%
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: e3b239e9-30b9-4bad-ae6d-7d579756c0c0
+
+	measure 'Avg Interactive Non-billable %' = AVERAGE(CapacityMetrics[Interactive non billable CU %])
+		formatString: 0.00%
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: bba61ade-140d-4337-949c-537ade5d8150
+
+	/// Billable CU seconds used: billable (background + interactive) fraction multiplied by the CU seconds the SKU provides per timepoint.
+	measure 'CU Usage (CU-s)' =
+			SUMX(
+				CapacityMetrics,
+				(COALESCE(CapacityMetrics[Background billable CU %], 0) + COALESCE(CapacityMetrics[Interactive billable CU %], 0))
+					* COALESCE(CapacityMetrics[SKU CU by timepoint], 0)
+			)
+		formatString: #,0.00
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: ec0c6ca1-838f-4ddc-8fb1-69322033fa49
+
+	measure 'CU Capacity (CU-s)' = SUM(CapacityMetrics[SKU CU by timepoint])
+		formatString: #,0
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: 2914833c-291a-46b8-ae24-9b2ea25d977b
+
+	measure 'CU Limit (max)' = MAX(CapacityMetrics[CU limit])
+		formatString: #,0.##
+		displayFolder: Capacity Metrics\Utilization
+		lineageTag: 177fe214-ad7c-460d-9cc5-fc74e40d3645
+
+	/// Timepoints where billable utilization is above the SKU limit for that timepoint (more than 100%).
+	measure 'Overload Timepoints' =
+			COUNTROWS(
+				FILTER(
+					CapacityMetrics,
+					COALESCE(CapacityMetrics[Background billable CU %], 0) + COALESCE(CapacityMetrics[Interactive billable CU %], 0)
+						> COALESCE(CapacityMetrics[SKU CU by timepoint %], 1)
+				)
+			)
+		formatString: #,0
+		displayFolder: Capacity Metrics\Throttling
+		lineageTag: d3afbce2-0513-4454-b425-2c123a36aa31
+
+	measure 'Overload % of Timepoints' = DIVIDE([Overload Timepoints], [Timepoint Count])
+		formatString: 0.0%
+		displayFolder: Capacity Metrics\Throttling
+		lineageTag: e5f00355-cd5b-4837-ab3a-75e7d1d672fa
+
+	measure 'Throttling Status' =
+			IF(
+				COUNT(CapacityMetrics[Timepoint]) = 0,
+				"No data",
+				IF(
+					[Overload Timepoints] > 0 || [Max Carry Over %] > 0,
+					"Overload or carry-over detected",
+					"No overload detected"
+				)
+			)
+		displayFolder: Capacity Metrics\Throttling
+		lineageTag: c360bc4d-589b-4fab-a5bf-93f32d6e8d72
+
+	measure 'Max Carry Over %' = MAX(CapacityMetrics[Cumulative carry over %])
+		formatString: 0.0%
+		displayFolder: Capacity Metrics\Carry-over
+		lineageTag: 4a7cfe32-2957-47bc-b85a-db87a2dfa07e
+
+	measure 'Max Carry Over Add %' = MAX(CapacityMetrics[Carry over add %])
+		formatString: 0.0%
+		displayFolder: Capacity Metrics\Carry-over
+		lineageTag: c72200ae-c519-4571-909b-c02f8d806f72
+
+	measure 'Avg Carry Over Add %' = AVERAGE(CapacityMetrics[Carry over add %])
+		formatString: 0.00%
+		displayFolder: Capacity Metrics\Carry-over
+		lineageTag: d698137d-9940-4a4f-9066-3721cc011f4e
+
+	measure 'Avg Carry Over Burndown %' = AVERAGE(CapacityMetrics[Carry over burndown %])
+		formatString: 0.00%
+		displayFolder: Capacity Metrics\Carry-over
+		lineageTag: ee1c42c5-4073-46f7-8d9b-fe88443bc5a7
+
+	measure 'Max Expected Burndown (min)' = MAX(CapacityMetrics[Expected burndown in minutes])
+		formatString: #,0.0
+		displayFolder: Capacity Metrics\Carry-over
+		lineageTag: da873ab1-36b2-4609-9b88-d14f1c228e1e
+
+	/// Timepoints where the cumulative carry-over is above zero.
+	measure 'Carry Over Timepoints' = COUNTROWS(FILTER(CapacityMetrics, COALESCE(CapacityMetrics[Cumulative carry over %], 0) > 0))
+		formatString: #,0
+		displayFolder: Capacity Metrics\Carry-over
+		lineageTag: 1180ec6c-c9b3-418c-824d-6bb14aea3e78
+
+	measure 'Carry Over Status' =
+			IF(
+				COUNT(CapacityMetrics[Cumulative carry over %]) = 0,
+				"No carry-over data loaded",
+				IF([Max Carry Over %] > 0, "Carry-over present", "No carry-over in the selected period")
+			)
+		displayFolder: Capacity Metrics\Carry-over
+		lineageTag: 7b47bf6b-b964-4d33-82eb-a57bba64dc07
+
+	measure 'Capacity Count' = DISTINCTCOUNT(CapacityMetrics[Capacity Id])
+		formatString: #,0
+		displayFolder: Capacity Metrics\Counts
+		lineageTag: 12b50a3e-808c-48a8-be84-f30880cc7131
+
+	measure 'Timepoint Count' = COUNT(CapacityMetrics[Timepoint])
+		formatString: #,0
+		displayFolder: Capacity Metrics\Counts
+		lineageTag: 356b0ead-9501-4ed4-b9ad-c23f9c6a26bb
+
+	column 'Capacity Id'
+		dataType: string
+		isHidden
+		lineageTag: d85eae0a-fae1-4457-8b01-6ca663a8e49c
+		summarizeBy: none
+		sourceColumn: Capacity Id
+
+	column Timepoint
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 56ed78b8-482e-41fd-9420-9c3562e09db2
+		summarizeBy: none
+		sourceColumn: Timepoint
+
+	column 'Metric Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: c9f28168-6eb1-481a-b7f8-644b2d384b38
+		summarizeBy: none
+		sourceColumn: Metric Date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'CU limit'
+		dataType: double
+		formatString: #,0.##
+		lineageTag: 9162ac93-c27c-455c-91f8-84ce55d6114f
+		summarizeBy: none
+		sourceColumn: CU limit
+
+	column 'SKU CU by timepoint %'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 7a2ecf7f-f1ec-4147-a125-5dc0d8f073ea
+		summarizeBy: none
+		sourceColumn: SKU CU by timepoint %
+
+	column 'Background billable CU %'
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 461648e6-ed92-4579-89ed-d5482e9d4411
+		summarizeBy: none
+		sourceColumn: Background billable CU %
+
+	column 'Interactive billable CU %'
+		dataType: double
+		formatString: 0.00%
+		lineageTag: cd2056c4-c7f0-4698-ba80-96beb6bca62a
+		summarizeBy: none
+		sourceColumn: Interactive billable CU %
+
+	column 'SKU CU by timepoint'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: 341bb1df-525f-4cb3-ac67-362e7c92eff1
+		summarizeBy: none
+		sourceColumn: SKU CU by timepoint
+
+	column 'Background non billable CU %'
+		dataType: double
+		formatString: 0.00%
+		lineageTag: e8f9e5ef-3dab-4b0d-93a3-c4108718e59b
+		summarizeBy: none
+		sourceColumn: Background non billable CU %
+
+	column 'Interactive non billable CU %'
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 473e5d16-e536-490f-9ffc-a6a44bda425f
+		summarizeBy: none
+		sourceColumn: Interactive non billable CU %
+
+	column 'Carry over add %'
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 5c2e6a2d-e614-4d53-a982-c25f5faceb63
+		summarizeBy: none
+		sourceColumn: Carry over add %
+
+	column 'Carry over burndown %'
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 9e1617c3-b921-4b22-a503-107004aef8e5
+		summarizeBy: none
+		sourceColumn: Carry over burndown %
+
+	column 'Cumulative carry over %'
+		dataType: double
+		formatString: 0.00%
+		lineageTag: 40e0f073-6ce9-40de-9161-9f5633632008
+		summarizeBy: none
+		sourceColumn: Cumulative carry over %
+
+	column 'Expected burndown in minutes'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: 2fd4caae-fb96-4d1b-970f-62c68b6f6375
+		summarizeBy: none
+		sourceColumn: Expected burndown in minutes
+
+	partition CapacityMetrics = m
+		mode: import
+		source =
+				let
+				    Root = "C:\Projects\Tests\monitor-poc-output\capacity_metrics",
+				    UtilMeasures = {"CU limit", "SKU CU by timepoint %", "Background billable CU %", "Interactive billable CU %", "SKU CU by timepoint", "Background non billable CU %", "Interactive non billable CU %"},
+				    CarryMeasures = {"Carry over add %", "Carry over burndown %", "Cumulative carry over %", "Expected burndown in minutes"},
+				    AllMeasures = UtilMeasures & CarryMeasures,
+				    KeyColumns = {"Capacity Id", "Timepoint"},
+				    RowFields = {"Timepoints[Timepoint]"} & List.Transform(AllMeasures, each "[" & _ & "]"),
+				    ColumnTypes = {{"Capacity Id", type text}, {"Timepoint", type datetime}, {"Metric Date", type date}} & List.Transform(AllMeasures, (m) => {m, type number}),
+				    Empty = Table.TransformColumnTypes(#table({"Capacity Id", "Timepoint", "Metric Date"} & AllMeasures, {}), ColumnTypes),
+				
+				    EmptySource = #table(type table [Content = binary, Name = text, Extension = text, Date accessed = nullable datetime, Date modified = nullable datetime, Date created = nullable datetime, Attributes = record, Folder Path = text], {}),
+				    Source = try Folder.Files(Root) otherwise EmptySource,
+				    Matching = Table.SelectRows(Source, each Text.EndsWith(Text.Lower([Name]), ".capacity_metrics.json") and [Attributes]?[Hidden]? <> true),
+				
+				    Output = if Table.RowCount(Matching) = 0 then Empty else
+				        let
+				            // File name: {runYYYYMMDD}_{capacityId}_{group}_{metricDayYYYYMMDD}.capacity_metrics.json
+				            Parsed = Table.AddColumn(Matching, "Json", each try Json.Document([Content]) otherwise null),
+				            Valid = Table.SelectRows(Parsed, each [Json] is record),
+				            WithRun = Table.AddColumn(Valid, "Run Key", each Text.BeforeDelimiter([Name], "_"), type text),
+				            WithCapacity = Table.AddColumn(WithRun, "Capacity Id", each Text.Upper(let v = Record.FieldOrDefault([Json], "capacityId", null) in if v = null then (try Text.Split([Name], "_"){1} otherwise null) else Text.From(v)), type text),
+				            WithGroup = Table.AddColumn(WithCapacity, "Metric Group", each Text.Lower(let v = Record.FieldOrDefault([Json], "group", null) in if v = null then (try Text.Split([Name], "_"){2} otherwise "") else Text.From(v)), type text),
+				            WithRows = Table.AddColumn(WithGroup, "Rows", each let r = Record.FieldOrDefault([Json], "rows", null) in if r is list then List.Select(r, each _ is record) else {}),
+				            Slim = Table.SelectColumns(WithRows, {"Run Key", "Date modified", "Capacity Id", "Metric Group", "Rows"}),
+				            Expanded = Table.SelectRows(Table.ExpandListColumn(Slim, "Rows"), each [Rows] is record),
+				            Normalized = Table.TransformColumns(Expanded, {{"Rows", each Record.SelectFields(_, RowFields, MissingField.UseNull)}}),
+				            Spread = Table.ExpandRecordColumn(Normalized, "Rows", RowFields, {"Timepoint"} & AllMeasures),
+				            WithTimepoint = Table.TransformColumns(Spread, {{"Timepoint", each try DateTime.FromText(_, [Culture = "en-US"]) otherwise null, type nullable datetime}}),
+				            Known = Table.SelectRows(WithTimepoint, each [Timepoint] <> null and [Capacity Id] <> null),
+				
+				            // Latest run wins per capacity, group and timepoint (ties on the same day: newest file modification wins)
+				            Sorted = Table.Buffer(Table.Sort(Known, {{"Run Key", Order.Descending}, {"Date modified", Order.Descending}})),
+				            Latest = Table.Distinct(Sorted, {"Capacity Id", "Metric Group", "Timepoint"}),
+				
+				            Util = Table.SelectColumns(Table.SelectRows(Latest, each [Metric Group] = "utilization"), KeyColumns & UtilMeasures),
+				            Carry = Table.SelectColumns(Table.SelectRows(Latest, each [Metric Group] = "carryover"), KeyColumns & CarryMeasures),
+				            KeyRows = Table.Distinct(Table.Combine({Table.SelectColumns(Util, KeyColumns), Table.SelectColumns(Carry, KeyColumns)})),
+				            JoinedUtil = Table.ExpandTableColumn(Table.NestedJoin(KeyRows, KeyColumns, Util, KeyColumns, "U", JoinKind.LeftOuter), "U", UtilMeasures),
+				            JoinedCarry = Table.ExpandTableColumn(Table.NestedJoin(JoinedUtil, KeyColumns, Carry, KeyColumns, "C", JoinKind.LeftOuter), "C", CarryMeasures),
+				            WithDate = Table.AddColumn(JoinedCarry, "Metric Date", each DateTime.Date([Timepoint]), type date),
+				            Reordered = Table.SelectColumns(WithDate, {"Capacity Id", "Timepoint", "Metric Date"} & AllMeasures)
+				        in
+				            Table.TransformColumnTypes(Reordered, ColumnTypes)
+				in
+				    Output
+
+	annotation PBI_ResultType = Table
+

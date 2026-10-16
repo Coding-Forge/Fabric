@@ -1,0 +1,115 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "dlc_directory_users_table",
+  "position": {
+    "x": 960,
+    "y": 630,
+    "z": 11,
+    "height": 330,
+    "width": 900
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GraphUsers"
+                    }
+                  },
+                  "Property": "DisplayName"
+                }
+              },
+              "queryRef": "GraphUsers.DisplayName",
+              "nativeQueryRef": "DisplayName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GraphUsers"
+                    }
+                  },
+                  "Property": "UserPrincipalName"
+                }
+              },
+              "queryRef": "GraphUsers.UserPrincipalName",
+              "nativeQueryRef": "UserPrincipalName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GraphUsers"
+                    }
+                  },
+                  "Property": "UserType"
+                }
+              },
+              "queryRef": "GraphUsers.UserType",
+              "nativeQueryRef": "UserType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GraphUsers"
+                    }
+                  },
+                  "Property": "AccountEnabled"
+                }
+              },
+              "queryRef": "GraphUsers.AccountEnabled",
+              "nativeQueryRef": "AccountEnabled"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GraphUsers"
+                    }
+                  },
+                  "Property": "AssignedLicenseCount"
+                }
+              },
+              "queryRef": "GraphUsers.AssignedLicenseCount",
+              "nativeQueryRef": "AssignedLicenseCount"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Directory users detail'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

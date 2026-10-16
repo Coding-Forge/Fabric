@@ -1,0 +1,143 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "catalog_report_table",
+  "position": {
+    "x": 40,
+    "y": 910,
+    "z": 20,
+    "height": 160,
+    "width": 1810
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogReports"
+                    }
+                  },
+                  "Property": "WorkspaceName"
+                }
+              },
+              "queryRef": "CatalogReports.WorkspaceName",
+              "nativeQueryRef": "WorkspaceName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogReports"
+                    }
+                  },
+                  "Property": "ReportName"
+                }
+              },
+              "queryRef": "CatalogReports.ReportName",
+              "nativeQueryRef": "ReportName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogReports"
+                    }
+                  },
+                  "Property": "ReportType"
+                }
+              },
+              "queryRef": "CatalogReports.ReportType",
+              "nativeQueryRef": "ReportType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogReports"
+                    }
+                  },
+                  "Property": "CreatedBy"
+                }
+              },
+              "queryRef": "CatalogReports.CreatedBy",
+              "nativeQueryRef": "CreatedBy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogReports"
+                    }
+                  },
+                  "Property": "ModifiedBy"
+                }
+              },
+              "queryRef": "CatalogReports.ModifiedBy",
+              "nativeQueryRef": "ModifiedBy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogReports"
+                    }
+                  },
+                  "Property": "ModifiedDateTime"
+                }
+              },
+              "queryRef": "CatalogReports.ModifiedDateTime",
+              "nativeQueryRef": "ModifiedDateTime"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogReports"
+                    }
+                  },
+                  "Property": "SensitivityLabelId"
+                }
+              },
+              "queryRef": "CatalogReports.SensitivityLabelId",
+              "nativeQueryRef": "SensitivityLabelId"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Report catalog detail'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

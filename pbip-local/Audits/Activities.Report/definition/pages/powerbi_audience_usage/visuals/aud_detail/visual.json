@@ -1,0 +1,209 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "aud_detail",
+  "position": {
+    "x": 40,
+    "y": 730,
+    "z": 40,
+    "height": 300,
+    "width": 1810,
+    "tabOrder": 40
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "AudienceUsage"
+                    }
+                  },
+                  "Property": "GroupDisplayName"
+                }
+              },
+              "queryRef": "AudienceUsage.GroupDisplayName",
+              "nativeQueryRef": "GroupDisplayName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "AudienceUsage"
+                    }
+                  },
+                  "Property": "DisplayName"
+                }
+              },
+              "queryRef": "AudienceUsage.DisplayName",
+              "nativeQueryRef": "DisplayName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "AudienceUsage"
+                    }
+                  },
+                  "Property": "UserPrincipalName"
+                }
+              },
+              "queryRef": "AudienceUsage.UserPrincipalName",
+              "nativeQueryRef": "UserPrincipalName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "AudienceUsage"
+                    }
+                  },
+                  "Property": "AccountEnabled"
+                }
+              },
+              "queryRef": "AudienceUsage.AccountEnabled",
+              "nativeQueryRef": "AccountEnabled"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "AudienceUsage"
+                    }
+                  },
+                  "Property": "LicenseName"
+                }
+              },
+              "queryRef": "AudienceUsage.LicenseName",
+              "nativeQueryRef": "LicenseName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "AudienceUsage"
+                    }
+                  },
+                  "Property": "HasPowerBILicense"
+                }
+              },
+              "queryRef": "AudienceUsage.HasPowerBILicense",
+              "nativeQueryRef": "HasPowerBILicense"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "AudienceUsage"
+                    }
+                  },
+                  "Property": "HasUsedPowerBI"
+                }
+              },
+              "queryRef": "AudienceUsage.HasUsedPowerBI",
+              "nativeQueryRef": "HasUsedPowerBI"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "AudienceUsage"
+                    }
+                  },
+                  "Property": "LastActivityDate"
+                }
+              },
+              "queryRef": "AudienceUsage.LastActivityDate",
+              "nativeQueryRef": "LastActivityDate"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "AudienceUsage"
+                    }
+                  },
+                  "Property": "DaysSinceLastActivity"
+                }
+              },
+              "queryRef": "AudienceUsage.DaysSinceLastActivity",
+              "nativeQueryRef": "DaysSinceLastActivity"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "AudienceUsage"
+                    }
+                  },
+                  "Property": "ActivityCount"
+                }
+              },
+              "queryRef": "AudienceUsage.ActivityCount",
+              "nativeQueryRef": "ActivityCount"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Audience member detail'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "howCreated": "Copilot"
+}
