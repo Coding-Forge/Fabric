@@ -17,7 +17,13 @@ Reviewed and approved by Code Reviewer. **Not validated in Power BI Desktop**: t
 - 18 new measures in `_Measures`: 11 in folder `Refresh Health` and 7 in folder `Activity vs Capacity`.
 - Fixes: the `risk_kpi_spikes` card had no query and now shows `Spike Days`; the `audit_top_reports` TopN is now restricted to `ViewReport` and `ReadArtifact`.
 - Known risks: **not validated in Power BI Desktop**; combo chart roles `Y`/`Y2` were hand-written; `CapacityMetrics[Timepoint]` is assumed to be UTC (sample `2026-10-14T21:23:00`; the app can offset it); `Hours Since Last Refresh` uses UTC now; `Activities on Capacity` scans the table and may need optimising; the Activity vs Capacity date slicer is UTC while Refresh Health is local time.
-- Graph tables (groups, group members, user licences) are empty: `GraphExtractGroups` defaults to off, and the module does not fetch group members or per-user licence assignment (`users.json` `assignedLicenses` is available).
+- Correction: an earlier note said the Graph tables (groups, group members, user licences) are empty and that the module does not fetch them. That is no longer true. The `Graph` module (reviewed and approved by Code Reviewer; 425 tests pass) now:
+  - fetches `users` with paging (`@odata.nextLink`, `$top=999`) and extra fields (`displayName`, `userPrincipalName`, `mail`, `accountEnabled`, `userType`, `assignedLicenses`);
+  - always writes `userlicenses.json`, one row per user per assigned licence, built from `assignedLicenses` (when the users call succeeds);
+  - writes `groups.json` and `groupmembers.json` only when `GRAPH_EXTRACT_GROUPS` is on (opt-in, default off). Groups are security-enabled groups, flagged `isPowerBIAudienceGroup` by name prefix;
+  - counts transport errors (exceptions from a request) as failures, so the module returns `False` and `lastRun` does not advance. Failed member calls for individual groups also count as failures;
+  - needs the Graph application permissions `User.Read.All`, `Group.Read.All` and `GroupMember.Read.All`.
+- New settings `GRAPH_EXTRACT_GROUPS`, `GRAPH_AUDIENCE_GROUP_PREFIXES` and `GRAPH_MAX_GROUPS_FOR_MEMBERS`; see [configuration-reference.md](configuration-reference.md#microsoft-graph-graph).
 
 ## Enhancement E10: MonitorRaw Power BI Project
 

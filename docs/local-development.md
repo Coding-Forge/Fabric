@@ -196,7 +196,7 @@ The `APPLICATION_MODULES` setting is a comma-separated list of data collection m
 | `Domains` | Fabric domains |
 | `FabricItems` | Fabric-specific items (lakehouses, notebooks, pipelines, etc.) |
 | `Gateway` | On-premises and VNet data gateways |
-| `Graph` | Azure AD users and groups via Microsoft Graph |
+| `Graph` | Azure AD users, licences and SKUs via Microsoft Graph; groups and group members only when `GRAPH_EXTRACT_GROUPS` is on (see [configuration-reference.md](configuration-reference.md#microsoft-graph-graph)) |
 | `Refreshables` | Datasets / semantic models that support scheduled refresh |
 | `RefreshHistory` | Refresh history for all refreshable items |
 | `Roles` | Workspace role assignments |

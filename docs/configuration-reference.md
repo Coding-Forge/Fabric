@@ -99,6 +99,9 @@ These are parameters of `infra/main.bicep`, not app settings. Both features are 
 | `CAPACITY_METRICS_DATASET_ID` | _(none)_ | Dataset ID of the Capacity Metrics app semantic model. If unset, the `CapacityMetrics` module logs a warning and returns success. See [Capacity Metrics](#capacity-metrics-capacitymetrics). |
 | `CAPACITY_METRICS_DAYS_BACK` | `3` | Days of history to query, minimum 1, maximum 30. |
 | `CAPACITY_METRICS_INCLUDE_SUSPENDED` | _(unset)_ | When `1`, `true`, `yes` or `on`, capacities that are not Active are also queried. |
+| `GRAPH_EXTRACT_GROUPS` | _(off)_ | When `1`, `true`, `yes` or `on` (case-insensitive), the `Graph` module also writes `groups.json` and `groupmembers.json`. Any other value, or unset, leaves it off. See [Microsoft Graph](#microsoft-graph-graph). |
+| `GRAPH_AUDIENCE_GROUP_PREFIXES` | `PowerBI,Power BI` | Comma-separated, case-insensitive group display-name prefixes that mark a group as a Power BI audience group (`isPowerBIAudienceGroup`). |
+| `GRAPH_MAX_GROUPS_FOR_MEMBERS` | `200` | Maximum number of groups whose members are fetched. Audience groups are taken first. If there are more groups, a warning is logged and the member result is partial. An invalid value falls back to 200; a negative value is treated as 0. |
 | `API_MAX_RETRIES` | `3` | Maximum retries for throttled or transient API responses (HTTP 429, 503, 504). |
 | `API_MAX_CONCURRENCY` | `16` | Maximum concurrent API requests. |
 | `API_MAX_RETRY_DELAY` | `120` | Cap, in seconds, on a single retry wait. |
@@ -129,7 +132,7 @@ Each module runs on the global timer schedule (`0 0 2 * * *` — daily at 02:00 
 | `DELEGATEDSETTINGS_CRON` | Delegated Settings |
 | `GATEWAY_CRON` | Gateways |
 | `GITCONNECTIONS_CRON` | Git Connections |
-| `GRAPH_CRON` | Graph (AAD Groups) |
+| `GRAPH_CRON` | Graph (users, licences, groups) |
 | `REFRESHABLES_CRON` | Refreshables |
 | `REFRESHHISTORY_CRON` | Refresh History |
 | `ROLES_CRON` | Workspace Roles |
@@ -169,7 +172,7 @@ All available module names for `APPLICATION_MODULES`:
 | `FabricItems` | All Fabric items across the tenant |
 | `Gateway` | On-premise and VNet gateways |
 | `GitConnections` | Workspace Git connections, preview API (opt-in) |
-| `Graph` | Azure AD group membership |
+| `Graph` | Azure AD users, licences, SKUs and (opt-in) groups and group members; see [below](#microsoft-graph-graph) |
 | `Refreshables` | Refreshable datasets |
 | `RefreshHistory` | Dataset refresh history |
 | `Roles` | Workspace role assignments |
@@ -177,6 +180,24 @@ All available module names for `APPLICATION_MODULES`:
 | `Tenant` | Tenant settings |
 | `WidelySharedLinks` | Links shared to the whole organization and published to web (opt-in) |
 | `Workspaces` | Workspace metadata |
+
+### Microsoft Graph (`Graph`)
+
+Reads Azure AD data through Microsoft Graph. Output goes under `graph/YYYY/MM/DD/` (UTC date).
+
+| File | Written | Content |
+|---|---|---|
+| `users.json` | Always | All users (paged, `$top=999`): `id`, `displayName`, `userPrincipalName`, `mail`, `accountEnabled`, `userType`, `assignedLicenses`. |
+| `userlicenses.json` | Always, when the users call succeeds | One row per user per assigned licence: `userId`, `userPrincipalName`, `skuId`, `disabledPlans`. |
+| `subscribedskus.json` | Always | Subscribed SKUs. |
+| `groups.json` | Only when `GRAPH_EXTRACT_GROUPS` is on | Security-enabled groups (paged), each with `isPowerBIAudienceGroup`. |
+| `groupmembers.json` | Only when `GRAPH_EXTRACT_GROUPS` is on | One row per group per user member, with `groupId`, `groupDisplayName`, `isPowerBIAudienceGroup` and member fields. |
+
+**Permissions.** The app registration needs the Graph application permissions `User.Read.All`, `Group.Read.All` and `GroupMember.Read.All`, with admin consent.
+
+**Group extraction.** It is off by default. Set `GRAPH_EXTRACT_GROUPS` to `1`, `true`, `yes` or `on` to enable it. Members are fetched for at most `GRAPH_MAX_GROUPS_FOR_MEMBERS` groups (default 200), audience groups first (names starting with a `GRAPH_AUDIENCE_GROUP_PREFIXES` entry, default `PowerBI,Power BI`). When more groups exist, a warning is logged and `groupmembers.json` is a partial result; raise the cap to cover them.
+
+**Failures.** All pages are followed through `@odata.nextLink`. A failed or empty response, an error response, or a transport error (an exception from the request) counts as a failure, as does a failed member call for any group. The module then returns `False` and `lastRun` does not advance. Data from calls that succeeded is still saved.
 
 ### Capacity Metrics (`CapacityMetrics`)
 

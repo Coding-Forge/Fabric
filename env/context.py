@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sys
 import socket
 import platform
@@ -82,7 +83,11 @@ class Context:
         self.StorageAccountContainerName = None
         self.StorageAccountContainerRootPath = None
         self.OutputPath = None
-        self.GraphExtractGroups = None
+        # Opt-in; GRAPH_EXTRACT_GROUPS=true|1|yes|on enables groups/groupmembers extraction
+        graph_groups_flag = os.environ.get("GRAPH_EXTRACT_GROUPS", "").strip().lower()
+        self.GraphExtractGroups = (
+            True if graph_groups_flag in ("1", "true", "yes", "on") else None
+        )
         self.WorkspaceName = None
         self.clients = {}
         self.fm = File_Management()
