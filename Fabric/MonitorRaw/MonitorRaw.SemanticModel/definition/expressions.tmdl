@@ -1,39 +1,55 @@
 /// Where the monitor JSON output is read from: "Local" (a folder) or "Blob" (Azure Blob Storage).
 expression SourceType = "Local" meta [IsParameterQuery = true, List = {"Local", "Blob"}, DefaultValue = "Local", Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: 840e6442-ef55-42b6-94a1-a0f381e122ad
+
 	annotation PBI_ResultType = Text
 
 /// Local source: absolute path of the folder that contains the module folders (activity, capacity_metrics, ...). Use the LOCAL_OUTPUT_PATH value that monitor writes to.
 expression LocalFolder = "C:\path\to\monitor-output" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = true]
+	lineageTag: feb19fc8-3e22-4c9e-8155-6ee747c938de
+
 	annotation PBI_ResultType = Text
 
 /// Blob source: storage account URL, e.g. https://<account>.blob.core.windows.net/
 expression BlobAccountUrl = "https://<storage-account>.blob.core.windows.net/" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = false]
+	lineageTag: 387e2e06-8a86-4d17-8107-bdb74a771af8
+
 	annotation PBI_ResultType = Text
 
 /// Blob source: container name (STORAGE_ACCOUNT_CONTAINER_NAME).
 expression BlobContainer = "<container>" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = false]
+	lineageTag: 25f7124c-b8a8-4de5-83d9-37b283d694c9
+
 	annotation PBI_ResultType = Text
 
 /// Blob source: root path prefix inside the container (STORAGE_ACCOUNT_CONTAINER_ROOT_PATH). Leave empty when the modules sit directly in the container.
 expression BlobRootPath = "" meta [IsParameterQuery = true, Type = "Text", IsParameterQueryRequired = false]
+	lineageTag: 4b69dc18-c440-4d09-b4b3-9c57c1d8111f
+
 	annotation PBI_ResultType = Text
 
 /// Converts any value to text; null or unconvertible values become null.
 expression ToText =
 		(value as any) as nullable text =>
 			if value = null then null else try Text.From(value) otherwise null
+	lineageTag: 4a75e621-509d-436e-8c43-378408ac5e5d
+
 	annotation PBI_ResultType = Function
 
 /// Converts any value to a number; null or unconvertible values become null.
 expression ToNumber =
 		(value as any) as nullable number =>
 			if value = null then null else try Number.From(value) otherwise null
+	lineageTag: cc708719-457b-47b2-bdbb-aa6261a49d4a
+
 	annotation PBI_ResultType = Function
 
 /// Returns the value when it is a logical, otherwise null.
 expression ToLogical =
 		(value as any) as nullable logical =>
 			if value is logical then value else null
+	lineageTag: e540d6d9-e012-459e-a131-b8a00076614c
+
 	annotation PBI_ResultType = Function
 
 /// Parses the date part (yyyy-MM-dd) of an ISO text value; anything else becomes null.
@@ -44,6 +60,8 @@ expression ToDate =
 			else if value is text and Text.Length(value) >= 10 then
 				try Date.FromText(Text.Start(value, 10), [Format = "yyyy-MM-dd", Culture = "en-US"]) otherwise null
 			else null
+	lineageTag: ddea4166-b4da-4fc7-b70a-68be36617c3c
+
 	annotation PBI_ResultType = Function
 
 /// Parses an ISO timestamp as a UTC datetime without time zone. Values ending in Z or carrying a +offset are converted to UTC; values without a zone are taken as already UTC.
@@ -56,42 +74,56 @@ expression ToUtcDateTime =
 				else
 					try DateTime.FromText(value, [Culture = "en-US"]) otherwise null
 			else null
+	lineageTag: 80385d3a-7c5b-45b2-8460-4e10068cde07
+
 	annotation PBI_ResultType = Function
 
 /// Returns the fallback when the value is null.
 expression Coalesce =
 		(value as any, fallback as any) as any =>
 			if value = null then fallback else value
+	lineageTag: ec6658a9-0aba-484d-a99d-bab87fb891dc
+
 	annotation PBI_ResultType = Function
 
 /// Reads a field from a record; null when the value is not a record or the field is missing.
 expression JsonField =
 		(value as any, name as text) as any =>
 			if value is record then Record.FieldOrDefault(value, name, null) else null
+	lineageTag: b4984c9a-5a91-42af-b6f2-08d0a5d115a9
+
 	annotation PBI_ResultType = Function
 
 /// Reads the first non-null field of a record from a list of candidate field names.
 expression JsonFirst =
 		(value as any, names as list) as any =>
 			List.First(List.RemoveNulls(List.Transform(names, (n) => JsonField(value, n))), null)
+	lineageTag: ce5546fa-73f3-4652-bb60-dd7504633766
+
 	annotation PBI_ResultType = Function
 
 /// Reads the first present key of an executeQueries result row from a list of candidate keys.
 expression GetRowValue =
 		(row as any, names as list) as any =>
 			JsonFirst(row, names)
+	lineageTag: bf9a18a3-b4b3-497b-b2bc-5ef87be4149d
+
 	annotation PBI_ResultType = Function
 
 /// Reads a measure value from a capacity metrics row. executeQueries names the key "[Measure name]"; the bare name is accepted too.
 expression CmMeasure =
 		(row as any, measure as text) as nullable number =>
 			ToNumber(GetRowValue(row, {"[" & measure & "]", measure, "All Measures[" & measure & "]"}))
+	lineageTag: b968a76c-c087-44f7-ac39-83aafbe675e2
+
 	annotation PBI_ResultType = Function
 
 /// Adds several columns to a table. specs is a list of {name, each generator, type}.
 expression AddColumns =
 		(source as table, specs as list) as table =>
 			List.Accumulate(specs, source, (state, spec) => Table.AddColumn(state, spec{0}, spec{1}, spec{2}))
+	lineageTag: 2a2bff89-c0be-41f1-a6f7-36e1412c5003
+
 	annotation PBI_ResultType = Function
 
 /// Lists the .json files below <root>/<moduleFolder>/ for the selected SourceType. Returns RelPath (relative to the root, always with / separators), FileName and Content. A missing local folder or no matching blobs gives an empty table. Other errors (bad credentials, wrong container) are raised.
@@ -101,7 +133,7 @@ expression ListModuleFiles =
 			Normalize = (t as text) as text => Text.Replace(t, "\", "/"),
 			Module = Text.Trim(Normalize(moduleFolder), "/"),
 			EmptyFiles = #table(type table [RelPath = text, FileName = text, Content = binary], {}),
-
+		
 			FromBlob = () as table =>
 				let
 					Root = Text.Trim(Normalize(Coalesce(BlobRootPath, "")), "/"),
@@ -114,13 +146,13 @@ expression ListModuleFiles =
 					WithName = Table.AddColumn(WithPath, "FileName", each List.Last(Text.Split([RelPath], "/")), type text)
 				in
 					Table.SelectColumns(WithName, {"RelPath", "FileName", "Content"}),
-
+		
 			FromLocal = () as table =>
 				let
 					Root = Text.TrimEnd(Normalize(LocalFolder), "/"),
 					Separator = if Text.Contains(LocalFolder, "\") then "\" else "/",
 					ModulePath = Text.Replace(Root & "/" & Module, "/", Separator),
-					Attempt = try Folder.Files(ModulePath),
+					Attempt = try Table.Buffer(Folder.Files(ModulePath)),
 					Raw =
 						if not Attempt[HasError] then Attempt[Value]
 						else if Attempt[Error][Reason] = "DataSource.NotFound" then null
@@ -134,6 +166,8 @@ expression ListModuleFiles =
 			if SourceType = "Blob" then FromBlob()
 			else if SourceType = "Local" then FromLocal()
 			else error Error.Record("Expression.Error", "SourceType must be Local or Blob", SourceType)
+	lineageTag: 895b81eb-2140-44f3-96a0-a84ec0917198
+
 	annotation PBI_ResultType = Function
 
 /// Lists and parses the JSON files of a module folder (for example "activity" or "delegatedsettings"). FileDate is the UTC date from the <module>/[scope/]YYYY/MM/DD/ folder layout (never the modified time). Group is any scope folder between the module and the year. Json holds the parsed document; ParseError holds the message when a file is malformed. Empty files give no Json and no error.
@@ -158,6 +192,8 @@ expression GetFiles =
 			WithError = Table.AddColumn(WithJson, "ParseError", each if [Parsed][HasError] then [Parsed][Error][Message] else null, type text)
 		in
 			Table.SelectColumns(WithError, {"RelPath", "FileName", "FileDate", "Group", "Json", "ParseError"})
+	lineageTag: e23feaeb-2fc3-4742-b985-4b6d8842d986
+
 	annotation PBI_ResultType = Function
 
 /// Keeps only the files of the most recent snapshot date within each group (full-state modules write a complete copy per day, so older days must not be summed).
@@ -170,6 +206,8 @@ expression KeepLatestPerGroup =
 			Kept = Table.SelectRows(Expanded, each [FileDate] = [LatestDate])
 		in
 			Table.RemoveColumns(Kept, {"LatestDate"})
+	lineageTag: 223a2c30-83e3-4002-9dc5-debf9751d24d
+
 	annotation PBI_ResultType = Function
 
 /// Turns the file-level table from GetFiles into one row per record in the JSON documents (column Item). A malformed file stays as one row with Item = null and ParseError set.
@@ -186,4 +224,7 @@ expression ExpandItems =
 			Kept = Table.SelectRows(Expanded, each [Item] <> null or [ParseError] <> null)
 		in
 			Table.RemoveColumns(Kept, {"Json"})
+	lineageTag: faa05bd6-881f-4dcd-9c70-c64860a1a6c7
+
 	annotation PBI_ResultType = Function
+
