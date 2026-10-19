@@ -402,6 +402,42 @@ table _Measures
 		displayFolder: Activity vs Capacity
 		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d2007
 
+	/// Local time (Event Time Local) of the earliest event in the current filter context.
+	measure 'First Activity Time (Local)' = MIN(activity[Event Time Local])
+		formatString: General Date
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3001
+
+	/// Local time (Event Time Local) of the latest event in the current filter context.
+	measure 'Last Activity Time (Local)' = MAX(activity[Event Time Local])
+		formatString: General Date
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3002
+
+	/// Catalog reports whose ReportId matches the ArtifactId of the activities in context. Blank when none, so tables listing catalog reports only show matches.
+	measure 'Catalog Report Matches' = CALCULATE(COUNTROWS(CatalogReports), TREATAS(VALUES(activity[ArtifactId]), CatalogReports[ReportId]))
+		formatString: #,0
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3003
+
+	/// Catalog reports in the workspace(s) of the activities in context (activity[WorkspaceId] matched to CatalogReports[WorkspaceId]; no physical relationship).
+	measure 'Catalog Reports in Workspace' = CALCULATE(DISTINCTCOUNT(CatalogReports[ReportId]), TREATAS(VALUES(activity[WorkspaceId]), CatalogReports[WorkspaceId]))
+		formatString: #,0
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3004
+
+	/// Catalog datasets in the workspace(s) of the activities in context (activity[WorkspaceId] matched to CatalogDatasets[WorkspaceId]; no physical relationship).
+	measure 'Catalog Datasets in Workspace' = CALCULATE(DISTINCTCOUNT(CatalogDatasets[DatasetId]), TREATAS(VALUES(activity[WorkspaceId]), CatalogDatasets[WorkspaceId]))
+		formatString: #,0
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3005
+
+	/// Directory/licence rows whose UserPrincipalName matches the activity UserId in context. Blank when none, so licence tables only list the drilled user's licences.
+	measure 'Licence Rows for User' = CALCULATE(COUNTROWS(UserLicenseActivity), TREATAS(VALUES(activity[UserId]), UserLicenseActivity[UserPrincipalName]))
+		formatString: #,0
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3006
+
 	column Value
 		lineageTag: 88d94c62-827b-412f-a506-6a3deaf6f3b5
 		isNameInferred

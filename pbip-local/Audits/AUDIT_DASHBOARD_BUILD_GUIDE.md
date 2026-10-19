@@ -17,6 +17,7 @@ The generated starter visuals use conservative Power BI Desktop visual patterns 
 | Users & Access | User behavior, top users, client IPs, user types, access investigation |
 | Workspaces & Artifacts | Workspace, dataset, capacity, artifact activity and ownership-style views |
 | Risk & Anomalies | Failed activity, unusual client IPs, high-volume users, suspicious operations |
+| User Detail, Report Detail, Workspace Detail (hidden) | Drill-through pages for one user, report or workspace. See [Drill-through Detail Pages](#drill-through-detail-pages) |
 | Drillthrough Detail | Row-level investigation target for user/workspace/activity/artifact context |
 | Refresh Health (`refresh_health`) | Dataset refresh volume, failures, staleness and credential/parameter changes. See [Refresh Health Page](#refresh-health-page) |
 | Activity vs Capacity (`activity_vs_capacity`) | Audit activity set against Capacity Metrics utilization by UTC day and hour. See [Activity vs Capacity Page](#activity-vs-capacity-page) |
@@ -501,6 +502,48 @@ Why they are safe:
 - Both are single direction, and `activity` and `CapacityMetrics` have no direct relationship. They share only the `Capacities` and `dimDate` dimensions, so there is no ambiguous path or cycle.
 - Activity rows with a blank or unknown capacity, or a date outside `dimDate`, simply do not match. They are not errors, and the `... on Capacity` measures exclude them.
 - Consequence: a `Capacities[Capacity Name]` slicer now filters `activity` as well as `CapacityMetrics`. On the Capacity Metrics pages this does not change the existing visuals, which do not use `activity`.
+
+## Drill-through Detail Pages
+
+Three hidden drill-through pages in `Activities.pbip` show the detail behind a single user, report or workspace. They do not appear in the page tabs or the page navigator. Open them by drilling through.
+
+### Usage
+
+Right-click a user, an item (report) or a workspace in any visual that carries the matching field, then choose **Drill through** and the page name. The page opens filtered to that value. Each page has a back button that returns to the page you came from.
+
+| Page | Drill-through field | Also shows |
+|---|---|---|
+| User Detail | `activity[UserId]` | Licences for the user |
+| Report Detail | `activity[ArtifactName]` | Matching `CatalogReports` rows |
+| Workspace Detail | `activity[WorkSpaceName]` | Catalog report and dataset counts for the workspace |
+
+Every page also has:
+
+- a back button;
+- KPI cards;
+- charts of activity by day and by category;
+- a recent events table.
+
+### Drillthrough Measures
+
+The new measures live in `_Measures` under the display folder `Drillthrough`.
+
+| Measure | Purpose |
+|---|---|
+| `First Activity Time (Local)` | Earliest event time in the drill-through context, in local time. |
+| `Last Activity Time (Local)` | Latest event time in the drill-through context, in local time. |
+| `Catalog Report Matches` | Number of `CatalogReports` rows matching the drilled report. Used on Report Detail. |
+| `Catalog Reports in Workspace` | Number of catalog reports in the drilled workspace. Used on Workspace Detail. |
+| `Catalog Datasets in Workspace` | Number of catalog datasets in the drilled workspace. Used on Workspace Detail. |
+| `Licence Rows for User` | Number of `UserLicenseActivity` rows for the drilled user. Used on User Detail. |
+
+### Why the Measures Use `TREATAS`
+
+There are no physical relationships from `activity` to the catalog tables or to `UserLicenseActivity`, so a drill-through filter on `activity` does not reach them. The catalog and licence measures instead use `TREATAS` to apply the drilled `activity` value (user, report name or workspace name) as a filter on the matching column in the other table. The match is by value, so it depends on the names being identical in both sources. No relationships were added.
+
+### Validation Status
+
+Reviewed and approved by Code Reviewer, after trivial fixes that changed the `2.14.0` schema references to `2.12.0`. The hand-written PBIR drill-through blocks have **not been verified in Power BI Desktop**. Desktop may adjust or drop them on open, so open the project, refresh, and check that each page appears under **Drill through** and filters as expected. The new pages must be force-added when committing.
 
 ## Fixes in This Change
 

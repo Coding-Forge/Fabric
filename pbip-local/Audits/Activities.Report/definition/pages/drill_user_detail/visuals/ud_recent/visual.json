@@ -1,0 +1,45 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "ud_recent",
+  "position": { "x": 35, "y": 500, "z": 30, "height": 560, "width": 1160 },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "activity" } }, "Property": "Event Time Local" } }, "queryRef": "activity.Event Time Local", "nativeQueryRef": "Event Time Local" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "activity" } }, "Property": "Effective Activity" } }, "queryRef": "activity.Effective Activity", "nativeQueryRef": "Effective Activity" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "activity" } }, "Property": "Operation Category" } }, "queryRef": "activity.Operation Category", "nativeQueryRef": "Operation Category" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "activity" } }, "Property": "ArtifactName" } }, "queryRef": "activity.ArtifactName", "nativeQueryRef": "ArtifactName" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "activity" } }, "Property": "WorkSpaceName" } }, "queryRef": "activity.WorkSpaceName", "nativeQueryRef": "WorkSpaceName" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "activity" } }, "Property": "ClientIP" } }, "queryRef": "activity.ClientIP", "nativeQueryRef": "ClientIP" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "activity" } }, "Property": "IsSuccess" } }, "queryRef": "activity.IsSuccess", "nativeQueryRef": "IsSuccess" }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "activity" } }, "Property": "Event Time Local" } }, "direction": "Descending" }
+        ]
+      }
+    },
+    "objects": {
+      "grid": [
+        { "properties": { "textSize": { "expr": { "Literal": { "Value": "9D" } } } } }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": { "expr": { "Literal": { "Value": "true" } } },
+            "text": { "expr": { "Literal": { "Value": "'Recent events (local time, newest first)'" } } },
+            "fontSize": { "expr": { "Literal": { "Value": "11D" } } }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

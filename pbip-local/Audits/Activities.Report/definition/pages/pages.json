@@ -12,7 +12,10 @@
     "activity_vs_capacity",
     "capacity_overview",
     "capacity_utilization",
-    "capacity_carryover"
+    "capacity_carryover",
+    "drill_user_detail",
+    "drill_report_detail",
+    "drill_workspace_detail"
   ],
-  "activePageName": "customer_audit_overview"
+  "activePageName": "refresh_health"
 }

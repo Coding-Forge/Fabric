@@ -1,0 +1,42 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "drill_report_detail",
+  "displayName": "Report Detail",
+  "displayOption": "FitToPage",
+  "height": 1080,
+  "width": 1920,
+  "visibility": "HiddenInViewMode",
+  "type": "Drillthrough",
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "c5d6e7f8a9b0c1d2e3f4",
+        "field": {
+          "Column": {
+            "Expression": { "SourceRef": { "Entity": "activity" } },
+            "Property": "ArtifactName"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "Drillthrough"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "d7e8f9a0b1c2d3e4f5a6",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "Param_c5d6e7f8a9b0c1d2e3f4",
+        "boundFilter": "c5d6e7f8a9b0c1d2e3f4",
+        "fieldExpr": {
+          "Column": {
+            "Expression": { "SourceRef": { "Entity": "activity" } },
+            "Property": "ArtifactName"
+          }
+        }
+      }
+    ],
+    "acceptsFilterContext": "Default"
+  }
+}
