@@ -514,7 +514,7 @@ Right-click a user, an item (report) or a workspace in any visual that carries t
 | Page | Drill-through field | Also shows |
 |---|---|---|
 | User Detail | `activity[UserId]` | Licences for the user |
-| Report Detail | `activity[ArtifactName]` | Matching `CatalogReports` rows |
+| Report Detail | `activity[ItemName]` | Matching `CatalogReports` rows |
 | Workspace Detail | `activity[WorkSpaceName]` | Catalog report and dataset counts for the workspace |
 
 Every page also has:

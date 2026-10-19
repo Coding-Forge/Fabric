@@ -14,7 +14,7 @@
         "field": {
           "Column": {
             "Expression": { "SourceRef": { "Entity": "activity" } },
-            "Property": "ArtifactName"
+            "Property": "ItemName"
           }
         },
         "type": "Categorical",
@@ -32,7 +32,7 @@
         "fieldExpr": {
           "Column": {
             "Expression": { "SourceRef": { "Entity": "activity" } },
-            "Property": "ArtifactName"
+            "Property": "ItemName"
           }
         }
       }

@@ -4,7 +4,7 @@
 
 Reviewed and approved by Code Reviewer (after trivial fixes: `2.14.0` schema references downgraded to `2.12.0`). **Not validated in Power BI Desktop**: the hand-written PBIR drillthrough blocks have not been verified there. No code, tests or infrastructure changed.
 
-- Three hidden drill-through pages in `pbip-local/Audits/Activities.pbip`: **User Detail** (drill on `activity[UserId]`), **Report Detail** (`activity[ArtifactName]`) and **Workspace Detail** (`activity[WorkSpaceName]`). Each has a back button, KPIs, by-day and by-category charts and a recent events table.
+- Three hidden drill-through pages in `pbip-local/Audits/Activities.pbip`: **User Detail** (drill on `activity[UserId]`), **Report Detail** (`activity[ItemName]`) and **Workspace Detail** (`activity[WorkSpaceName]`). Each has a back button, KPIs, by-day and by-category charts and a recent events table.
 - User Detail also shows licences, Report Detail shows `CatalogReports`, and Workspace Detail shows catalog counts.
 - New measures in the `Drillthrough` display folder of `_Measures`: `First Activity Time (Local)`, `Last Activity Time (Local)`, `Catalog Report Matches`, `Catalog Reports in Workspace`, `Catalog Datasets in Workspace` and `Licence Rows for User`. The catalog and licence measures use `TREATAS`, because there are no physical relationships from `activity` to the catalog tables or `UserLicenseActivity`.
 - Usage: right-click a user, item or workspace in any visual, then **Drill through**.

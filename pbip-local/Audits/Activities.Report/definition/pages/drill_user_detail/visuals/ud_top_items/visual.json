@@ -8,7 +8,7 @@
       "queryState": {
         "Category": {
           "projections": [
-            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "activity" } }, "Property": "ArtifactName" } }, "queryRef": "activity.ArtifactName", "nativeQueryRef": "ArtifactName", "active": true }
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "activity" } }, "Property": "ItemName" } }, "queryRef": "activity.ItemName", "nativeQueryRef": "ItemName", "active": true }
           ]
         },
         "Y": {
