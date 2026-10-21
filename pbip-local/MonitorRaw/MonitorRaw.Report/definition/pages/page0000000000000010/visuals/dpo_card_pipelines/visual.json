@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "dpo_card_pipelines",
+  "position": {
+    "x": 20,
+    "y": 220,
+    "width": 230,
+    "height": 90,
+    "z": 6000,
+    "tabOrder": 6000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Pipelines"
+                    }
+                  },
+                  "Property": "Visible Pipeline Count"
+                }
+              },
+              "queryRef": "Deployment Pipelines.Visible Pipeline Count",
+              "nativeQueryRef": "Visible Pipeline Count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

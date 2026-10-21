@@ -1,0 +1,152 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "fjh_scope",
+  "position": {
+    "x": 740,
+    "y": 415,
+    "width": 520,
+    "height": 150,
+    "z": 13000,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job Scope"
+                    }
+                  },
+                  "Property": "Workspace Id"
+                }
+              },
+              "queryRef": "Fabric Job Scope.Workspace Id",
+              "nativeQueryRef": "Workspace Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job Scope"
+                    }
+                  },
+                  "Property": "Item Id"
+                }
+              },
+              "queryRef": "Fabric Job Scope.Item Id",
+              "nativeQueryRef": "Item Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job Scope"
+                    }
+                  },
+                  "Property": "Item Type"
+                }
+              },
+              "queryRef": "Fabric Job Scope.Item Type",
+              "nativeQueryRef": "Item Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job Scope"
+                    }
+                  },
+                  "Property": "Coverage"
+                }
+              },
+              "queryRef": "Fabric Job Scope.Coverage",
+              "nativeQueryRef": "Coverage"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job Scope"
+                    }
+                  },
+                  "Property": "Returned Job Observations"
+                }
+              },
+              "queryRef": "Fabric Job Scope.Returned Job Observations",
+              "nativeQueryRef": "Returned Job Observations"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job Scope"
+                    }
+                  },
+                  "Property": "Attempt UTC"
+                }
+              },
+              "queryRef": "Fabric Job Scope.Attempt UTC",
+              "nativeQueryRef": "Attempt UTC"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Latest finished-poll coverage (unfiltered)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

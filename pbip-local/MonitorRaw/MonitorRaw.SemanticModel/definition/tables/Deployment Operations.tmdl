@@ -1,0 +1,161 @@
+/// Latest observation per pipeline/operation across ALL retained runs. Old operations are not removed when they age out of the API's recent-20 window or current pipeline discovery.
+table 'Deployment Operations'
+	lineageTag: d9ec82d1-1ef5-4aa7-b41d-2c376cbbd9db
+
+	measure 'Deployment Operation Count' =
+			IF(
+				COUNTROWS('Deployment Operations') > 0,
+				COUNTROWS('Deployment Operations'),
+				IF(
+					CALCULATE(SELECTEDVALUE('Collection Status'[Latest Run Complete]), 'Collection Status'[Module] = "fabricdeploymentpipelineoperations"),
+					0
+				)
+			)
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 70ac95e5-7267-4988-afbb-e937ed905e3f
+
+	/// Exact API status values are kept unmodified. Other/new values remain visible in the status chart and slicer.
+	measure 'Failed Deployment Operations' = CALCULATE([Deployment Operation Count], KEEPFILTERS('Deployment Operations'[Status] = "Failed"))
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 8037294b-d45a-451b-bd36-15bfe42cd2dc
+
+	measure 'Executing Deployment Operations' = CALCULATE([Deployment Operation Count], KEEPFILTERS('Deployment Operations'[Status] = "Executing"))
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 5939f297-9c47-4e75-bb6c-bc111342e51c
+
+	measure 'Average Deployment Duration (min)' = AVERAGE('Deployment Operations'[Duration Minutes])
+		formatString: #,0.0
+		displayFolder: Duration
+		lineageTag: e5afc12a-2d43-48ec-91c6-9abfa26255dc
+
+	column 'Pipeline Id'
+		dataType: string
+		lineageTag: ad35cd0c-7657-4c96-bd52-46d3539d3f9c
+		summarizeBy: none
+		sourceColumn: Pipeline Id
+
+	column 'Pipeline Name'
+		dataType: string
+		lineageTag: 95343dd3-f306-440e-9439-9ca5577f1687
+		summarizeBy: none
+		sourceColumn: Pipeline Name
+
+	column 'Operation Id'
+		dataType: string
+		lineageTag: 9d897780-afde-4dab-afed-2972f9487477
+		summarizeBy: none
+		sourceColumn: Operation Id
+
+	column Type
+		dataType: string
+		lineageTag: 720ae59c-ddf8-47d4-9c0e-7fa8ed47a172
+		summarizeBy: none
+		sourceColumn: Type
+
+	column Status
+		dataType: string
+		lineageTag: fc350852-9f7f-43e5-b364-af324a1298c7
+		summarizeBy: none
+		sourceColumn: Status
+
+	column 'Source Stage Id'
+		dataType: string
+		lineageTag: 35d51209-4967-43e0-9c4e-fac2bb20c362
+		summarizeBy: none
+		sourceColumn: Source Stage Id
+
+	column 'Target Stage Id'
+		dataType: string
+		lineageTag: 04122778-e956-4ff2-8adc-b93b4c944ae7
+		summarizeBy: none
+		sourceColumn: Target Stage Id
+
+	column 'Execution Start UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: b96a4d08-945c-44d7-bdc7-3f7df3595f28
+		summarizeBy: none
+		sourceColumn: Execution Start UTC
+
+	column 'Execution End UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 4199a0a8-e1fb-4dd4-87c2-d5790ea4c522
+		summarizeBy: none
+		sourceColumn: Execution End UTC
+
+	column 'Execution Date'
+		dataType: dateTime
+		formatString: yyyy-MM-dd
+		lineageTag: 43fbf245-dfc7-4c11-b309-e96363edbb9d
+		summarizeBy: none
+		sourceColumn: Execution Date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Last Updated UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 6ac52903-234f-48ad-a0f8-116fa5500642
+		summarizeBy: none
+		sourceColumn: Last Updated UTC
+
+	column 'Duration Minutes'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: 876ad721-a9b2-47fc-9f3b-59f436998ac3
+		summarizeBy: none
+		sourceColumn: Duration Minutes
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 5e37a4db-b9a1-43a8-bec0-fd8ac72d2ebe
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	column 'Run Id'
+		dataType: string
+		isHidden
+		lineageTag: 2b236c0e-1cfe-462f-b8f7-35f09389e28a
+		summarizeBy: none
+		sourceColumn: Run Id
+
+	partition 'Deployment Operations' = m
+		mode: import
+		source =
+				let
+					Files = Table.SelectRows(FabricDeploymentData[Observations], each [FileName] <> "pipelines.json"),
+					WithItems = Table.AddColumn(Files, "Item", each [Json][records], type list),
+					Items = Table.ExpandListColumn(WithItems, "Item"),
+					WithColumns = AddColumns(Items, {
+						{"Pipeline Id", each Text.Lower(JsonField(JsonField(JsonField([Json], "parent"), "deploymentPipeline"), "id")), type text},
+						{"Pipeline Name", each JsonField(JsonField(JsonField([Json], "parent"), "deploymentPipeline"), "displayName"), type text},
+						{"Operation Id", each JsonField([Item], "id"), type text},
+						{"Type", each JsonField([Item], "type"), type text},
+						{"Status", each JsonField([Item], "status"), type text},
+						{"Source Stage Id", each JsonField([Item], "sourceStageId"), type nullable text},
+						{"Target Stage Id", each JsonField([Item], "targetStageId"), type nullable text},
+						{"Execution Start UTC", each ToUtcDateTime(JsonField([Item], "executionStartTime")), type nullable datetime},
+						{"Execution End UTC", each ToUtcDateTime(JsonField([Item], "executionEndTime")), type nullable datetime},
+						{"Last Updated UTC", each ToUtcDateTime(JsonField([Item], "lastUpdatedTime")), type nullable datetime},
+						{"Observed At UTC", each ToUtcDateTime(JsonField([Json], "observedAt")), type nullable datetime},
+						{"Run Id", each JsonField([Json], "runId"), type text}
+					}),
+					Slim = Table.SelectColumns(WithColumns, {"Pipeline Id", "Pipeline Name", "Operation Id", "Type", "Status", "Source Stage Id", "Target Stage Id", "Execution Start UTC", "Execution End UTC", "Last Updated UTC", "Observed At UTC", "Run Id"}),
+					Sorted = Table.Buffer(Table.Sort(Slim, {{"Observed At UTC", Order.Descending}, {"Run Id", Order.Descending}})),
+					Latest = Table.Distinct(Sorted, {"Pipeline Id", "Operation Id"}),
+					WithDates = AddColumns(Latest, {
+						{"Execution Date", each if [Execution Start UTC] = null then null else DateTime.Date([Execution Start UTC]), type nullable date},
+						{"Duration Minutes", each if [Execution Start UTC] = null or [Execution End UTC] = null then null
+							else if [Execution End UTC] < [Execution Start UTC] then null
+							else Duration.TotalMinutes([Execution End UTC] - [Execution Start UTC]), type nullable number}
+					})
+				in
+					WithDates
+
+	annotation PBI_ResultType = Table
+

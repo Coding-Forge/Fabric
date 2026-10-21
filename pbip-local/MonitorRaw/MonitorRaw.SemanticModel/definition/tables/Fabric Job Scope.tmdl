@@ -1,0 +1,74 @@
+/// Latest finished poll's explicit target outcomes, not a reconstruction from positive job facts. Unvisited targets in interrupted polls cannot be inferred.
+table 'Fabric Job Scope'
+	lineageTag: 38316867-0829-44f3-b264-d130e3570067
+
+	column 'Workspace Id'
+		dataType: string
+		lineageTag: af01152d-1eaa-4967-9e5e-78dc71891252
+		summarizeBy: none
+		sourceColumn: Workspace Id
+
+	column 'Item Id'
+		dataType: string
+		lineageTag: c06205ea-7560-41f6-8cfd-b2c896fe1981
+		summarizeBy: none
+		sourceColumn: Item Id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: e7dd1fbe-c5ac-49e7-8480-20cc3834743d
+		summarizeBy: none
+		sourceColumn: Item Type
+
+	column Coverage
+		dataType: string
+		lineageTag: 1f4dc7ef-8c5c-47f3-aebf-a3959d0864b0
+		summarizeBy: none
+		sourceColumn: Coverage
+
+	column 'Returned Job Observations'
+		dataType: int64
+		formatString: #,0
+		lineageTag: b297b820-931b-4634-8cf4-e88f3e971fae
+		summarizeBy: none
+		sourceColumn: Returned Job Observations
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Attempt UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: b183931b-3684-4a9b-ae28-1da24576cf34
+		summarizeBy: none
+		sourceColumn: Attempt UTC
+
+	column 'Run Id'
+		dataType: string
+		isHidden
+		lineageTag: b38b32ba-6fe5-432a-aa52-f44449b05438
+		summarizeBy: none
+		sourceColumn: Run Id
+
+	partition 'Fabric Job Scope' = m
+		mode: import
+		source =
+				let
+				  Data = FabricItemJobsData,
+				  Rows = AddColumns(Data[ScopeFiles], {
+						{"Workspace Id", each [Json][parent][workspaceId], type text},
+						{"Item Id", each [Json][parent][itemId], type text},
+						{"Item Type", each [Json][parent][type], type text},
+						{"Coverage", each
+							(if not [Json][complete] then "Failed: target inaccessible, malformed or incomplete"
+								else if List.IsEmpty([Json][records]) then "Collected: zero job observations" else "Collected: job observations returned")
+							& (if Data[ScopeCurrent] then "; complete poll" else "; incomplete poll; full scope unknown"), type text},
+						{"Returned Job Observations", each if [Json][complete] then List.Count([Json][records]) else null, Int64.Type},
+						{"Attempt UTC", each ToUtcDateTime([Json][observedAt]), type datetime},
+						{"Run Id", each [Json][runId], type text}
+					}),
+				  #"Choose columns" = Table.SelectColumns(Rows, {"Workspace Id", "Item Id", "Item Type", "Coverage", "Returned Job Observations", "Attempt UTC", "Run Id"})
+				in
+				  #"Choose columns"
+
+	annotation PBI_ResultType = Table
+

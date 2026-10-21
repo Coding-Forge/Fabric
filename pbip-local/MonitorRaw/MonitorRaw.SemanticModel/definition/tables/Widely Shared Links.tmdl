@@ -1,0 +1,123 @@
+/// Latest snapshot of widely shared links per endpoint (widelysharedlinks/YYYY/MM/DD/widelysharedlinks_organization.json and widelysharedlinks_publishedtoweb.json).
+table 'Widely Shared Links'
+	lineageTag: 55de7c97-4d14-4513-9d92-32bcc3c765d1
+
+	measure 'Shared Link Count' = CALCULATE(COUNTROWS('Widely Shared Links'), 'Widely Shared Links'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 9377bdad-39e9-43aa-84ec-991130bc8f01
+
+	measure 'Organization Link Count' = CALCULATE(COUNTROWS('Widely Shared Links'), 'Widely Shared Links'[Link Type] = "Whole organization", 'Widely Shared Links'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 4fa44665-d7c5-43ea-ae6d-6b343171b97e
+
+	measure 'Published To Web Count' = CALCULATE(COUNTROWS('Widely Shared Links'), 'Widely Shared Links'[Link Type] = "Published to web", 'Widely Shared Links'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: bc5d8dc5-afbf-4088-bb15-395d1592616c
+
+	measure 'Distinct Sharers' = CALCULATE(DISTINCTCOUNT('Widely Shared Links'[Sharer Email]), 'Widely Shared Links'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 4adbec7f-6648-4678-82a8-eb551da0f7f2
+
+	column 'Link Type'
+		dataType: string
+		lineageTag: 358207e5-9847-41ca-9221-7bb7095bd170
+		summarizeBy: none
+		sourceColumn: Link Type
+
+	column 'Artifact Id'
+		dataType: string
+		lineageTag: 17192697-ab54-4db0-9224-abf1fa0872b1
+		summarizeBy: none
+		sourceColumn: Artifact Id
+
+	column 'Artifact Name'
+		dataType: string
+		lineageTag: 25d15b23-a63b-42ac-910a-7467d0ef226d
+		summarizeBy: none
+		sourceColumn: Artifact Name
+
+	column 'Artifact Type'
+		dataType: string
+		lineageTag: 05b14d1c-930f-4883-a04f-07f3736802df
+		summarizeBy: none
+		sourceColumn: Artifact Type
+
+	column 'Access Right'
+		dataType: string
+		lineageTag: 244394ba-2fcd-497b-95f7-d67c8df31dd3
+		summarizeBy: none
+		sourceColumn: Access Right
+
+	column 'Share Type'
+		dataType: string
+		lineageTag: a00d17d2-33f2-4d54-b337-c4886dd95b08
+		summarizeBy: none
+		sourceColumn: Share Type
+
+	column 'Sharer Name'
+		dataType: string
+		lineageTag: 961eefeb-e1ca-4477-9feb-a5ba004c2c81
+		summarizeBy: none
+		sourceColumn: Sharer Name
+
+	column 'Sharer Email'
+		dataType: string
+		lineageTag: e520c212-f041-4793-b7fc-a6b79fb6ab76
+		summarizeBy: none
+		sourceColumn: Sharer Email
+
+	column 'Snapshot Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 330c5a82-9017-4c13-a4b3-f6b0ceaa78fd
+		summarizeBy: none
+		sourceColumn: Snapshot Date
+
+		variation Variation
+			isDefault
+			relationship: 54fb837f-f985-4617-9f20-28591c37637d
+			defaultHierarchy: LocalDateTable_8476a828-7a7e-439e-be48-2e2b2028246e.'Date Hierarchy'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Source File'
+		dataType: string
+		lineageTag: b44a32d2-3a6b-48e7-b17a-3b995f5e38ea
+		summarizeBy: none
+		sourceColumn: Source File
+
+	column 'Load Error'
+		dataType: string
+		lineageTag: 1f1138cb-45ed-42e0-baa1-2b8d88adbe52
+		summarizeBy: none
+		sourceColumn: Load Error
+
+	partition 'Widely Shared Links' = m
+		mode: import
+		source =
+				let
+					Files = Table.AddColumn(Table.RemoveColumns(GetFiles("widelysharedlinks"), {"Group"}), "Group", each if Text.Contains(Text.Lower([FileName]), "publishedtoweb") then "Published to web" else "Whole organization", type text),
+					Items = ExpandItems(KeepLatestPerGroup(Files, "Group")),
+					WithColumns = AddColumns(Items, {
+						{"Link Type", each [Group], type text},
+						{"Artifact Id", each ToText(JsonField([Item], "artifactId")), type text},
+						{"Artifact Name", each ToText(JsonFirst([Item], {"displayName", "artifactName"})), type text},
+						{"Artifact Type", each ToText(JsonField([Item], "artifactType")), type text},
+						{"Access Right", each ToText(JsonField([Item], "accessRight")), type text},
+						{"Share Type", each ToText(JsonField([Item], "shareType")), type text},
+						{"Sharer Name", each ToText(JsonField(JsonField([Item], "sharer"), "displayName")), type text},
+						{"Sharer Email", each ToText(JsonField(JsonField([Item], "sharer"), "emailAddress")), type text},
+						{"Snapshot Date", each [FileDate], type nullable date},
+						{"Source File", each if [ParseError] <> null then [RelPath] else null, type text},
+						{"Load Error", each [ParseError], type text}
+					}),
+					Result = Table.SelectColumns(WithColumns, {"Link Type", "Artifact Id", "Artifact Name", "Artifact Type", "Access Right", "Share Type", "Sharer Name", "Sharer Email", "Snapshot Date", "Source File", "Load Error"})
+				in
+					Result
+
+	annotation PBI_ResultType = Table
+

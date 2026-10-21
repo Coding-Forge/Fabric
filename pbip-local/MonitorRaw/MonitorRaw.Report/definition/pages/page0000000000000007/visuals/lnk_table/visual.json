@@ -1,0 +1,122 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "lnk_table",
+  "position": {
+    "x": 540,
+    "y": 210,
+    "width": 720,
+    "height": 490,
+    "z": 6000,
+    "tabOrder": 6000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Widely Shared Links"
+                    }
+                  },
+                  "Property": "Artifact Name"
+                }
+              },
+              "queryRef": "Widely Shared Links.Artifact Name",
+              "nativeQueryRef": "Artifact Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Widely Shared Links"
+                    }
+                  },
+                  "Property": "Artifact Type"
+                }
+              },
+              "queryRef": "Widely Shared Links.Artifact Type",
+              "nativeQueryRef": "Artifact Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Widely Shared Links"
+                    }
+                  },
+                  "Property": "Link Type"
+                }
+              },
+              "queryRef": "Widely Shared Links.Link Type",
+              "nativeQueryRef": "Link Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Widely Shared Links"
+                    }
+                  },
+                  "Property": "Access Right"
+                }
+              },
+              "queryRef": "Widely Shared Links.Access Right",
+              "nativeQueryRef": "Access Right"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Widely Shared Links"
+                    }
+                  },
+                  "Property": "Share Type"
+                }
+              },
+              "queryRef": "Widely Shared Links.Share Type",
+              "nativeQueryRef": "Share Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Widely Shared Links"
+                    }
+                  },
+                  "Property": "Sharer Name"
+                }
+              },
+              "queryRef": "Widely Shared Links.Sharer Name",
+              "nativeQueryRef": "Sharer Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Widely Shared Links"
+                    }
+                  },
+                  "Property": "Load Error"
+                }
+              },
+              "queryRef": "Widely Shared Links.Load Error",
+              "nativeQueryRef": "Load Error"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

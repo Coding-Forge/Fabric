@@ -1,0 +1,56 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "about_card_errors",
+  "position": {
+    "x": 1136.9341242585076,
+    "y": 3.5966281610989697,
+    "z": 1000,
+    "height": 110.2965969403684,
+    "width": 133.47486731189508,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Capacity Metrics"
+                    }
+                  },
+                  "Property": "Load Errors"
+                }
+              },
+              "queryRef": "Capacity Metrics.Load Errors",
+              "nativeQueryRef": "Load Errors"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "014bb33b898c5764dbe2",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Capacity Metrics"
+              }
+            },
+            "Property": "Load Errors"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

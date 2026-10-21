@@ -1,0 +1,79 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "git_bar_provider",
+  "position": {
+    "x": 20,
+    "y": 210,
+    "width": 500,
+    "height": 490,
+    "z": 3000,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Git Connections"
+                    }
+                  },
+                  "Property": "Git Provider Type"
+                }
+              },
+              "queryRef": "Git Connections.Git Provider Type",
+              "nativeQueryRef": "Git Provider Type",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Git Connections"
+                    }
+                  },
+                  "Property": "Git Connection Count"
+                }
+              },
+              "queryRef": "Git Connections.Git Connection Count",
+              "nativeQueryRef": "Git Connection Count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Connections by Git provider (latest snapshot)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

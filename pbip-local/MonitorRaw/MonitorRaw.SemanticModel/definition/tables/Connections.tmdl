@@ -1,0 +1,101 @@
+/// Current caller-visible connection inventory. Null source names are preserved; only the report label falls back to identity. No credentials or connection paths are imported.
+table Connections
+	lineageTag: 69cfa4da-ae49-4e28-b8d8-12cffdc6f12a
+
+	measure 'Connection Count' =
+			IF(
+				CALCULATE(SELECTEDVALUE('Collection Status'[Has Snapshot]), 'Collection Status'[Module] = "fabricconnections"),
+				COALESCE(COUNTROWS('Connections'), 0)
+			)
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: ec653d87-c91b-4ce7-8cb1-bd121d653096
+
+	measure 'Connections With Gateway Id' = CALCULATE([Connection Count], KEEPFILTERS('Connections'[Gateway Assignment] = "Gateway Id present"))
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: d44d774c-1c99-4b6c-a8b9-851fb42c5c60
+
+	column 'Connection Id'
+		dataType: string
+		lineageTag: 7d5e44b2-52f8-4247-b5e5-d9d2d71e0669
+		summarizeBy: none
+		sourceColumn: Connection Id
+
+	column 'Display Name'
+		dataType: string
+		lineageTag: eb8851b1-b00d-45bf-9b28-ae71c2a8fe7a
+		summarizeBy: none
+		sourceColumn: Display Name
+
+	column 'Connection Label' = COALESCE('Connections'[Display Name], "Unnamed connection (" & 'Connections'[Connection Id] & ")")
+		dataType: string
+		lineageTag: 813f4d48-4555-4acc-9d12-e33e8ddde17d
+		summarizeBy: none
+
+	column 'Gateway Id'
+		dataType: string
+		lineageTag: e75d2f0b-b5b1-4071-8b59-5ecf2819ea5c
+		summarizeBy: none
+		sourceColumn: Gateway Id
+
+	column 'Gateway Assignment' = IF(ISBLANK('Connections'[Gateway Id]), "No gateway Id reported", "Gateway Id present")
+		dataType: string
+		lineageTag: a49b0571-f03d-49f5-99dd-05f1f316ab04
+		summarizeBy: none
+
+	column 'Connectivity Type'
+		dataType: string
+		lineageTag: 150c1bd4-e776-40fb-a391-cd226cbe4990
+		summarizeBy: none
+		sourceColumn: Connectivity Type
+
+	column 'Privacy Level'
+		dataType: string
+		lineageTag: ed852866-85a5-40a3-a56d-372bf3780677
+		summarizeBy: none
+		sourceColumn: Privacy Level
+
+	column 'Connection Type'
+		dataType: string
+		lineageTag: 22db706b-528e-4df2-9c1b-b4fdc4f52284
+		summarizeBy: none
+		sourceColumn: Connection Type
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 510df7a4-384b-48e6-bb09-e23c5a02c119
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	column 'Run Id'
+		dataType: string
+		isHidden
+		lineageTag: 3d0c8719-b166-4718-8114-5f5a8bc29fd3
+		summarizeBy: none
+		sourceColumn: Run Id
+
+	partition Connections = m
+		mode: import
+		source =
+				let
+				  Snapshot = FabricConnectionsData[Snapshot],
+				  Records = Coalesce(JsonField(Snapshot, "records"), {}),
+				  Items = Table.FromList(Records, Splitter.SplitByNothing(), {"Item"}),
+				  WithColumns = AddColumns(Items, {
+						{"Connection Id", each JsonField([Item], "id"), type text},
+						{"Display Name", each JsonField([Item], "displayName"), type nullable text},
+						{"Gateway Id", each JsonField([Item], "gatewayId"), type nullable text},
+						{"Connectivity Type", each JsonField([Item], "connectivityType"), type text},
+						{"Privacy Level", each JsonField([Item], "privacyLevel"), type nullable text},
+						{"Connection Type", each JsonField(JsonField([Item], "connectionDetails"), "type"), type text},
+						{"Observed At UTC", each ToUtcDateTime(JsonField(Snapshot, "observedAt")), type nullable datetime},
+						{"Run Id", each JsonField(Snapshot, "runId"), type text}
+					}),
+				  Custom = Table.RemoveColumns(WithColumns, {"Item"})
+				in
+				  Custom
+
+	annotation PBI_ResultType = Table
+

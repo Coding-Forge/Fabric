@@ -1,0 +1,79 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "ip_bar_principal",
+  "position": {
+    "x": 20,
+    "y": 415,
+    "width": 400,
+    "height": 150,
+    "z": 10000,
+    "tabOrder": 10000
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Principal Type"
+                }
+              },
+              "queryRef": "Item Permissions.Principal Type",
+              "nativeQueryRef": "Principal Type",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Observed Grant Count"
+                }
+              },
+              "queryRef": "Item Permissions.Observed Grant Count",
+              "nativeQueryRef": "Observed Grant Count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Observed grants by principal type'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "dpo_table_pipelines",
+  "position": {
+    "x": 990,
+    "y": 320,
+    "width": 270,
+    "height": 165,
+    "z": 13000,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Pipelines"
+                    }
+                  },
+                  "Property": "Pipeline Name"
+                }
+              },
+              "queryRef": "Deployment Pipelines.Pipeline Name",
+              "nativeQueryRef": "Pipeline Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Pipelines"
+                    }
+                  },
+                  "Property": "Pipeline Id"
+                }
+              },
+              "queryRef": "Deployment Pipelines.Pipeline Id",
+              "nativeQueryRef": "Pipeline Id"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Latest discovery (not history-filtered)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

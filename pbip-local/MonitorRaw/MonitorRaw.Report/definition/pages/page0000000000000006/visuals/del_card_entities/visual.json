@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "del_card_entities",
+  "position": {
+    "x": 440,
+    "y": 90,
+    "width": 400,
+    "height": 100,
+    "z": 2000,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Delegated Settings"
+                    }
+                  },
+                  "Property": "Delegated Entity Count"
+                }
+              },
+              "queryRef": "Delegated Settings.Delegated Entity Count",
+              "nativeQueryRef": "Delegated Entity Count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

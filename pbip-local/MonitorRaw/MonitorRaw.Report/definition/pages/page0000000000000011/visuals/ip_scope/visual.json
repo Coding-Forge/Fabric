@@ -1,0 +1,198 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "ip_scope",
+  "position": {
+    "x": 440,
+    "y": 415,
+    "width": 820,
+    "height": 150,
+    "z": 11000,
+    "tabOrder": 11000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permission Scope"
+                    }
+                  },
+                  "Property": "Item Type"
+                }
+              },
+              "queryRef": "Item Permission Scope.Item Type",
+              "nativeQueryRef": "Item Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permission Scope"
+                    }
+                  },
+                  "Property": "Collection Outcome"
+                }
+              },
+              "queryRef": "Item Permission Scope.Collection Outcome",
+              "nativeQueryRef": "Collection Outcome"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permission Scope"
+                    }
+                  },
+                  "Property": "HTTP Status"
+                }
+              },
+              "queryRef": "Item Permission Scope.HTTP Status",
+              "nativeQueryRef": "HTTP Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permission Scope"
+                    }
+                  },
+                  "Property": "Returned Access Details"
+                }
+              },
+              "queryRef": "Item Permission Scope.Returned Access Details",
+              "nativeQueryRef": "Returned Access Details"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permission Scope"
+                    }
+                  },
+                  "Property": "Observed At UTC"
+                }
+              },
+              "queryRef": "Item Permission Scope.Observed At UTC",
+              "nativeQueryRef": "Observed At UTC"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permission Scope"
+                    }
+                  },
+                  "Property": "Workspace Id"
+                }
+              },
+              "queryRef": "Item Permission Scope.Workspace Id",
+              "nativeQueryRef": "Workspace Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permission Scope"
+                    }
+                  },
+                  "Property": "Item Id"
+                }
+              },
+              "queryRef": "Item Permission Scope.Item Id",
+              "nativeQueryRef": "Item Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permission Scope"
+                    }
+                  },
+                  "Property": "Cycle Id"
+                }
+              },
+              "queryRef": "Item Permission Scope.Cycle Id",
+              "nativeQueryRef": "Cycle Id"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Item Permission Scope"
+                  }
+                },
+                "Property": "Collection Outcome"
+              }
+            },
+            "direction": "Descending"
+          }
+        ],
+        "isDefaultSort": true
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Known targets — outcome / HTTP; global selected-cycle scope'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

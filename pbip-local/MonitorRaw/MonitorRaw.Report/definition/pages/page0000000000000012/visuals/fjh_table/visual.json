@@ -1,0 +1,200 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "fjh_table",
+  "position": {
+    "x": 20,
+    "y": 580,
+    "width": 1240,
+    "height": 120,
+    "z": 14000,
+    "tabOrder": 14000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Workspace Id"
+                }
+              },
+              "queryRef": "Fabric Job History.Workspace Id",
+              "nativeQueryRef": "Workspace Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Item Id"
+                }
+              },
+              "queryRef": "Fabric Job History.Item Id",
+              "nativeQueryRef": "Item Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Item Type"
+                }
+              },
+              "queryRef": "Fabric Job History.Item Type",
+              "nativeQueryRef": "Item Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Job Instance Id"
+                }
+              },
+              "queryRef": "Fabric Job History.Job Instance Id",
+              "nativeQueryRef": "Job Instance Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Status"
+                }
+              },
+              "queryRef": "Fabric Job History.Status",
+              "nativeQueryRef": "Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Job Type"
+                }
+              },
+              "queryRef": "Fabric Job History.Job Type",
+              "nativeQueryRef": "Job Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Invoke Type"
+                }
+              },
+              "queryRef": "Fabric Job History.Invoke Type",
+              "nativeQueryRef": "Invoke Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Start UTC"
+                }
+              },
+              "queryRef": "Fabric Job History.Start UTC",
+              "nativeQueryRef": "Start UTC"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "End UTC"
+                }
+              },
+              "queryRef": "Fabric Job History.End UTC",
+              "nativeQueryRef": "End UTC"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Duration Minutes"
+                }
+              },
+              "queryRef": "Fabric Job History.Duration Minutes",
+              "nativeQueryRef": "Duration Minutes"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Observed At UTC"
+                }
+              },
+              "queryRef": "Fabric Job History.Observed At UTC",
+              "nativeQueryRef": "Observed At UTC"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Safe job details — last retained observation, not live status'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

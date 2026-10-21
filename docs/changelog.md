@@ -1,5 +1,41 @@
 # Changelog
 
+## MonitorRaw: job query repair and report relocation
+
+- Moved the full project to `pbip-local/MonitorRaw/`, retaining its relative report/model links and source configuration.
+- Restored report-facing job columns, UTC dates, duration and latest-observation deduplication after Desktop query troubleshooting. Empty job and permission lists are excluded before fact expansion; scope and collection diagnostics retain successful empty outcomes.
+- Removed the temporary raw-file date table and item-ID-only job/scope relationship introduced during troubleshooting.
+- Report checks now distinguish Desktop filter-pane metadata from actual saved filter definitions; mutations still verify that active filters cannot hide health diagnostics. Native Power BI refresh and rendering acceptance remain pending.
+
+## MonitorRaw: Collection Status nullable table fix
+
+Final Code Reviewer verdict: **Approved — production and tests**. Reported validation: **10 targeted and 513 full offline tests passed** under environment-isolated DNS/socket guards, including two new static test methods; Ruff format/lint and Python 3.10 syntax checks passed (execution used Python 3.12). **Native M/Power BI Desktop refresh remains unverified.**
+
+- Fixes the Collection Status constructor behind “The columns of the specified table type must be nullable.” All 24 explicit `Table.FromRecords` columns are now nullable for `MissingField.UseNull`, correcting six previously nonnullable annotations. Omitted permission metadata stays null, not false or zero; existing values and producer validation are unchanged.
+- No collector, scope, authentication, gate, cycle, partial-selection, DAX or model metadata behavior changes. Reload the updated `MonitorRaw.pbip` and refresh in Desktop, preserving unsaved work separately rather than saving stale definitions over the checkout; verify the error clears. No Functions start/restart, new collection, deployment or VERSION bump is needed. See the [troubleshooting note](../pbip-local/MonitorRaw/README.md#things-that-can-surprise-you).
+
+## MonitorRaw: single-cycle partial-permission report
+
+Final Code Reviewer verdict: **Approved — cycle 2**, production and tests for four scoped semantic files, ten report visual JSON files and `tests/test_monitorraw_report.py`. Reported validation: **8 targeted and 511 full offline tests passed** under DNS/socket guards; Ruff format/lint, static Python 3.10 syntax and reference checks passed (114 JSON files, 24 tables, 12 pages, 188 valid field references). The requests dependency warning was nonfailing. **Native Desktop M/DAX/schema/refresh/render acceptance remains pending; E10 is not closed.**
+
+- Supersedes the earlier whole-healthy-only permission selection below: use one validated cycle, preferring the newest useful finished cycle (including partially failed and successful-empty observations), otherwise the newest useful in-progress cycle. No cross-cycle grant merge/carry-forward; selected evidence and newer attempts remain distinct with explicit stale warnings.
+- Only successful access observations supply grants. Scope/status distinguish successful empty, failed, deferred, known-not-attempted and unresolved targets; failure is unknown access, not zero/no access. Page 11 adds prominent partial coverage, global Successful/Expected targets and outcome/HTTP/time/identity/cycle scope evidence. Disconnected manifest-derived coverage cannot be hidden by principal/grant slicers; load-error counts remain integrity diagnostics, separate from collection failures.
+- No collector, scope, gate, checkpoint, other-collector or job-history semantics changed. The Dataflow 404/`unrecognized` cause remains unresolved; neither Gen2 unsupported nor healthy completion is established. Existing output needs only Desktop reopen/reload and **Home > Refresh**, not API calls or a Functions start/restart. No VERSION bump.
+- [Selection details and pending acceptance checklist](../pbip-local/MonitorRaw/README.md#item-permissions-and-fabric-jobs), including single-cycle partial/stale evidence and filter-resistant warnings. This documentation update makes no runtime-validation claim.
+
+## MonitorRaw: four-collector report reconciliation
+
+Final cycle-2 Code Reviewer verdict: **Approved — BOTH production and tests**, for static technical scope. Reported independent validation: **8 structural test methods (32 mutation cases) and 498 full offline tests passed**, Ruff format/lint and static reference/parsing checks passed. These do not execute M/DAX or validate native TMDL schemas. **Power BI Desktop open/refresh, rendering and Local/Blob acceptance remain pending; E10 is not closed.**
+
+- Expanded `pbip-local/MonitorRaw/MonitorRaw.pbip` from 10 to **12 pages**, adding **Item Permissions** and **Fabric Job History** alongside Connections inventory and Deployment operations. Added **Item Permissions**, **Item Permission Scope**, **Fabric Job History** and **Fabric Job Scope** tables. Disconnected Collection Status/About diagnostics and global `Load Errors` cover all four collectors.
+- Permissions select the last whole healthy cycle across validated inventory/access evidence links. Later partial/failed cycles retain last-good grants with stale/previous-scope warnings; invalid/missing links contribute load errors. Explicit zero-grant coverage does not fabricate grants; permission lists do not multiply rows and groups are not expanded into complete effective rights.
+- Jobs combine successful committed observations across all retained runs, keeping newest state per workspace/item/job instance, including jobs outside the recent-100 completed-job window and deselected targets. Scope outcomes remain separate; raw failure payloads are not imported.
+- Reads immutable UTC resource envelopes and finished manifests. Connections use the latest healthy committed full snapshot; pipelines use latest committed successful discovery. Successful empty inventory clears prior rows; missing/failed/incomplete attempts warn rather than masquerading as empty success.
+- Retains successful committed operation observations across all retained runs, deduplicated by pipeline/operation ID using newest `observedAt`, including old operations/pipelines outside current discovery or the API's recent-20 window. Caller-visible coverage is not tenant-wide; operation history requires pipeline Admin.
+- Preserves null connection names with UI-only label fallback and safe metadata only. Inventory/history slicers cannot hide disconnected health; global `Load Errors` includes invalid/missing Fabric artifacts.
+- Permissions/jobs collectors are currently disabled with scopes unselected: **Not collected** is expected, not healthy empty data. Report pages do not select scopes or enable collection. Choose exact workspace/item/type targets before later deliberate [configuration](configuration-reference.md#settings-and-enablement).
+- Report files need only Desktop reopen/reload and refresh, not a Functions restart. Later collector enablement/restart is a separate authorized user action. Windows guidance, source contract and pending native acceptance checklist: [MonitorRaw README](../pbip-local/MonitorRaw/README.md). No VERSION change.
+
 ## Audit PBIP: drill-through detail pages
 
 Reviewed and approved by Code Reviewer (after trivial fixes: `2.14.0` schema references downgraded to `2.12.0`). **Not validated in Power BI Desktop**: the hand-written PBIR drillthrough blocks have not been verified there. No code, tests or infrastructure changed.
@@ -40,13 +76,13 @@ Reviewed and approved by Code Reviewer. **Not validated in Power BI Desktop**: t
 
 Reviewed and approved by Code Reviewer. **Not validated in Power BI Desktop**: the project was never opened or refreshed there. No code, tests or infrastructure changed.
 
-- New PBIP `Fabric/MonitorRaw/MonitorRaw.pbip`: TMDL semantic model (Import mode) and PBIR report with 8 pages (capacity utilization, carry-over, activity overview, git connections, tags, delegated settings, widely shared links, about and setup).
+- New PBIP `pbip-local/MonitorRaw/MonitorRaw.pbip`: TMDL semantic model (Import mode) and PBIR report with 8 pages (capacity utilization, carry-over, activity overview, git connections, tags, delegated settings, widely shared links, about and setup).
 - Reads the raw JSON output directly (no silver/gold layer). Source is selected with `SourceType` (`Local` or `Blob`), plus `LocalFolder`, `BlobAccountUrl`, `BlobContainer` and `BlobRootPath`.
 - Dates come from the `<module>/YYYY/MM/DD` folders, not modified time. E5 modules use the latest snapshot (not summed); capacity metrics reruns use latest-run-wins. Malformed JSON shows as Load Error rows.
 - Privacy: the Activity table includes `UserId` (UPN/email).
 - Known risks: Desktop-only behaviours and unverified field names for Git connections, Tags, Delegated settings and Widely shared links (wrong names give null columns, not errors). A wrong `LocalFolder` that exists but has no module folders gives empty tables without an error.
-- `Fabric/MonitorRaw/.gitignore` re-includes `*.json`, which the root `.gitignore` ignores.
-- Details and the acceptance checklist: [Fabric/MonitorRaw/README.md](../Fabric/MonitorRaw/README.md). Plan status: [enhancement-plan.md](enhancement-plan.md#e10-outcome).
+- `pbip-local/MonitorRaw/.gitignore` re-includes `*.json`, which the root `.gitignore` ignores.
+- Details and the acceptance checklist: [pbip-local/MonitorRaw/README.md](../pbip-local/MonitorRaw/README.md). Plan status: [enhancement-plan.md](enhancement-plan.md#e10-outcome).
 
 ## Local-folder PoC mode
 

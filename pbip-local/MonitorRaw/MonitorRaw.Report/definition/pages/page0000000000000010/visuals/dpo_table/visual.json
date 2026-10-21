@@ -1,0 +1,178 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "dpo_table",
+  "position": {
+    "x": 20,
+    "y": 500,
+    "width": 1240,
+    "height": 200,
+    "z": 14000,
+    "tabOrder": 14000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Pipeline Name"
+                }
+              },
+              "queryRef": "Deployment Operations.Pipeline Name",
+              "nativeQueryRef": "Pipeline Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Pipeline Id"
+                }
+              },
+              "queryRef": "Deployment Operations.Pipeline Id",
+              "nativeQueryRef": "Pipeline Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Operation Id"
+                }
+              },
+              "queryRef": "Deployment Operations.Operation Id",
+              "nativeQueryRef": "Operation Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Status"
+                }
+              },
+              "queryRef": "Deployment Operations.Status",
+              "nativeQueryRef": "Status"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Type"
+                }
+              },
+              "queryRef": "Deployment Operations.Type",
+              "nativeQueryRef": "Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Source Stage Id"
+                }
+              },
+              "queryRef": "Deployment Operations.Source Stage Id",
+              "nativeQueryRef": "Source Stage Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Target Stage Id"
+                }
+              },
+              "queryRef": "Deployment Operations.Target Stage Id",
+              "nativeQueryRef": "Target Stage Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Execution Start UTC"
+                }
+              },
+              "queryRef": "Deployment Operations.Execution Start UTC",
+              "nativeQueryRef": "Execution Start UTC"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Execution End UTC"
+                }
+              },
+              "queryRef": "Deployment Operations.Execution End UTC",
+              "nativeQueryRef": "Execution End UTC"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Duration Minutes"
+                }
+              },
+              "queryRef": "Deployment Operations.Duration Minutes",
+              "nativeQueryRef": "Duration Minutes"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Observed At UTC"
+                }
+              },
+              "queryRef": "Deployment Operations.Observed At UTC",
+              "nativeQueryRef": "Observed At UTC"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
