@@ -29,6 +29,7 @@ class Context:
         self.Catalog_cron = None
         self.Domains_cron = None
         self.FabricItems_cron = None
+        self.ItemJobs_cron = None
         self.Gateway_cron = None
         self.Graph_cron = None
         self.Refreshables_cron = None
@@ -195,6 +196,9 @@ class Context:
     def set_FabricItems_cron(self, FabricItems_cron):
         self.FabricItems_cron = FabricItems_cron
 
+    def set_ItemJobs_cron(self, ItemJobs_cron):
+        self.ItemJobs_cron = ItemJobs_cron
+
     def set_Workspaces_cron(self, Workspaces_cron):
         self.Workspaces_cron = Workspaces_cron
 
@@ -247,6 +251,8 @@ class Context:
             return self.Roles_cron
         elif cron_name == "FabricItems":
             return self.FabricItems_cron
+        elif cron_name == "ItemJobs":
+            return self.ItemJobs_cron
         elif cron_name == "Workspaces":
             return self.Workspaces_cron
         else:

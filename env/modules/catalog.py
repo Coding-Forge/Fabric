@@ -223,6 +223,13 @@ async def main(context=None):
                                         print(f"Saving scan results to {file_name}")
                                         
                                         await context.fm.save(path=path, file_name=file_name, content=scanResult)
+                                        try:
+                                            from env.utility.lineage_edges import flatten_scan
+                                            edges = flatten_scan(scanResult)
+                                            await context.fm.save(path=f"lineage_edges/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/",
+                                                                  file_name=f"{today.strftime('%Y%m%d')}_{index}.lineage_edges.json", content=edges)
+                                        except Exception as e:
+                                            context.logger.error(f"Error flattening lineage edges: {e}")
                                         return "Saved"
                                         #await FF.write_json_to_file(directory_client=dc, file_name="scanResults.json", json_data=scanResult)
                                     except TypeError as e:

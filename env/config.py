@@ -151,6 +151,7 @@ def build_audit(
         ("CATALOG_CRON", "Catalog_cron"): audit.set_Catalog_cron,
         ("DOMAINS_CRON", "Domains_cron"): audit.set_Domains_cron,
         ("FABRICITEMS_CRON", "FabricItems_cron"): audit.set_FabricItems_cron,
+        ("ITEMJOBS_CRON", "ItemJobs_cron"): audit.set_ItemJobs_cron,
         ("GATEWAY_CRON", "Gateway_cron"): audit.set_Gateway_cron,
         ("GRAPH_CRON", "Graph_cron"): audit.set_Graph_cron,
         ("REFRESHABLES_CRON", "Refreshables_cron"): audit.set_Refreshables_cron,

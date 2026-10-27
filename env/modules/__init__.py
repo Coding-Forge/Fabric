@@ -5,6 +5,7 @@ from .catalog import main as Catalog
 from .domains import main as Domains
 from .fabricitems import main as FabricItems
 from .gateway import main as Gateway
+from .itemjobs import main as ItemJobs
 from .graph import main as Graph
 from .refreshables import main as Refreshables
 from .refreshhistory import main as RefreshHistory

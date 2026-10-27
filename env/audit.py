@@ -20,7 +20,7 @@ from env.context import Context
 import re
 
 content = None
-FABRIC_ONLY_MODULES = {"Domains", "FabricItems", "Tenant", "Roles", "Workspaces"}
+FABRIC_ONLY_MODULES = {"Domains", "FabricItems", "ItemJobs", "Tenant", "Roles", "Workspaces"}
 
 
 # from .monitor import main as Monitor
@@ -248,7 +248,9 @@ class Audits:
                 "lastRun": state_now
             }, "fabricitems": {
                 "lastRun": state_now
-            }, "workspaces": {
+            }, "itemjobs": {
+                "lastRun": state_now
+            },  "workspaces": {
                 "lastRun": state_now
             }
         }
@@ -339,6 +341,9 @@ class Audits:
 
     def set_FabricItems_cron(self, FabricItems_cron):
         self.context.set_FabricItems_cron(FabricItems_cron)
+
+    def set_ItemJobs_cron(self, ItemJobs_cron):
+        self.context.set_ItemJobs_cron(ItemJobs_cron)
 
     def set_Workspaces_cron(self, Workspaces_cron):
         self.context.set_Workspaces_cron(Workspaces_cron)

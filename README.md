@@ -251,6 +251,57 @@ you may not have to change the <capacity> but if you do you can find the capacit
 ```
 You can also use the FabricMonitor and provide the name of the Storage account and the container name plus the UTC offset, RangeStart and RangeEnd along with your SAS or Account Key.
 
+# Audit, lineage and Splunk export
+
+Beyond the base modules, the monitor can collect item lineage, job runs and source/destination details, and a Fabric notebook consolidates everything into one flat table for Splunk.
+
+## What each part collects
+
+| Output folder (`Files/<PATH_IN_LAKEHOUSE>/`) | Module | Source API |
+|---|---|---|
+| `activity/` | Activity | Power BI `admin/activityevents` |
+| `catalog/scans/` | Catalog | Power BI Scanner API (`getInfo`, `scanStatus`, `scanResult`) |
+| `lineage_edges/` | Catalog (`env/utility/lineage_edges.py`) | Flattened from the scan results: one row per edge, upstream and downstream |
+| `lineage/` | FabricItems | Fabric `relations/upstream` and `relations/downstream` (beta). Supplementary, it returns HTTP 500 for many item types |
+| `jobs/` | ItemJobs | Fabric `items/{id}/jobs/instances` |
+| `itemdefinitions/` | ItemJobs | Fabric `items/{id}/getDefinition` (copy jobs and pipelines): source and destination |
+| `jobactivityruns/` | ItemJobs | Fabric `datapipelines/pipelineruns/{runId}/queryactivityruns`, including child pipeline runs: rows and bytes copied |
+| `graph/` | Graph | Microsoft Graph users and group members (user display names) |
+
+Add `ItemJobs` to `APPLICATION_MODULES` in your `.env` to collect jobs, definitions and volume. The full endpoint list is in [docs/api-endpoints.md](docs/api-endpoints.md).
+
+**Access needed.** The Scanner lineage works with the admin API settings alone. The job, definition and volume calls also need the service principal to be a member of each workspace, because a service principal cannot add itself. Items in other workspaces return no job, source or destination data.
+
+## Consolidating for Splunk
+
+Import [notebooks/audit_events_splunk.ipynb](notebooks/audit_events_splunk.ipynb) into Fabric and attach the Lakehouse that holds the monitor output. It builds the Delta table `audit_events_splunk` (one row per event, enriched with user display name, item name, upstream and downstream lineage, run history, sources, destinations and volume) and writes JSON Lines to `Files/splunk_export/YYYY/MM/DD/`.
+
+- The notebook is incremental. If you change the enrichment logic, set `REBUILD = True` in the first cell for one run so existing rows are recomputed.
+- Every join is a left join and the notebook fails if the row count changes.
+- `lineage_note` explains blanks: `no item id on event`, `item not in lineage_edges`, `no relations in scanner` or `ok`.
+- Lineage, runs, sources and volume belong to the item, so every event on the same item carries the same values.
+
+## Validating the results
+
+Lineage for a copy job in the Fabric portal (RawLakehouse to `CopyJob_1` to pipelinedLH):
+
+![Copy job lineage in the Fabric portal](docs/images/lineage-copyjob-portal.png)
+
+The same item in `audit_events_splunk`: last run, source, destination and `lineage_note = ok`:
+
+![Sources and destinations in audit_events_splunk](docs/images/audit-events-sources-destinations.png)
+
+An exported event file (user and client IP redacted):
+
+![audit_events_splunk file view](docs/images/audit-events-file-view.png)
+
+## Known limits
+
+- No public API returns the portal's full lineage view. The Scanner relations are the main source and the Fabric beta relations API only supplements them.
+- Copy-job runs return no activity-level rows or bytes, so volume is only available for pipeline copy activities.
+- The activity API returns at most 30 days, and scans only cover workspaces modified since the last run.
+- Storage-level events (reads and writes through OneLake) require OneLake diagnostics to be enabled on the workspace.
+
 # Build and Test
 TODO: Describe and show how to build your code and run the tests. 
 

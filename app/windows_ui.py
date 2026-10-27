@@ -19,6 +19,7 @@ MODULES = [
     "Catalog",
     "Domains",
     "FabricItems",
+    "ItemJobs",
     "Gateway",
     "Graph",
     "Refreshables",
