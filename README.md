@@ -268,7 +268,7 @@ Beyond the base modules, the monitor can collect item lineage, job runs and sour
 | `jobactivityruns/` | ItemJobs | Fabric `datapipelines/pipelineruns/{runId}/queryactivityruns`, including child pipeline runs: rows and bytes copied |
 | `graph/` | Graph | Microsoft Graph users and group members (user display names) |
 
-Add `ItemJobs` to `APPLICATION_MODULES` in your `.env` to collect jobs, definitions and volume. The full endpoint list is in [docs/api-endpoints.md](docs/api-endpoints.md).
+Add `ItemJobs` to `APPLICATION_MODULES` in your `.env` to collect jobs, definitions and volume. The endpoint inventory links each API to its official Microsoft Learn reference: [docs/api-endpoints.md](docs/api-endpoints.md).
 
 **Access needed.** The Scanner lineage works with the admin API settings alone. The job, definition and volume calls also need the service principal to be a member of each workspace, because a service principal cannot add itself. Items in other workspaces return no job, source or destination data.
 
@@ -278,8 +278,24 @@ Import [notebooks/audit_events_splunk.ipynb](notebooks/audit_events_splunk.ipynb
 
 - The notebook is incremental. If you change the enrichment logic, set `REBUILD = True` in the first cell for one run so existing rows are recomputed.
 - Every join is a left join and the notebook fails if the row count changes.
+- Item IDs prefer source GUID fields and ignore the all-zero GUID placeholder; item type falls back to `ArtifactKind`. The normalized `status` column is added alongside the original result/success fields.
 - `lineage_note` explains blanks: `no item id on event`, `item not in lineage_edges`, `no relations in scanner` or `ok`.
 - Lineage, runs, sources and volume belong to the item, so every event on the same item carries the same values.
+
+### Convert the JSONL export into a Delta table
+
+The export is stored as Spark part files beneath `Files/splunk_export/YYYY/MM/DD/audit_events.jsonl/`; it is not one physical `.jsonl` file. To materialize those records as a tabular Delta table without changing the canonical table, import [notebooks/jsonl_to_delta.ipynb](notebooks/jsonl_to_delta.ipynb), attach the same Lakehouse as its default Lakehouse, and run it. The notebook reads the JSON part files and overwrites the separate `audit_events_splunk_jsonl` table, then verifies that its row count matches the JSONL input. Run the audit notebook first so the export exists. The conversion notebook is a full refresh of this separate table each time it runs.
+
+### Orchestrate refreshes
+
+| Option | How to use it | Best for / trade-off |
+|---|---|---|
+| Run manually in Fabric | Open the notebook and select **Run all**. For JSONL materialization, run the converter after the audit export finishes. | Development, troubleshooting, or one-time backfills; requires a person to start and monitor each run. |
+| Fabric Data Factory pipeline (recommended for routine runs) | Create a pipeline with a Notebook activity for `audit_events_splunk`; add a dependent Notebook activity for `jsonl_to_delta` only if you need the extra JSONL-derived table. Configure a schedule or an event trigger on the pipeline. | Native Fabric monitoring, dependency handling, retry configuration and scheduling. Use the pipeline's run history to inspect each activity. |
+| Fabric REST API | Submit a notebook job instance for the audit notebook and, after it succeeds, submit the converter job if required. Poll the returned job-instance status and surface failures to the caller. | Programmatic, on-demand execution from a controlled service; caller must handle authentication, sequencing, retries and status polling. |
+| External orchestrator | An Azure Data Factory or another scheduler can call the Fabric REST API, or use its supported Fabric integration, and wait for job completion before starting the optional converter. Keep the Fabric notebook as the compute step. | Existing cross-platform workflows; adds external identity, networking and operational dependencies. |
+
+Fabric references: [Notebook activity](https://learn.microsoft.com/en-us/fabric/data-factory/notebook-activity), [run, schedule, or trigger a pipeline](https://learn.microsoft.com/en-us/fabric/data-factory/pipeline-runs), [use a notebook](https://learn.microsoft.com/en-us/fabric/data-engineering/how-to-use-notebook), [run a notebook job with the REST API](https://learn.microsoft.com/en-us/rest/api/fabric/notebook/background-jobs/run-on-demand-notebook), and [Fabric REST API overview](https://learn.microsoft.com/en-us/rest/api/fabric/).
 
 ## Validating the results
 
