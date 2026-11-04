@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "lin_note",
+  "position": {
+    "x": 40,
+    "y": 90,
+    "z": 1000,
+    "height": 60,
+    "width": 1840,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Select a workspace and item. Upstream = what it depends on; downstream = what depends on it. Direct scanner relationships only, not recursive impact analysis. Empty/unresolved metadata is not proof of no dependencies. Reverse links require both items in the same scan batch; datasource labels such as Extension may not identify the underlying system.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

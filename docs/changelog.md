@@ -1,5 +1,73 @@
 # Changelog
 
+## Opt-in notebook and Data Factory definitions
+
+- Added `FabricItemDefinitions`: resumable tenant admin discovery of notebooks
+  and Fabric Data Factory pipelines, permission-checked definition exports and
+  immutable observations with decoded JSON. Pipeline activities are retained,
+  not interpreted for lineage; no notebook/pipeline is executed.
+- Added SQLGlot-backed Spark SQL and Python AST analysis of supported literal
+  notebook table/file reads and writes. Evidence is explicitly static inference,
+  with unresolved targets and diagnostics—not proof of actual execution or
+  exhaustive notebook coverage. Existing Scanner graphs are unchanged.
+- Added a restricted, nonredirecting definition/LRO transport using the existing
+  shared retry/concurrency gates. Durable cooldowns, inventory/item cursors,
+  pending export IDs and linked manifests allow multi-invocation sweeps.
+  Denied/malformed items fail coverage without hiding later items; incomplete
+  sweeps and persistence failures do not advance the success checkpoint.
+- Definitions may contain embedded sensitive values. No settings or permissions
+  are enabled automatically. See [configuration, API load and restricted-storage
+  guidance](configuration-reference.md#notebook-and-data-pipeline-definitions).
+  Live tenant/API/storage validation remains separate from offline tests.
+
+## Catalog PBIP: custom lineage charts
+
+- Added **Lineage Graphs** with Microsoft Sankey, Microsoft Chord and ZoomCharts
+  Drill Down Network PRO, preserving the existing Lineage detail page and gallery
+  registrations. Capability-role bindings were verified against public publisher
+  sources; Network uses category-based `Nodes`/`Size`, not Graph's Source/Target.
+- Graph links use only selected-snapshot upstream records, oriented source to
+  consumer and deduplicated by endpoint pair. Weights count dependencies, not
+  data traffic. Canonical ID-based nodes prevent same-named models/reports
+  merging; optional focus selects links touching either endpoint.
+- Consumer-workspace filtering, existing coverage warnings, load errors and
+  observation timestamps remain visible. Chord/Network direction and category
+  limitations are explained on the page and in the
+  [Catalog guide](../pbip-local/Catalog/README.md#lineage-graphs-sankey-chord-and-zoomcharts-network).
+- No API collection change or license purchase. Native Desktop/custom-visual
+  rendering, interaction and licensing acceptance remains required.
+
+## Catalog PBIP: direct lineage page
+
+- Added workspace/item selectors, upstream/downstream dependency tables, counts,
+  observation timestamps, returned-empty workspace coverage and disconnected
+  file-load diagnostics to `pbip-local/Catalog/Schema.pbip`.
+- The Power Query loader selects the newest complete snapshot per returned
+  workspace before expanding inventory/edges. It preserves empty observations
+  and unresolved IDs rather than combining historical relationships as current.
+  Rejected files warn that the selected basis may be stale.
+- Added `CatalogOutputPath`, defaulting to `C:\Projects\Tests\monitor-poc-output`,
+  shared by lineage and the existing Catalog scan queries. Existing collected
+  files can be viewed without a Functions restart or new API run.
+- Offline report/model contracts, Microsoft M syntax parsing and published PBIR
+  schema validation do not establish native M/DAX execution or Desktop rendering.
+  See [operation and Desktop acceptance](../pbip-local/Catalog/README.md).
+
+## Opt-in Scanner lineage observations
+
+- `CATALOG_LINEAGE_ENABLED=true` derives upstream/downstream relationships from
+  Catalog's existing scanner responses without extra HTTP calls. Default-off
+  behavior and raw scan output are unchanged.
+- Versioned JSON under `lineage_edges/YYYY/MM/DD/<scan-id>.lineage_edges.json`
+  includes batch coverage, supported item inventory, and explicit empty results.
+  Reports, semantic models, dataflows (`objectId`), and datasource dependencies
+  are supported; cross-batch targets retain unresolved IDs and available metadata.
+- Enabled extraction or snapshot-write failures prevent Catalog checkpoint
+  advancement. Successful sibling batches may remain; this is not a whole-run
+  transaction. No relationship change detection, full tenant graph, reporting,
+  historical backfill, or additional Fabric API collection is included.
+- See [configuration and rollout](configuration-reference.md#scanner-lineage).
+
 ## MonitorRaw: job query repair and report relocation
 
 - Moved the full project to `pbip-local/MonitorRaw/`, retaining its relative report/model links and source configuration.
@@ -23,6 +91,25 @@ Final Code Reviewer verdict: **Approved — cycle 2**, production and tests for 
 - No collector, scope, gate, checkpoint, other-collector or job-history semantics changed. The Dataflow 404/`unrecognized` cause remains unresolved; neither Gen2 unsupported nor healthy completion is established. Existing output needs only Desktop reopen/reload and **Home > Refresh**, not API calls or a Functions start/restart. No VERSION bump.
 - [Selection details and pending acceptance checklist](../pbip-local/MonitorRaw/README.md#item-permissions-and-fabric-jobs), including single-cycle partial/stale evidence and filter-resistant warnings. This documentation update makes no runtime-validation claim.
 
+## Gated Fabric GET: safe error-code diagnostics
+
+Final independent Code Reviewer cycle3 verdict: **Approved — implementation and tests**. Reported validation: **75 focused, 143 expanded and 511 full offline tests passed** (seven new tests), Ruff format/lint and static Python 3.10 syntax checks passed. Execution used Python 3.12.3 with cleared environment and DNS/socket guards; no Python 3.10 runtime or tenant API validation is implied. The requests warning was baseline.
+
+- Failed GETs for the four opt-in Fabric collectors include numeric HTTP status and sanitized `errorCode` in logs, returned errors and persisted manifest error entries. Only Microsoft-documented `ItemNotFound` and `InvalidItemType` are allowlisted; other nonempty strings become `unrecognized`. Missing/malformed or unreadable diagnostics become `unavailable`.
+- Exact nonempty top-level `errorCode` strings take precedence over nested `error.code`; malformed/missing top-level values fall back to nested strings. Body inspection is bounded to 16 KiB plus a one-byte probe and a one-second read budget, with no extra HTTP requests. The original non-200 status is preserved; all-path status sanitization excludes invalid values and booleans. No raw messages, details, bodies, IDs, URLs, headers, tokens or arbitrary type/representation/exception text enter these diagnostics.
+- Diagnostics only: retry/gate behavior, scope acceptance, cycle health, checkpoints and report selection are unchanged. The actual Dataflow 404 cause and healthy end-to-end completion remain unverified; 36 saved rows do not establish whole-scope success. No unsupported-type conclusion, scope exclusion or state reset is warranted.
+- [Operating guidance and synthetic examples](local-development.md#gated-fabric-get-safe-error-code-diagnostics): the user restarts only the Functions host once, leaves Azurite running and collects the next log locally in existing `log-dump.json`. Legacy logs may contain private payloads; do not share raw logs publicly. Inventory paging/bounded slices may precede the actual Dataflow request; no immediate completion guarantee or repeated forced cycles.
+- No live API call, host restart or deployment was performed in the review. No VERSION bump or new configuration keys.
+
+## Permission collection: budget-aware gate pacing
+
+Final independent Code Reviewer cycle3/3 verdict: **Approved — both production and tests**. Reported validation: **68 focused and 504 full offline tests passed** (six new tests), Ruff and static Python 3.10 syntax checks passed; execution used Python 3.12.3, not 3.10. The requests dependency warning was nonblocking. **Live cycle success remains unverified**; no tenant call, host restart, deployment or Desktop validation was performed in the review.
+
+- Permission admission waits the actual remaining UTC gate delay when it and the reserve fit the monotonic budget, allows an exact fit, and rechecks with at most three sleeps. The six-slice cap, 150-second budget and 35-second reserve remain; no fixed pacing sleeps or quota bypass.
+- Deadline checks cover authentication/setup and reservation writes; slow reservation writes fail closed with pending state preserved. The budget is not a hard timeout for all authentication/storage work. Long cooldowns defer work, pending/blocked gates remain fail-closed, and only a healthy completed cycle advances `lastRun`. Non-opt-in behavior is unchanged.
+- [Local operating guidance](local-development.md#repeated-permission-slices): the user restarts only the Functions host once, leaves Azurite running and inspects latest logs/progress—not a guarantee of a complete cycle or continuous slices. Never clear state/gates or loop manual requests. Existing empty pipeline/history results can be legitimate.
+- No claim that the current 13-item cycle completed; no unrelated report/configuration approval or VERSION change.
+
 ## MonitorRaw: four-collector report reconciliation
 
 Final cycle-2 Code Reviewer verdict: **Approved — BOTH production and tests**, for static technical scope. Reported independent validation: **8 structural test methods (32 mutation cases) and 498 full offline tests passed**, Ruff format/lint and static reference/parsing checks passed. These do not execute M/DAX or validate native TMDL schemas. **Power BI Desktop open/refresh, rendering and Local/Blob acceptance remain pending; E10 is not closed.**
@@ -35,6 +122,34 @@ Final cycle-2 Code Reviewer verdict: **Approved — BOTH production and tests**,
 - Preserves null connection names with UI-only label fallback and safe metadata only. Inventory/history slicers cannot hide disconnected health; global `Load Errors` includes invalid/missing Fabric artifacts.
 - Permissions/jobs collectors are currently disabled with scopes unselected: **Not collected** is expected, not healthy empty data. Report pages do not select scopes or enable collection. Choose exact workspace/item/type targets before later deliberate [configuration](configuration-reference.md#settings-and-enablement).
 - Report files need only Desktop reopen/reload and refresh, not a Functions restart. Later collector enablement/restart is a separate authorized user action. Windows guidance, source contract and pending native acceptance checklist: [MonitorRaw README](../pbip-local/MonitorRaw/README.md). No VERSION change.
+
+## FabricConnections nullable names and Catalog empty discovery
+
+Final independent Code Reviewer cycle3 verdict: **Approved** for production and tests. Reported validation: **490 full offline tests passed**; live resolution is not established.
+
+- `FabricConnections` accepts an observed HTTP 200 response with `displayName: null` and preserves the null without inventing a name or dropping the connection. Missing, empty-string and wrong-type names still fail validation; strict ID/connectivity validation and the metadata allowlist remain. Nullable names are observed behavior, not an explicitly documented API contract.
+- Catalog discovery accepts `[]` or `{"value":[]}` as successful no-work (`True`): no scan or catalog save, and `lastFullScan` unchanged. Errors, malformed responses and `None` still fail. Successful no-work remains eligible for the normal audit `lastRun` update.
+- Logging, gates and checkpoints are otherwise unchanged. Follow the [existing host-only restart and sanitized-diagnostics guidance](local-development.md#fabricconnections-sanitized-failure-diagnostics); do not reset state or gates.
+
+## FabricConnections: sanitized failure diagnostics
+
+Final independent Code Reviewer cycle3 verdict: **Approved** for both production and tests. Reported validation: **487 full offline tests passed**; this does not establish live resolution.
+
+- Added safe numeric HTTP/status-unavailable warnings and schema diagnostics using fixed field paths, expected shapes, observed missing/null/empty/type labels and record ordinals, including conflicting duplicates and malformed pages.
+- Request-failure logs, returned errors and persisted manifest errors retain only integer HTTP statuses 100–599 (excluding booleans); otherwise status is `None`/JSON `null`. Diagnostics exclude credentials, identifiers, tokens, raw responses/connection values, connection paths/strings, request URLs/queries and arbitrary representation/type/exception text.
+- The generic incomplete tail remains an outcome, not a root cause. Actual cause awaits evidence from the next run; collection acceptance, gates, storage and checkpoints are unchanged. No claim that underlying collector failures are all fixed.
+- [Operating guidance and synthetic examples](local-development.md#fabricconnections-sanitized-failure-diagnostics), including restarting only the current Functions host once while leaving Azurite and existing gates/checkpoints/data intact.
+
+## Four opt-in Fabric API collectors
+
+Final independent Code Reviewer cycle3 verdict: **Approved** for production implementation and tests. Reported validation: 58 targeted and 483 full offline tests passed under Python 3.12; Ruff passed with target `py310` (not Python 3.10 execution). No live tenant authentication/API/storage integration validation or deployment is established by these results.
+
+- Added `FabricItemAccessPermissions`, `FabricItemJobHistory`, `FabricConnections`, `FabricDeploymentPipelineOperations`. All require explicit selection in `APPLICATION_MODULES`; no settings are enabled automatically. Permissions require 1–50 explicit scoped items; jobs require 1–100 supported items (`Notebook`, `DataPipeline`, `SparkJobDefinition`).
+- Permissions use workspace-filtered admin discovery and the preview admin item access endpoint, with bounded resumable slices, durable continuation/evidence and quota gates. Only a healthy full cycle advances `lastRun`; additional host invocations may be needed.
+- Connections and pipeline inventory are caller-visible, not tenant-complete. Connections retain only allowlisted metadata, excluding credentials/paths. Pipeline operations require pipeline Admin. Jobs and deployments are polling observations with finite API history windows, not recoverable event streams.
+- New immutable UTC `<module>/YYYY/MM/DD/runId/` resource envelopes and manifests distinguish empty success from failed/incomplete/interrupted collection. Durable cooldowns and fail-closed pending/invalid-header blocks require careful operator recovery. Legacy output paths and empty-list save behavior are unchanged.
+- **At initial collector release, collection only:** the subsequent MonitorRaw reconciliation above integrates all four collectors. E10 remains awaiting Desktop validation.
+- Enablement, permissions, schemas and limits: [configuration reference](configuration-reference.md#scoped-fabric-collectors). Scheduling, repeated slices and recovery: [operating guide](local-development.md#operating-the-four-fabric-collectors).
 
 ## Audit PBIP: drill-through detail pages
 

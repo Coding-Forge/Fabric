@@ -157,6 +157,13 @@ async def main():
         "TAGS_CRON": audit.set_Tags_cron,
         "DELEGATEDSETTINGS_CRON": audit.set_DelegatedSettings_cron,
         "WIDELYSHAREDLINKS_CRON": audit.set_WidelySharedLinks_cron,
+        "FABRICITEMACCESSPERMISSIONS_CRON": audit.set_FabricItemAccessPermissions_cron,
+        "FABRICITEMJOBHISTORY_CRON": audit.set_FabricItemJobHistory_cron,
+        "FABRICITEMDEFINITIONS_CRON": audit.set_FabricItemDefinitions_cron,
+        "FABRICCONNECTIONS_CRON": audit.set_FabricConnections_cron,
+        "FABRICDEPLOYMENTPIPELINEOPERATIONS_CRON": (
+            audit.set_FabricDeploymentPipelineOperations_cron
+        ),
         "GATEWAY_CRON": audit.set_Gateway_cron,
         "GRAPH_CRON": audit.set_Graph_cron,
         "REFRESHABLES_CRON": audit.set_Refreshables_cron,

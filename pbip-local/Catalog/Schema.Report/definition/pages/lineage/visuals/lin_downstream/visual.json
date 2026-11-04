@@ -1,0 +1,259 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "lin_downstream",
+  "position": {
+    "x": 970,
+    "y": 455,
+    "z": 13000,
+    "height": 320,
+    "width": 910,
+    "tabOrder": 13000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Query Item"
+                }
+              },
+              "queryRef": "Lineage Edges.Query Item",
+              "nativeQueryRef": "Query Item"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Query Item Id"
+                }
+              },
+              "queryRef": "Lineage Edges.Query Item Id",
+              "nativeQueryRef": "Query Item Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Query Item Type"
+                }
+              },
+              "queryRef": "Lineage Edges.Query Item Type",
+              "nativeQueryRef": "Query Item Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Related Item"
+                }
+              },
+              "queryRef": "Lineage Edges.Related Item",
+              "nativeQueryRef": "Related Item"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Related Type"
+                }
+              },
+              "queryRef": "Lineage Edges.Related Type",
+              "nativeQueryRef": "Related Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Related Item Id"
+                }
+              },
+              "queryRef": "Lineage Edges.Related Item Id",
+              "nativeQueryRef": "Related Item Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Related Workspace Id"
+                }
+              },
+              "queryRef": "Lineage Edges.Related Workspace Id",
+              "nativeQueryRef": "Related Workspace Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Relation Type"
+                }
+              },
+              "queryRef": "Lineage Edges.Relation Type",
+              "nativeQueryRef": "Relation Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Resolution"
+                }
+              },
+              "queryRef": "Lineage Edges.Resolution",
+              "nativeQueryRef": "Resolution"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Observed At UTC"
+                }
+              },
+              "queryRef": "Lineage Edges.Observed At UTC",
+              "nativeQueryRef": "Observed At UTC"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Downstream - what depends on the selected items'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "lin_downstream_direction",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Lineage Edges"
+              }
+            },
+            "Property": "Direction"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "e",
+              "Entity": "Lineage Edges",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "e"
+                          }
+                        },
+                        "Property": "Direction"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'downstream'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

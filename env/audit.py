@@ -8,12 +8,63 @@ from croniter import croniter
 
 from env.clients import GraphClient, PbiClient, TenantClient
 from env.context import Context, utc_now, utc_stamp
-from env.modules import *
+from env.modules import (
+    Activity,
+    Apps,
+    Capacity,
+    CapacityMetrics,
+    Catalog,
+    DelegatedSettings,
+    Domains,
+    FabricConnections,
+    FabricDeploymentPipelineOperations,
+    FabricItemAccessPermissions,
+    FabricItemDefinitions,
+    FabricItemJobHistory,
+    FabricItems,
+    Gateway,
+    GitConnections,
+    Graph,
+    Refreshables,
+    RefreshHistory,
+    Roles,
+    Tags,
+    Tenant,
+    WidelySharedLinks,
+    Workspaces,
+)
 from env.utility.file_management import File_Management
 
-from .context import Context
-
 content = None
+
+# Retain only names, resolving globals at dispatch time for runtime injection.
+_MODULES = frozenset(
+    {
+        "Activity": Activity,
+        "Apps": Apps,
+        "Capacity": Capacity,
+        "CapacityMetrics": CapacityMetrics,
+        "Catalog": Catalog,
+        "DelegatedSettings": DelegatedSettings,
+        "Domains": Domains,
+        "FabricConnections": FabricConnections,
+        "FabricDeploymentPipelineOperations": FabricDeploymentPipelineOperations,
+        "FabricItemAccessPermissions": FabricItemAccessPermissions,
+        "FabricItemJobHistory": FabricItemJobHistory,
+        "FabricItemDefinitions": FabricItemDefinitions,
+        "FabricItems": FabricItems,
+        "Gateway": Gateway,
+        "GitConnections": GitConnections,
+        "Graph": Graph,
+        "Refreshables": Refreshables,
+        "RefreshHistory": RefreshHistory,
+        "Roles": Roles,
+        "Tags": Tags,
+        "Tenant": Tenant,
+        "WidelySharedLinks": WidelySharedLinks,
+        "Workspaces": Workspaces,
+    }
+)
 
 
 # from .monitor import main as Monitor
@@ -34,12 +85,9 @@ def is_function_due(cron_syntax, last_run):
     # print(f"What is the next run date value {next_run_datetime} and what is the current datetime {datetime.now()}")
 
     # State timestamps are UTC, so compare against UTC
-    if next_run_datetime.strftime("%Y-%m-%d %H:%M") <= utc_now().strftime(
+    return next_run_datetime.strftime("%Y-%m-%d %H:%M") <= utc_now().strftime(
         "%Y-%m-%d %H:%M"
-    ):
-        return True
-    else:
-        return False
+    )
 
 
 class Audits:
@@ -89,7 +137,9 @@ class Audits:
 
         except Exception as e:
             self.context.logger.error(
-                f"Error retrieving state.yaml; aborting run without saving state: {e}"
+                "Error retrieving state.yaml; aborting run without saving state: %s",
+                e,
+                exc_info=e,
             )
             print(f"Error: {e}")
             return
@@ -143,11 +193,15 @@ class Audits:
         print(f"Running jobs: {run_jobs}")
 
         try:
-            classes = {module: globals()[module] for module in run_jobs}
+            classes = {
+                module: globals()[module] for module in run_jobs if module in _MODULES
+            }
+            if len(classes) != len(set(run_jobs)):
+                raise KeyError("Unknown configured module")
 
             for name, module in classes.items():
                 await work_queue.put((name, module))
-        except Exception as e:
+        except KeyError as e:
             self.context.logger.error(f"Error check globals: {e}")
 
             print(f"Error check globals: {e}")
@@ -173,7 +227,9 @@ class Audits:
                     outcomes[module_name] = (await module(content)) is not False
                 except Exception as e:
                     outcomes[module_name] = False
-                    self.context.logger.error(f"Module {module_name} failed: {e}")
+                    self.context.logger.error(
+                        "Module %s failed: %s", module_name, e, exc_info=e
+                    )
                     print(f"Module {module_name} failed: {e}")
                 finally:
                     timer.stop()
@@ -207,7 +263,7 @@ class Audits:
             self.fm.content(self.context)
             await self.fm.save("", "state.yaml", current_state)
         except Exception as e:
-            self.context.logger.error(f"Error saving state.yaml file: {e}")
+            self.context.logger.error("Error saving state.yaml file: %s", e, exc_info=e)
             print(f"fm Error: {e}")
 
     @staticmethod
@@ -252,6 +308,10 @@ class Audits:
             "tags": {"lastRun": state_now},
             "delegatedsettings": {"lastRun": state_now},
             "widelysharedlinks": {"lastRun": state_now},
+            "fabricitemaccesspermissions": {"lastRun": state_now},
+            "fabricitemjobhistory": {"lastRun": state_now},
+            "fabricconnections": {"lastRun": state_now},
+            "fabricdeploymentpipelineoperations": {"lastRun": state_now},
         }
 
         await self.fm.save("", "state.yaml", current_state)
@@ -359,6 +419,26 @@ class Audits:
 
     def set_WidelySharedLinks_cron(self, WidelySharedLinks_cron):
         self.context.set_WidelySharedLinks_cron(WidelySharedLinks_cron)
+
+    def set_FabricItemAccessPermissions_cron(self, cron: str) -> None:
+        """Configure the UTC schedule for scoped Fabric item access collection."""
+        self.context.set_FabricItemAccessPermissions_cron(cron)
+
+    def set_FabricItemJobHistory_cron(self, cron: str) -> None:
+        """Configure the UTC schedule for scoped Fabric job history collection."""
+        self.context.set_FabricItemJobHistory_cron(cron)
+
+    def set_FabricItemDefinitions_cron(self, cron: str) -> None:
+        """Configure the UTC schedule for tenant item definition collection."""
+        self.context.set_FabricItemDefinitions_cron(cron)
+
+    def set_FabricConnections_cron(self, cron: str) -> None:
+        """Configure the UTC schedule for caller-visible Fabric connections."""
+        self.context.set_FabricConnections_cron(cron)
+
+    def set_FabricDeploymentPipelineOperations_cron(self, cron: str) -> None:
+        """Configure the UTC schedule for authorized pipeline operation history."""
+        self.context.set_FabricDeploymentPipelineOperations_cron(cron)
 
     def set_ApplicationModules(self, ApplicationModules):
         self.context.set_ApplicationModules(ApplicationModules)

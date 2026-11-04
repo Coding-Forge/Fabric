@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "lin_downstream_count",
+  "position": {
+    "x": 620,
+    "y": 340,
+    "z": 8000,
+    "height": 100,
+    "width": 280,
+    "tabOrder": 8000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Downstream Links"
+                }
+              },
+              "queryRef": "Lineage Edges.Downstream Links",
+              "nativeQueryRef": "Downstream Links"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

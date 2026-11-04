@@ -1,11 +1,16 @@
 """B1-B3: catalog polling caps, error handling and lastFullScan persistence."""
+
 import asyncio
+import os
+import tempfile
 import unittest
+from copy import deepcopy
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
-from env.modules import catalog
 from env.context import utc_now
+from env.modules import catalog
+from env.utility.file_management import File_Management
 from tests.helpers import make_context
 
 FMT = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -178,6 +183,121 @@ class CatalogTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(await catalog.main(ctx))
         self.assertEqual(_count(inv, "admin/workspaces/getInfo"), 0)
 
+    async def test_empty_discovery_preserves_state_without_scanning_or_saving(self):
+        now = datetime(2026, 10, 20, 12)
+        last_run = (now - timedelta(days=1)).strftime(FMT)
+        states = {
+            "no_catalog": {},
+            "missing_full_scan": {"catalog": {"lastRun": last_run}},
+            "due_full_scan": {
+                "catalog": {
+                    "lastRun": last_run,
+                    "lastFullScan": (
+                        now - timedelta(days=catalog.FullScanAfterDays + 1)
+                    ).strftime(FMT),
+                }
+            },
+            "incremental": {
+                "catalog": {
+                    "lastRun": last_run,
+                    "lastFullScan": (now - timedelta(days=5)).strftime(FMT),
+                }
+            },
+        }
+        with patch.object(catalog, "utc_now", return_value=now):
+            for mode, initial_state in states.items():
+                for payload in ([], {"value": []}):
+                    with self.subTest(mode=mode, payload=payload):
+                        state = deepcopy(initial_state)
+                        invoke = AsyncMock(return_value=payload)
+                        ctx = make_context(state, invoke)
+
+                        self.assertIs(await catalog.main(ctx), True)
+
+                        invoke.assert_awaited_once()
+                        url = invoke.await_args.kwargs["rest_api"]
+                        self.assertTrue(url.startswith("admin/workspaces/modified?"))
+                        if mode == "incremental":
+                            self.assertIn("modifiedSince=2026-10-19T", url)
+                        else:
+                            self.assertIn("modifiedSince=2026-09-20T", url)
+                        ctx.fm.save.assert_not_called()
+                        self.assertEqual(state, initial_state)
+                        ctx.logger.info.assert_called()
+                        ctx.logger.error.assert_not_called()
+
+    async def test_invalid_discovery_response_fails_before_scanning_or_saving(self):
+        payloads = (
+            None,
+            {"ERROR": "HTTP 500"},
+            {"error": {"code": "DiscoveryFailed"}},
+            {"value": [], "error": {"code": "DiscoveryFailed"}},
+            {},
+            {"unexpected": []},
+            {"value": None},
+            {"value": {}},
+            {"value": "not a list"},
+            {"value": 1},
+            "",
+            "unexpected",
+            0,
+            True,
+        )
+        for payload in payloads:
+            with self.subTest(payload=payload):
+                state = self._state(full_scan_days=5)
+                before = deepcopy(state)
+                invoke = AsyncMock(return_value=payload)
+                ctx = make_context(state, invoke)
+
+                self.assertIs(await catalog.main(ctx), False)
+
+                invoke.assert_awaited_once()
+                self.assertTrue(
+                    invoke.await_args.kwargs["rest_api"].startswith(
+                        "admin/workspaces/modified?"
+                    )
+                )
+                ctx.fm.save.assert_not_called()
+                self.assertEqual(state, before)
+                ctx.logger.error.assert_called()
+                ctx.logger.info.assert_not_called()
+
+    async def test_invalid_discovery_records_reject_entire_list_before_scanning(self):
+        invalid_records = (
+            None,
+            "w2",
+            {},
+            {"id": None},
+            {"id": 1},
+            {"id": ""},
+            {"id": " \t"},
+            {"id": "w2", "ERROR": "HTTP 500"},
+            {"id": "w2", "error": {"code": "DiscoveryFailed"}},
+        )
+        for record in invalid_records:
+            for valid_prefix in ([], [{"id": "w1"}]):
+                records = valid_prefix + [record]
+                for payload in (records, {"value": records}):
+                    with self.subTest(record=record, payload=payload):
+                        state = self._state()
+                        before = deepcopy(state)
+                        invoke = AsyncMock(return_value=payload)
+                        ctx = make_context(state, invoke)
+
+                        self.assertIs(await catalog.main(ctx), False)
+
+                        invoke.assert_awaited_once()
+                        self.assertTrue(
+                            invoke.await_args.kwargs["rest_api"].startswith(
+                                "admin/workspaces/modified?"
+                            )
+                        )
+                        ctx.fm.save.assert_not_called()
+                        self.assertEqual(state, before)
+                        ctx.logger.error.assert_called()
+                        ctx.logger.info.assert_not_called()
+
     async def test_workspaces_are_batched_by_100(self):
         inv = _make_invoke(workspace_ids=[str(i) for i in range(250)])
         ctx = make_context(self._state(), inv)
@@ -337,6 +457,151 @@ class CatalogParallelGroupTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(sorted(len(b) for b in bodies), [50, 100, 100])
         flat = [w for b in bodies for w in b]
         self.assertEqual(sorted(flat, key=int), [str(i) for i in range(250)])
+
+
+class CatalogLineageTests(unittest.IsolatedAsyncioTestCase):
+    def setUp(self):
+        environment = patch.dict(
+            os.environ, {"CATALOG_LINEAGE_ENABLED": "true", "DRY_RUN": "false"}
+        )
+        environment.start()
+        self.addCleanup(environment.stop)
+        sleep = patch.object(catalog.asyncio, "sleep", AsyncMock())
+        sleep.start()
+        self.addCleanup(sleep.stop)
+
+    def _context(self, invoke=None):
+        ctx = make_context(
+            {"catalog": {"lastRun": _ts(1)}},
+            invoke or _make_invoke(scan_result={"workspaces": [{"id": "w1"}]}),
+        )
+        ctx.fm.save_snapshot = AsyncMock()
+        return ctx
+
+    async def test_enabled_adds_snapshot_without_extra_api_calls(self):
+        invoke = _make_invoke(
+            scan_result={
+                "workspaces": [
+                    {
+                        "id": "w1",
+                        "reports": [
+                            {"id": "r1", "datasetId": "outside"},
+                        ],
+                    }
+                ]
+            }
+        )
+        ctx = self._context(invoke)
+        initial_state = deepcopy(ctx.current_state)
+        with patch.object(
+            catalog, "utc_now", return_value=datetime(2026, 11, 3, 23, 59)
+        ):
+            self.assertTrue(await catalog.main(ctx))
+        enabled_calls = list(invoke.calls)
+        ctx.fm.save.assert_awaited_once()
+        ctx.fm.save_snapshot.assert_awaited_once()
+        saved = ctx.fm.save_snapshot.await_args.kwargs
+        self.assertEqual(saved["path"], "lineage_edges/2026/11/03/")
+        self.assertEqual(saved["file_name"], "scan1.lineage_edges.json")
+        self.assertEqual(saved["content"]["scanMode"], "full")
+        self.assertEqual(
+            saved["content"]["observedAtUtc"], "2026-11-03T23:59:00.000000Z"
+        )
+        self.assertEqual(saved["content"]["edges"][0]["RelatedItemId"], "outside")
+        self.assertIn("lastFullScan", ctx.current_state["catalog"])
+
+        invoke.calls.clear()
+        ctx.current_state = initial_state
+        ctx.fm.save_snapshot.reset_mock()
+        os.environ.pop("CATALOG_LINEAGE_ENABLED")
+        with patch.object(
+            catalog, "utc_now", return_value=datetime(2026, 11, 3, 23, 59)
+        ):
+            self.assertTrue(await catalog.main(ctx))
+        self.assertEqual(invoke.calls, enabled_calls)
+        ctx.fm.save_snapshot.assert_not_awaited()
+
+    async def test_empty_snapshot_and_no_discovery_are_distinct(self):
+        ctx = self._context()
+        self.assertTrue(await catalog.main(ctx))
+        content = ctx.fm.save_snapshot.await_args.kwargs["content"]
+        self.assertEqual(content["edges"], [])
+        self.assertEqual(content["returnedWorkspaceIds"], ["w1"])
+        self.assertTrue(content["complete"])
+
+        ctx = self._context(_make_invoke(modified=[]))
+        self.assertTrue(await catalog.main(ctx))
+        ctx.fm.save_snapshot.assert_not_awaited()
+        self.assertNotIn("lastFullScan", ctx.current_state["catalog"])
+
+    async def test_extraction_or_storage_failure_preserves_checkpoints(self):
+        for failure in ("extraction", "storage", "scan_id"):
+            for full_scan in (True, False):
+                with self.subTest(failure=failure, full_scan=full_scan):
+                    invoke = _make_invoke(
+                        scan_result={"workspaces": {}}
+                        if failure == "extraction"
+                        else {"workspaces": [{"id": "w1"}]},
+                        get_info={"id": "../unsafe", "status": "Succeeded"}
+                        if failure == "scan_id"
+                        else None,
+                    )
+                    ctx = self._context(invoke)
+                    if not full_scan:
+                        ctx.current_state["catalog"]["lastFullScan"] = _ts(2)
+                    before = deepcopy(ctx.current_state)
+                    if failure == "storage":
+                        ctx.fm.save_snapshot.side_effect = RuntimeError("write failed")
+                    self.assertFalse(await catalog.main(ctx))
+                    self.assertEqual(ctx.current_state, before)
+                    ctx.fm.save.assert_awaited_once()
+                    if failure != "storage":
+                        ctx.fm.save_snapshot.assert_not_awaited()
+
+    async def test_parallel_failure_keeps_successful_batch_observations(self):
+        async def invoke(rest_api, headers=None, json=None):
+            if rest_api.startswith("admin/workspaces/modified"):
+                return [{"id": str(i)} for i in range(101)]
+            if rest_api.startswith("admin/workspaces/getInfo"):
+                return {"id": f"scan-{json['workspaces'][0]}", "status": "Succeeded"}
+            return {"workspaces": []}
+
+        ctx = self._context(invoke)
+
+        async def save_snapshot(**kwargs):
+            if kwargs["content"]["scanId"] == "scan-0":
+                raise RuntimeError("write failed")
+
+        ctx.fm.save_snapshot.side_effect = save_snapshot
+        self.assertFalse(await catalog.main(ctx))
+        self.assertEqual(ctx.fm.save_snapshot.await_count, 2)
+        self.assertEqual(
+            {call.kwargs["file_name"] for call in ctx.fm.save_snapshot.await_args_list},
+            {"scan-0.lineage_edges.json", "scan-100.lineage_edges.json"},
+        )
+        self.assertNotIn("lastFullScan", ctx.current_state["catalog"])
+
+    async def test_real_local_snapshot_round_trip_and_dry_run_failure(self):
+        moment = utc_now()
+        with (
+            tempfile.TemporaryDirectory() as output,
+            patch.object(catalog, "utc_now", return_value=moment),
+        ):
+            ctx = self._context()
+            ctx.OutputPath = output
+            ctx.fm = File_Management()
+            ctx.fm.content(ctx)
+            self.assertTrue(await catalog.main(ctx))
+            day = moment.strftime("%Y/%m/%d")
+            saved = await ctx.fm.read_snapshot(
+                f"lineage_edges/{day}/", "scan1.lineage_edges.json"
+            )
+            self.assertEqual(saved["edges"], [])
+            self.assertEqual(saved["returnedWorkspaceIds"], ["w1"])
+            before = deepcopy(ctx.current_state)
+            os.environ["DRY_RUN"] = "true"
+            self.assertFalse(await catalog.main(ctx))
+            self.assertEqual(ctx.current_state, before)
 
 
 if __name__ == "__main__":

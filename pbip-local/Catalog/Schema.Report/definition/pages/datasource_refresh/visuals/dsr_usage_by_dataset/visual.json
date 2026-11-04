@@ -1,0 +1,248 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "dsr_usage_by_dataset",
+  "position": {
+    "x": 665,
+    "y": 280,
+    "z": 8000,
+    "height": 300,
+    "width": 590,
+    "tabOrder": 8000
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetDatasourceUsages"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "DatasetDatasourceUsages.DatasetName",
+              "nativeQueryRef": "DatasetName",
+              "active": true
+            }
+          ]
+        },
+        "Drillthrough": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetDatasourceUsages"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "DatasetDatasourceUsages.DatasetName",
+              "nativeQueryRef": "DatasetName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetDatasourceUsages"
+                    }
+                  },
+                  "Property": "DatasetId"
+                }
+              },
+              "queryRef": "DatasetDatasourceUsages.DatasetId",
+              "nativeQueryRef": "DatasetId"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DatasetDatasourceUsages"
+                        }
+                      },
+                      "Property": "DatasetDatasourceUsageKey"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(DatasetDatasourceUsages.DatasetDatasourceUsageKey)",
+              "nativeQueryRef": "Count of DatasetDatasourceUsageKey"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "DatasetDatasourceUsages"
+                      }
+                    },
+                    "Property": "DatasetDatasourceUsageKey"
+                  }
+                },
+                "Function": 2
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "categoryAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "valueAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Datasource links by dataset'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "f53ea880d757e167393d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Datasets"
+              }
+            },
+            "Property": "DatasetName"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "3bd7e216c03a9a3dab54",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "DatasetDatasourceUsages"
+                  }
+                },
+                "Property": "DatasetDatasourceUsageKey"
+              }
+            },
+            "Function": 2
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "3238d3e05c4ed3737046",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Datasets"
+              }
+            },
+            "Property": "DatasetId"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "dee2059a05be83c78698",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetDatasourceUsages"
+              }
+            },
+            "Property": "DatasetName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "c7b8de56148882c80753",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetDatasourceUsages"
+              }
+            },
+            "Property": "DatasetId"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

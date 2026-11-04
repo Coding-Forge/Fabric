@@ -26,3 +26,7 @@ MetricApp/
 # Local exports of the Capacity Metrics model schema/samples (may contain capacity names)
 capacity_data/
 
+# Version PBIP sources, not Desktop caches or endpoint-protection metadata.
+!pbip-local/**/*.json
+**/.pbi/
+*:sec.endpointdlp

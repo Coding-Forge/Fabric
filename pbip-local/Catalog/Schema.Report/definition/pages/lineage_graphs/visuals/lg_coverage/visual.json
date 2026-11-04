@@ -1,0 +1,117 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "lg_coverage",
+  "position": {
+    "x": 40,
+    "y": 1325,
+    "z": 12000,
+    "height": 160,
+    "width": 1840,
+    "tabOrder": 12000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Workspaces"
+                    }
+                  },
+                  "Property": "Workspace"
+                }
+              },
+              "queryRef": "Lineage Workspaces.Workspace",
+              "nativeQueryRef": "Workspace"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Workspaces"
+                    }
+                  },
+                  "Property": "Observed At UTC"
+                }
+              },
+              "queryRef": "Lineage Workspaces.Observed At UTC",
+              "nativeQueryRef": "Observed At UTC"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Workspaces"
+                    }
+                  },
+                  "Property": "Scan Mode"
+                }
+              },
+              "queryRef": "Lineage Workspaces.Scan Mode",
+              "nativeQueryRef": "Scan Mode"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Workspaces"
+                    }
+                  },
+                  "Property": "Observed Items"
+                }
+              },
+              "queryRef": "Lineage Workspaces.Observed Items",
+              "nativeQueryRef": "Observed Items"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Workspaces"
+                    }
+                  },
+                  "Property": "Coverage"
+                }
+              },
+              "queryRef": "Lineage Workspaces.Coverage",
+              "nativeQueryRef": "Coverage"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Selected workspace observations - node focus does not change scan coverage'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

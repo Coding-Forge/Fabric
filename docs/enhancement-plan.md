@@ -116,7 +116,7 @@ E6 was approved by Code Reviewer (269 tests passing) and is marked done with the
 
 **Missing features**
 - Retention is optional and off by default (E8, see "E8 and E9 outcome").
-- No `latest` pointer and no per-run manifest.
+- Legacy collectors have no `latest` pointer or per-run manifest. The four new [scoped Fabric collectors](configuration-reference.md#scoped-fabric-collectors) use run-ID folders and manifests; this does not migrate legacy outputs.
 
 **Positioning.** Dated snapshots complement Terraform and Fabric CI/CD drift detection. They do not replace them.
 

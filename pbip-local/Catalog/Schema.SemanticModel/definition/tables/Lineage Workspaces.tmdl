@@ -1,0 +1,82 @@
+table 'Lineage Workspaces'
+	lineageTag: 9cc885f2-638b-4ccd-aad7-f2748ee59d03
+
+	measure 'Selected Snapshot Workspaces' = COALESCE(CALCULATE(COUNTROWS('Lineage Workspaces'), REMOVEFILTERS()), 0)
+		formatString: #,0
+		lineageTag: 1c796aea-1428-480f-b77e-27c4b809feae
+
+	measure 'Newest Selected UTC' = MAX('Lineage Workspaces'[Observed At UTC])
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: bb4e65e6-d17b-43a5-a82b-bc0d2f125022
+
+	column 'Workspace Id'
+		dataType: string
+		lineageTag: 789b34b1-3c0b-4653-9628-e6182f7e5d1c
+		summarizeBy: none
+		sourceColumn: Workspace Id
+
+	column Workspace
+		dataType: string
+		lineageTag: 5b48985d-24f5-44cd-9306-3aef277efc1c
+		summarizeBy: none
+		sourceColumn: Workspace
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 2525d31c-531d-40cc-8a97-ee97b86dca6e
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	column 'Scan Id'
+		dataType: string
+		lineageTag: 9420f084-c9fa-45ca-add0-1f42ee5f6144
+		summarizeBy: none
+		sourceColumn: Scan Id
+
+	column 'Scan Mode'
+		dataType: string
+		lineageTag: 4810d1e7-feda-46ed-9b5b-7f807b30455a
+		summarizeBy: none
+		sourceColumn: Scan Mode
+
+	column 'Observed Items'
+		dataType: double
+		formatString: #,0
+		lineageTag: 598730cb-5eef-4844-9386-f4156c591bfe
+		summarizeBy: sum
+		sourceColumn: Observed Items
+
+	column 'Directional Rows'
+		dataType: double
+		formatString: #,0
+		lineageTag: 8e1781ca-a35a-4c75-afc4-887810c74475
+		summarizeBy: sum
+		sourceColumn: Directional Rows
+
+	column Coverage
+		dataType: string
+		lineageTag: 114a7f99-2d51-4404-8ff3-467e3f6e33d4
+		summarizeBy: none
+		sourceColumn: Coverage
+
+	partition 'Lineage Workspaces' = m
+		mode: import
+		source =
+				let
+					Rows = Table.FromRecords(LineageData[Workspaces],
+						type table [#"Workspace Id" = nullable text, #"Observed At UTC" = nullable datetime,
+							#"Scan Id" = nullable text, #"Scan Mode" = nullable text, #"Observed Items" = nullable number,
+							#"Directional Rows" = nullable number, Coverage = nullable text], MissingField.UseNull),
+					Names = Table.TransformColumns(Table.SelectColumns(Workspaces, {"WorkspaceId", "WorkspaceName"}),
+						{{"WorkspaceId", each if _ = null then null else Text.Lower(_), type nullable text}}),
+					Joined = Table.NestedJoin(Rows, {"Workspace Id"}, Names, {"WorkspaceId"}, "Names", JoinKind.LeftOuter),
+					Expanded = Table.ExpandTableColumn(Joined, "Names", {"WorkspaceName"}, {"WorkspaceName"}),
+					Labeled = Table.AddColumn(Expanded, "Workspace", each
+						(if [WorkspaceName] = null or [WorkspaceName] = "" then "Workspace" else [WorkspaceName])
+							& " [" & [Workspace Id] & "]", type text)
+				in
+					Table.RemoveColumns(Labeled, {"WorkspaceName"})
+
+	annotation PBI_ResultType = Table
+

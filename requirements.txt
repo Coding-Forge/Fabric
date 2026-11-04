@@ -22,6 +22,7 @@ pyarrow==26.0.0
 pyjwt==2.12.1
 pytz==2026.5
 python-dotenv==1.2.4
+sqlglot==30.29.0
 PyYAML==6.0.3
 tzdata==2026.5
 urllib3==2.6.3

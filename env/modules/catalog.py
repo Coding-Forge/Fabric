@@ -8,7 +8,8 @@ import sys
 
 from datetime import timedelta
 
-from env.context import utc_now, utc_stamp
+from env.context import Context, utc_now, utc_stamp
+from env.utility.lineage_edges import scan_snapshot
 # from env.utility.helps import Bob
 
 ####### CATALOG PRECONFIGURATION #######
@@ -30,9 +31,16 @@ runsInParallel = 16
 def RunFullScan(value=False):
     FullScan = value
 
-async def main(context=None):
-    """
-    Catalog Scans (Catalog meta data)
+async def main(context: Context | None = None) -> bool:
+    """Discover modified workspaces and asynchronously save their catalog scans.
+
+    Empty discovery succeeds without scanning or updating ``lastFullScan``.
+    A completed, nonempty full scan updates ``context.current_state``.
+
+    :param context: API clients, scan configuration, storage, and shared state.
+    :return: True for successful scans or no work, False for invalid discovery
+        responses or failed scans.
+    :raises RuntimeError: If context is missing.
     """
 
     if not context:
@@ -41,6 +49,12 @@ async def main(context=None):
     
     FullScan = False
     allWorkspaces = context.all_workspaces
+    lineage_enabled = os.environ.get("CATALOG_LINEAGE_ENABLED", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
 
     headers = context.clients['pbi'].get_headers()
 
@@ -89,17 +103,35 @@ async def main(context=None):
 
     result = await context.invokeAPI(rest_api=rest_api, headers=headers)
 
-    workspaces = list()
+    workspaces: list[str] = list()
 
-    if not result or "ERROR" in result or "error" in result:
-        context.logger.error(f"Error was thrown: {result}")
+    if result is None or (
+        isinstance(result, dict) and ("ERROR" in result or "error" in result)
+    ):
+        context.logger.error("Error was thrown: %s", result)
         return False
 
-    # The API returns {"value": [...]} — unwrap the list
-    workspace_list = result.get("value", result) if isinstance(result, dict) else result
-    for workspace in workspace_list:
-        if isinstance(workspace, dict):
-            workspaces.append(workspace.get("id"))
+    # Discovery supports a raw list or a {"value": [...]} envelope.
+    workspace_list = result.get("value") if isinstance(result, dict) else result
+    if not isinstance(workspace_list, list):
+        context.logger.error("Invalid workspace discovery response: expected a list")
+        return False
+
+    for index, workspace in enumerate(workspace_list):
+        if (
+            not isinstance(workspace, dict)
+            or "ERROR" in workspace
+            or "error" in workspace
+            or not isinstance(workspace.get("id"), str)
+            or not workspace["id"].strip()
+        ):
+            context.logger.error(
+                "Invalid workspace discovery record at index %d: "
+                "expected an object with a nonempty string id",
+                index,
+            )
+            return False
+        workspaces.append(workspace["id"])
 
     if not workspaces:
         context.logger.info("No modified workspaces found for the time period searched")
@@ -222,6 +254,22 @@ async def main(context=None):
         print(f"Saving scan results to {file_name}")
 
         await context.fm.save(path=path, file_name=file_name, content=scanResult)
+        if lineage_enabled:
+            try:
+                snapshot = scan_snapshot(
+                    scanResult, scanId, workspace_groups, utc_stamp(today), FullScan
+                )
+                await context.fm.save_snapshot(
+                    path=f"lineage_edges/{today.strftime('%Y/%m/%d')}/",
+                    file_name=f"{scanId}.lineage_edges.json",
+                    content=snapshot,
+                )
+            except (ValueError, TypeError, RuntimeError, OSError):
+                context.logger.error(
+                    "Catalog lineage extraction or persistence failed for batch %d",
+                    fileIndex,
+                )
+                return False
         return True
 
     failures = 0
