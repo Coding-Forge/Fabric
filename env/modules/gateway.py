@@ -48,18 +48,18 @@ async def main(context=None):
     """
     Gateways
     """
-    
+
     if not context:
         raise RuntimeError("Context is None")
-    
+
     headers = context.clients['pbi'].get_headers()
     headers['content-type'] = 'application/json'
     headers['pragma'] = 'no-cache'
 
-    
+
 # GET https://api.powerbi.com/v1.0/myorg/gateways
-    
-    api_url = 'https://api.powerbi.com/v1.0/myorg/gateways'
+
+    api_url = context.get_powerbi_url("gateways")
     response = await _get(api_url, headers)
     if response.status_code != 200:
         context.logger.error(f"Gateways request failed: HTTP {response.status_code}")
@@ -83,7 +83,7 @@ async def main(context=None):
 
     r = list()
     for id in gateways:
-        response = await _get(f'https://api.powerbi.com/v1.0/myorg/gateways/{id}/datasources', headers)
+        response = await _get(f'{api_url}/{id}/datasources', headers)
         if response.status_code != 200:
             failures += 1
             context.logger.error(f"Datasources request failed for gateway {id}: HTTP {response.status_code}")
@@ -100,7 +100,7 @@ async def main(context=None):
 
 
     for i in range(0,len(gateways)):
-        api_users = f'https://api.powerbi.com/v1.0/myorg/gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/users'
+        api_users = f'{api_url}/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/users'
         response = await _get(api_users, headers)
         if response.status_code != 200:
             failures += 1
@@ -115,8 +115,8 @@ async def main(context=None):
                 users.append(results['value'][l])
 
     for i in range(0,len(gateways)):
-        api_status = f'https://api.powerbi.com/v1.0/myorg/gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/status'
-        
+        api_status = f'{api_url}/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/status'
+
         response = await _get(api_status, headers)
         if response.ok:
             # response.json() is actually empty when it is a success
@@ -144,7 +144,7 @@ async def main(context=None):
             status.append(results)
 
     for i in range(0,len(gateways)):
-        api_datasource = f'https://api.powerbi.com/v1.0/myorg/gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}'
+        api_datasource = f'{api_url}/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}'
         response = await _get(api_datasource, headers)
         if response.status_code != 200:
             failures += 1

@@ -11,7 +11,7 @@ async def main(context=None):
         raise RuntimeError("Context is None")
     
     # get POWER BI context and settings -- this call must be synchronous
-    headers = context.clients['tenant'].get_headers()
+    headers = context.clients['pbi'].get_headers()
     today = utc_now()
 
     lakehouse_dir = f"datasetrefreshable/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
@@ -31,4 +31,3 @@ async def main(context=None):
 
 if __name__ == "__main__":
     asyncio.run(main())
-

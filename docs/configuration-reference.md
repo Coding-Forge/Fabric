@@ -2,6 +2,18 @@
 
 All settings are environment variables. Locally they are set in `local.settings.json` under `Values`. In Azure they are set as **Function App → Settings → Environment variables**.
 
+Standalone Python and the Windows UI also accept JSON profiles for connection,
+storage, module selection, and scheduling settings:
+
+```powershell
+python -m app.monitor --profile .\profiles\local-monitor.json
+```
+
+Profile values override environment values. Collector-specific options and scopes
+(for example `CATALOG_LINEAGE_ENABLED` and `FABRIC_ITEM_JOB_SCOPE`) are still
+environment variables; configure them in the process environment or the CLI's
+`--env-file`.
+
 ---
 
 ## Required Settings
@@ -11,15 +23,36 @@ All settings are environment variables. Locally they are set in `local.settings.
 | `TENANT_ID` | Azure AD tenant ID. Used by MSAL for Power BI / Fabric API token acquisition. |
 | `CLIENT_ID` | App registration (service principal) client ID. |
 | `CLIENT_SECRET` | App registration client secret. **Use a Key Vault reference in production.** |
+| `CLOUD_ENVIRONMENT` | `Commercial` (default), `Gcc`, `GccHigh`, or `Dod`. Selects identity authority, API endpoints, and token scopes. |
+| `APPLICATION_MODULES` | Comma-separated list of modules to run. See [Modules](#modules) below. |
 
 > The legacy names `TenantId`, `ClientId` and `ClientSecret` are still accepted as fallbacks; the canonical names above take priority when both are set.
-| `APPLICATION_MODULES` | Comma-separated list of modules to run. See [Modules](#modules) below. |
 
 ---
 
+## Cloud Environment Behavior
+
+| Value | Power BI API root | Graph root | Fabric REST / OneLake |
+|---|---|---|---|
+| `Commercial` | `https://api.powerbi.com/v1.0/myorg/` | `https://graph.microsoft.com/beta` | Enabled |
+| `Gcc` | `https://api.powerbigov.us/v1.0/myorg/` | `https://graph.microsoft.com/beta` | Disabled |
+| `GccHigh` | `https://api.high.powerbigov.us/v1.0/myorg/` | `https://graph.microsoft.us/beta` | Disabled |
+| `Dod` | `https://api.mil.powerbigov.us/v1.0/myorg/` | `https://graph.microsoft.us/beta` | Disabled |
+
+Non-Commercial runs skip all Fabric REST modules, including the new scoped and
+definition collectors, GitConnections, Tags, and DelegatedSettings. Power BI
+modules (including WidelySharedLinks) and Graph use the selected cloud endpoints.
+Skipped Fabric modules do not authenticate or advance their checkpoints.
+Authentication remains lazy so collector request gates are checked before token
+acquisition. Runs with failed modules retain their previous checkpoints and
+report an unsuccessful result after saving the other modules' progress.
+
 ## Storage Settings
 
-Exactly one storage mode must be configured: **Blob Storage URL** (recommended), **Blob Storage connection string**, or **Fabric Lakehouse**.
+Choose local files, Blob Storage URL (recommended), Blob Storage connection
+string, or Fabric Lakehouse. `LOCAL_OUTPUT_PATH` is the explicit PoC override.
+`OUTPUT_PATH` also selects local output; without any output/storage/lakehouse
+settings, standalone Python uses `Data`.
 
 ### Option A — Blob Storage with URL auth (recommended)
 
@@ -27,7 +60,7 @@ Uses `DefaultAzureCredential` (Managed Identity in Azure, service principal loca
 
 | Variable | Required | Description |
 |---|---|---|
-| `STORAGE_ACCOUNT_URL` | Yes | `https://<account>.blob.core.windows.net` |
+| `STORAGE_ACCOUNT_URL` | Yes | `https://<account>.blob.core.windows.net`, or the account's Azure Government `blob.core.usgovcloudapi.net` endpoint. |
 | `STORAGE_ACCOUNT_CONTAINER_NAME` | Yes | Container name, e.g. `monitor` |
 | `STORAGE_ACCOUNT_CONTAINER_ROOT_PATH` | No | Root path prefix inside the container, e.g. `stage` |
 | `AZURE_TENANT_ID` | Yes (local) | Same as `TENANT_ID`. Read by `DefaultAzureCredential`. |
@@ -40,7 +73,7 @@ Uses `DefaultAzureCredential` (Managed Identity in Azure, service principal loca
 
 | Variable | Required | Description |
 |---|---|---|
-| `STORAGE_ACCOUNT_CONN_STR` | Yes | Full connection string from the storage account Access keys blade. |
+| `STORAGE_ACCOUNT_CONN_STR` or `STORAGE_ACCOUNT_CONNECTION_STRING` | Yes | Full connection string from the storage account Access keys blade. |
 | `STORAGE_ACCOUNT_CONTAINER_NAME` | Yes | Container name. |
 | `STORAGE_ACCOUNT_CONTAINER_ROOT_PATH` | No | Root path prefix. |
 
@@ -57,11 +90,14 @@ Opt-in. When `LOCAL_OUTPUT_PATH` is set, it takes precedence over Options A–C:
 | `COMMERCIAL_CLIENT_ID` | No | Alias for `CLIENT_ID`, honoured only in local mode. |
 | `COMMERCIAL_CLIENT_SECRET` | No | Alias for `CLIENT_SECRET`, honoured only in local mode. |
 
-In local mode the credential precedence is `COMMERCIAL_*` > canonical (`TENANT_ID`, `CLIENT_ID`, `CLIENT_SECRET`) > legacy (`TenantId`, `ClientId`, `ClientSecret`). Outside local mode the `COMMERCIAL_*` variables are ignored. They are never used for storage credentials. Legacy collectors ignore `DRY_RUN` in local mode; the four [scoped Fabric collectors](#scoped-fabric-collectors) reject `DRY_RUN=true` in every storage mode.
+In Commercial local mode the environment credential precedence is `COMMERCIAL_*` > canonical (`TENANT_ID`, `CLIENT_ID`, `CLIENT_SECRET`) > legacy (`TenantId`, `ClientId`, `ClientSecret`). Profile credentials override environment credentials. Outside `LOCAL_OUTPUT_PATH` mode, or for sovereign clouds, the `COMMERCIAL_*` variables are ignored. They are never used for storage credentials. Legacy collectors ignore `DRY_RUN` in local mode; the four [scoped Fabric collectors](#scoped-fabric-collectors) reject `DRY_RUN=true` in every storage mode.
 
 ### Option C — Fabric Lakehouse
 
 Used when running inside a Fabric environment.
+
+OneLake output requires `CLOUD_ENVIRONMENT=Commercial`. Sovereign clouds must
+use local files or Blob Storage.
 
 | Variable | Required | Description |
 |---|---|---|
@@ -95,12 +131,15 @@ These are parameters of `infra/main.bicep`, not app settings. Both features are 
 |---|---|---|
 | `DRY_RUN` | `false` | When `true`, prints what would be written to blob instead of writing it. Useful for local testing. |
 | `ALL_WORKSPACES` | `false` | When `true`, retrieves all workspaces regardless of modification date. |
+| `EXCLUDE_PERSONAL_WORKSPACES` | `true` | Excludes personal workspaces from modified-workspace catalog scans. |
+| `EXCLUDE_INACTIVE_WORKSPACES` | `true` | Excludes inactive workspaces from modified-workspace catalog scans. |
 | `IMPERSONATED_USER_NAME` | _(none)_ | UPN of a user to impersonate for API calls. |
 | `CAPACITY_METRICS_DATASET_ID` | _(none)_ | Dataset ID of the Capacity Metrics app semantic model. If unset, the `CapacityMetrics` module logs a warning and returns success. See [Capacity Metrics](#capacity-metrics-capacitymetrics). |
 | `CAPACITY_METRICS_DAYS_BACK` | `3` | Days of history to query, minimum 1, maximum 30. |
 | `CAPACITY_METRICS_INCLUDE_SUSPENDED` | _(unset)_ | When `1`, `true`, `yes` or `on`, capacities that are not Active are also queried. |
 | `GRAPH_EXTRACT_GROUPS` | _(off)_ | When `1`, `true`, `yes` or `on` (case-insensitive), the `Graph` module also writes `groups.json` and `groupmembers.json`. Any other value, or unset, leaves it off. See [Microsoft Graph](#microsoft-graph-graph). |
 | `GRAPH_AUDIENCE_GROUP_PREFIXES` | `PowerBI,Power BI` | Comma-separated, case-insensitive group display-name prefixes that mark a group as a Power BI audience group (`isPowerBIAudienceGroup`). |
+| `POWER_BI_AUDIENCE_GROUP_IDS` | _(unset)_ | Optional comma-separated audience group object IDs. Overrides prefix matching; membership includes users in nested groups. |
 | `GRAPH_MAX_GROUPS_FOR_MEMBERS` | `200` | Maximum number of groups whose members are fetched. Audience groups are taken first. If there are more groups, a warning is logged and the member result is partial. An invalid value falls back to 200; a negative value is treated as 0. |
 | `API_MAX_RETRIES` | `3` | Maximum retries for throttled or transient API responses (HTTP 429, 503, 504). |
 | `API_MAX_CONCURRENCY` | `16` | Maximum concurrent API requests. |
@@ -183,6 +222,8 @@ If you use `env/.env.example`, you can set these variables there as well. The fi
 ---
 
 ## Per-Module Cron Overrides
+
+`CAPACITY_METRICS_CRON` is also accepted as an alias for `CAPACITYMETRICS_CRON`.
 
 Each module runs on the global timer schedule (`0 0 2 * * *` — daily at 02:00 UTC, defined in `function_app.py`). You can override the effective schedule per module using cron syntax. If not set, the module runs every time the function fires.
 
@@ -484,11 +525,11 @@ Reads Azure AD data through Microsoft Graph. Output goes under `graph/YYYY/MM/DD
 | `userlicenses.json` | Always, when the users call succeeds | One row per user per assigned licence: `userId`, `userPrincipalName`, `skuId`, `disabledPlans`. |
 | `subscribedskus.json` | Always | Subscribed SKUs. |
 | `groups.json` | Only when `GRAPH_EXTRACT_GROUPS` is on | Security-enabled groups (paged), each with `isPowerBIAudienceGroup`. |
-| `groupmembers.json` | Only when `GRAPH_EXTRACT_GROUPS` is on | One row per group per user member, with `groupId`, `groupDisplayName`, `isPowerBIAudienceGroup` and member fields. |
+| `groupmembers.json` | Only when `GRAPH_EXTRACT_GROUPS` is on | One row per group per transitive user member (including nested groups), with `groupId`, `groupDisplayName`, `isPowerBIAudienceGroup` and member fields. |
 
 **Permissions.** The app registration needs the Graph application permissions `User.Read.All`, `Group.Read.All` and `GroupMember.Read.All`, with admin consent.
 
-**Group extraction.** It is off by default. Set `GRAPH_EXTRACT_GROUPS` to `1`, `true`, `yes` or `on` to enable it. Members are fetched for at most `GRAPH_MAX_GROUPS_FOR_MEMBERS` groups (default 200), audience groups first (names starting with a `GRAPH_AUDIENCE_GROUP_PREFIXES` entry, default `PowerBI,Power BI`). When more groups exist, a warning is logged and `groupmembers.json` is a partial result; raise the cap to cover them.
+**Group extraction.** It is off by default. Set `GRAPH_EXTRACT_GROUPS` to `1`, `true`, `yes` or `on` to enable it. Transitive members are fetched for at most `GRAPH_MAX_GROUPS_FOR_MEMBERS` groups (default 200), audience groups first. `POWER_BI_AUDIENCE_GROUP_IDS` selects audience groups explicitly; otherwise names starting with a `GRAPH_AUDIENCE_GROUP_PREFIXES` entry (default `PowerBI,Power BI`) mark audience groups. When more groups exist, a warning is logged and `groupmembers.json` is a partial result; raise the cap to cover them.
 
 **Failures.** All pages are followed through `@odata.nextLink`. A failed or empty response, an error response, or a transport error (an exception from the request) counts as a failure, as does a failed member call for any group. The module then returns `False` and `lastRun` does not advance. Data from calls that succeeded is still saved.
 

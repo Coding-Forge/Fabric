@@ -1,3 +1,4 @@
+import asyncio
 import os
 import json
 
@@ -10,7 +11,7 @@ from azure.storage.blob import BlobClient
 class File_Table_Management:
 
     def __init__(self):
-        
+
         self.sp = None
         self.tenant_id = None
         self.client_id = None
@@ -21,18 +22,22 @@ class File_Table_Management:
 
     def set_context(self, context):
         self.context = context
+        if not context.cloud.supports_onelake:
+            raise RuntimeError(
+                f"OneLake output is not enabled for CLOUD_ENVIRONMENT={context.cloud.name}"
+            )
 
         self.tenant_id = context.ServicePrincipal.get("TenantId")
         self.client_id = context.ServicePrincipal.get("AppId")
         self.client_secret = context.ServicePrincipal.get("AppSecret")
         self.workspace_name = context.WorkspaceName
-        self.fsc = self.get_file_system_client()
+        self.fsc = None if context.on_fabric else self.get_file_system_client()
 
 
     def __await__(self):
         # Call ls the constructor and returns the instance
         return self.get_file_system_client(
-            client_id=self.client_id, 
+            client_id=self.client_id,
             client_secret=self.client_secret,
             tenant_id=self.tenant_id,
             workspace_name=self.workspace_name).__await__()
@@ -40,10 +45,11 @@ class File_Table_Management:
     def get_file_system_client(self) -> FileSystemClient:
         cred = ClientSecretCredential(tenant_id=self.tenant_id,
                                     client_id=self.client_id,
-                                    client_secret=self.client_secret)
+                                    client_secret=self.client_secret,
+                                    authority=self.context.cloud.azure_authority_host)
 
         file_system_client = FileSystemClient(
-            account_url="https://onelake.dfs.fabric.microsoft.com",
+            account_url=self.context.cloud.onelake_dfs_root,
             file_system_name=self.workspace_name,
             credential=cred)
 
@@ -67,15 +73,15 @@ class File_Table_Management:
         file_system_client = self.fsc
         directory_client = file_system_client.create_directory(directory_name)
 
-        return directory_client            
+        return directory_client
 
     async def upload_file_to_directory(self, directory_client: DataLakeDirectoryClient, local_path: str, file_name: str):
         file_client = directory_client.get_file_client(file_name)
-        
+
         if await file_client.exists():
             print(f"File '{file_name}' already exists.")
             return
-        
+
         with open(file=os.path.join(local_path, file_name), mode="rb") as data:
             await file_client.upload_data(data, overwrite=True)
 
@@ -89,6 +95,14 @@ class File_Table_Management:
             local_file.close()
 
     async def read(self, path:str, file_name: str):
+        if self.context.on_fabric:
+            def read_local():
+                try:
+                    with open(os.path.join(path, file_name), "rb") as file:
+                        return file.read()
+                except FileNotFoundError:
+                    return None
+            return await asyncio.to_thread(read_local)
         dc = self.fsc.get_directory_client(path)
         file_client = dc.get_file_client(file_name)
         try:
@@ -99,7 +113,7 @@ class File_Table_Management:
             return None
 
     async def write_json_to_file(self, path:str, file_name: str, json_data):
-        
+
         json_bytes = json_data
         directory = path
         file_path = os.path.join(directory, file_name)
@@ -114,5 +128,3 @@ class File_Table_Management:
             dc = self.fsc.get_directory_client(path)
             file_client = dc.get_file_client(file_name)
             file_client.upload_data(json_bytes, overwrite=True)
-
-

@@ -21,6 +21,7 @@ What you need to do to use this application
 3.	Create your .env file  
     a. Set the cron time for each module  
     b. Select which modules you would like the monitor application to use  
+    c. Set `CLOUD_ENVIRONMENT` to `Commercial`, `Gcc`, `GccHigh`, or `Dod`  
 4.	Using the application  
     a. Native Python Application  
     b. Docker Container  
@@ -126,9 +127,108 @@ You can run the code by using the following command from the root of this code t
 # to run the application
 python -m app.monitor 
 
+# run with a saved JSON profile
+python -m app.monitor --profile .\profiles\local-monitor.json
+
+# run with a specific .env file
+python -m app.monitor --env-file .\.env
+
+# full catalog workspace scan for this execution
+python -m app.monitor --base
+
+# run a subset of modules for this execution
+python -m app.monitor --modules Activity,Catalog
+
 # to run individual modules
 python -m env.modules.<module name>
 ```
+
+The standalone application loads `.env` automatically. The same configuration builder supports both current upper-case environment variable names and the older names from `env/.env.examples`.
+
+Set `CLOUD_ENVIRONMENT` to choose the cloud endpoint profile. `Commercial` is the default. `Gcc`, `GccHigh`, and `Dod` switch Power BI, Graph, authority, and Azure Storage authentication endpoints to government cloud profiles. Fabric REST API and OneLake output modules are automatically skipped outside Commercial until Fabric Gov becomes public preview.
+
+## Azure Synapse Notebooks
+
+The monitor can also be run from Azure Synapse notebooks, including Synapse in Azure Government for GCC High scenarios. Notebooks run the Python monitor code and can write output to files, Blob Storage, or a downstream Synapse Dedicated SQL Pool load step.
+
+See [Running the Monitor from Azure Synapse Notebooks](docs/azure-synapse-notebooks.md) for import options, notebook setup, required configuration, GCC High notes, and Dedicated SQL Pool loading patterns.
+
+## Enterprise Deployment
+
+For production deployments, use Azure Functions for scheduled data collection, ADLS Gen2 or Blob Storage for raw output, and Synapse for downstream curation/loading.
+
+See [Enterprise Deployment Best Practices](docs/enterprise-deployment-best-practices.md) for cloud-specific guidance across Commercial, GCC, GCC High, and DoD.
+
+## Windows UI Launcher
+
+For a simple end-user experience on Windows, use:
+
+```text
+Run Fabric Monitor UI.cmd
+```
+
+The launcher creates a local virtual environment, installs dependencies on first run, and opens the Windows UI. Users can also run:
+
+```text
+Create Desktop Shortcut.cmd
+```
+
+to create a desktop icon.
+
+See [Windows UI Release and Launcher](docs/windows-ui-release.md) for release zip and enterprise packaging guidance.
+
+For Fabric notebooks, keep the repo files available in the notebook environment and call the notebook helper from a setup cell:
+
+```python
+from env.notebook import run
+
+await run({
+    "TENANT_ID": "<tenant-id>",
+    "CLIENT_ID": "<client-id>",
+    "CLIENT_SECRET": "<client-secret>",
+    "APPLICATION_MODULES": "Activity,Catalog,Tenant",
+    "LAKEHOUSE_NAME": "<lakehouse-name>",
+    "WORKSPACE_NAME": "<workspace-name>",
+    "PATH_IN_LAKEHOUSE": "FabricMonitor",
+    "ON_FABRIC": True,
+})
+```
+
+For local Python, use `OUTPUT_PATH` for local files or configure Blob Storage with either `STORAGE_ACCOUNT_CONNECTION_STRING` or `STORAGE_ACCOUNT_URL` plus `STORAGE_ACCOUNT_CONTAINER_NAME`.
+
+### Running the Windows Desktop UI
+
+For non-developer desktop use on Windows, create the virtual environment first. If this command fails:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+then `.venv` has not been created yet.
+
+Run the UI setup script from the repository root:
+
+```powershell
+cd C:\Projects\Fabric\monitor
+.\setup-windows-ui.ps1
+```
+
+The setup script checks for Python 3.12, creates `.venv`, and installs `requirements.txt`. If only `3.12-arm64` is installed, the script uses ARM64-compatible dependency markers and skips packages that do not have Windows ARM64 wheels. If Python 3.12 is missing, install Python 3.12 from [python.org](https://www.python.org/downloads/) and rerun the script.
+
+After setup succeeds, start the UI:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+python -m app.windows_ui
+```
+
+If PowerShell blocks activation scripts, run this once:
+
+```powershell
+Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+The UI lets users enter service principal settings, choose output storage, select modules, save/load JSON profiles, and run the monitor while viewing logs. See [docs/windows-ui.md](docs/windows-ui.md).
 
 ### Build Docker Image  
 from the root of the application you can type the following commands to build your image  

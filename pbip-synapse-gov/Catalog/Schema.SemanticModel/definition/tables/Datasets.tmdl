@@ -1,0 +1,116 @@
+table Datasets
+	lineageTag: d97d035e-12ef-4d2d-a614-2010a9c32b81
+
+	column ConfiguredBy
+		dataType: string
+		lineageTag: 141633c8-55ba-485c-8441-93f0d110c327
+		summarizeBy: none
+		sourceColumn: ConfiguredBy
+
+		annotation SummarizationSetBy = Automatic
+
+	column ConfiguredById
+		dataType: string
+		lineageTag: 9c423fcd-323a-4ea5-bcd2-1013f043d62b
+		summarizeBy: none
+		sourceColumn: ConfiguredById
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsEffectiveIdentityRequired
+		dataType: string
+		lineageTag: 8a8f9c38-b409-48a3-b80a-fd4dff7e4336
+		summarizeBy: none
+		sourceColumn: IsEffectiveIdentityRequired
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsEffectiveIdentityRolesRequired
+		dataType: string
+		lineageTag: e34f9526-ed43-43a3-a141-a609c58c478f
+		summarizeBy: none
+		sourceColumn: IsEffectiveIdentityRolesRequired
+
+		annotation SummarizationSetBy = Automatic
+
+	column TargetStorageMode
+		dataType: string
+		lineageTag: 95e3c646-6bfc-415e-af48-8ce501b3c903
+		summarizeBy: none
+		sourceColumn: TargetStorageMode
+
+		annotation SummarizationSetBy = Automatic
+
+	column CreatedDate
+		dataType: string
+		lineageTag: 3e59ace0-6fc6-4725-90d9-29f938777196
+		summarizeBy: none
+		sourceColumn: CreatedDate
+
+		annotation SummarizationSetBy = Automatic
+
+	column ContentProviderType
+		dataType: string
+		lineageTag: 299fb72f-d3a0-46a8-a5ba-0ad5f2bea3b4
+		summarizeBy: none
+		sourceColumn: ContentProviderType
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceId
+		dataType: string
+		lineageTag: 72509d1e-c0ff-4787-9dde-dec0f8c8e4d5
+		summarizeBy: none
+		sourceColumn: WorkspaceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceName
+		dataType: string
+		lineageTag: 2dfde132-0898-45a9-be5b-f99a0005891f
+		summarizeBy: none
+		sourceColumn: WorkspaceName
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceType
+		dataType: string
+		lineageTag: 05f8c0c2-9b10-411b-bfde-18af86c04cb4
+		summarizeBy: none
+		sourceColumn: WorkspaceType
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetId
+		dataType: string
+		lineageTag: 3b6e8a34-ab43-4485-863a-4960f2a02ab1
+		summarizeBy: none
+		sourceColumn: DatasetId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetName
+		dataType: string
+		lineageTag: 8ea1ea40-ffff-4d4e-8484-5477d6049367
+		summarizeBy: none
+		sourceColumn: DatasetName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Datasets = m
+		mode: import
+		source =
+				let
+				    Source = Base,
+				    #"Selected Workspace Columns" = Table.SelectColumns(Source, {"id", "name", "type", "datasets"}),
+				    #"Renamed Workspace Columns" = Table.RenameColumns(#"Selected Workspace Columns", {{"id", "WorkspaceId"}, {"name", "WorkspaceName"}, {"type", "WorkspaceType"}}),
+				    #"Expanded datasets" = Table.ExpandListColumn(#"Renamed Workspace Columns", "datasets"),
+				    #"Filtered datasets" = Table.SelectRows(#"Expanded datasets", each [datasets] <> null),
+				    #"Expanded dataset records" = Table.ExpandRecordColumn(#"Filtered datasets", "datasets", {"id", "name", "configuredBy", "configuredById", "isEffectiveIdentityRequired", "isEffectiveIdentityRolesRequired", "targetStorageMode", "createdDate", "contentProviderType"}, {"DatasetId", "DatasetName", "ConfiguredBy", "ConfiguredById", "IsEffectiveIdentityRequired", "IsEffectiveIdentityRolesRequired", "TargetStorageMode", "CreatedDate", "ContentProviderType"})
+				in
+				    #"Expanded dataset records"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

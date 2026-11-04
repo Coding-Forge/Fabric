@@ -1,4 +1,5 @@
-aiohttp==3.13.3
+aiohttp==3.13.3; platform_machine != "ARM64"
+aiohttp>=3.14.1; platform_machine == "ARM64"
 azure-core==1.38.3
 azure-identity==1.25.3
 azure-functions==1.25.0
@@ -10,7 +11,8 @@ chardet==7.6.0
 charset-normalizer==3.4.6
 codetiming==1.4.0
 croniter==6.2.4
-cryptography==46.0.5
+cryptography==46.0.5; platform_machine != "ARM64"
+cryptography==46.0.3; platform_machine == "ARM64"
 idna==3.11
 isodate==0.7.2
 msal==1.35.1
@@ -18,10 +20,11 @@ msal-extensions==1.3.1
 numpy==2.5.4
 pandas==3.0.6
 portalocker==4.4.0
-pyarrow==26.0.0
+pyarrow==26.0.0; platform_machine != "ARM64"
 pyjwt==2.12.1
 pytz==2026.5
 python-dotenv==1.2.4
+requests==2.32.5
 sqlglot==30.29.0
 PyYAML==6.0.3
 tzdata==2026.5

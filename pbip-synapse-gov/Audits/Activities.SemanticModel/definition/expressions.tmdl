@@ -1,0 +1,101 @@
+expression Parameter1 = #"Sample File" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 87e41c1c-b30c-4108-a0d1-aacef78250eb
+	queryGroup: 'Transform File from activity\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Sample File' =
+		let
+		  Source = #"Monitor ADLS Files"("activity"),
+		    #"Removed Other Columns" = Table.SelectColumns(Source,{"Content"}),
+		    Navigation1 = #"Removed Other Columns"{0}[Content]
+		in
+		  Navigation1
+	lineageTag: ee21a97b-4c13-4f64-a2c3-6c52a6732396
+	queryGroup: 'Transform File from activity\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform Sample File' =
+		let
+		    Source = Json.Document(Parameter1),
+		    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+		    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"Id", "RecordType", "CreationTime", "Operation", "OrganizationId", "UserType", "UserKey", "Workload", "UserId", "ClientIP", "Activity", "ItemName", "WorkSpaceName", "DatasetName", "CapacityId", "CapacityName", "WorkspaceId", "ObjectId", "DatasetId", "DataConnectivityMode", "ArtifactId", "ArtifactName", "IsSuccess", "RequestId", "ActivityId", "RefreshType", "LastRefreshTime", "ArtifactKind", "RefreshEnforcementPolicy", "ItemId", "BillingType"}, {"Id", "RecordType", "CreationTime", "Operation", "OrganizationId", "UserType", "UserKey", "Workload", "UserId", "ClientIP", "Activity", "ItemName", "WorkSpaceName", "DatasetName", "CapacityId", "CapacityName", "WorkspaceId", "ObjectId", "DatasetId", "DataConnectivityMode", "ArtifactId", "ArtifactName", "IsSuccess", "RequestId", "ActivityId", "RefreshType", "LastRefreshTime", "ArtifactKind", "RefreshEnforcementPolicy", "ItemId", "BillingType"}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"Id", type text}, {"RecordType", Int64.Type}, {"CreationTime", type datetime}, {"Operation", type text}, {"OrganizationId", type text}, {"UserType", Int64.Type}, {"UserKey", type text}, {"Workload", type text}, {"UserId", type text}, {"ClientIP", type text}, {"Activity", type text}, {"ItemName", type text}, {"WorkSpaceName", type text}, {"DatasetName", type text}, {"CapacityId", type text}, {"CapacityName", type text}, {"WorkspaceId", type text}, {"ObjectId", type text}, {"DatasetId", type text}, {"DataConnectivityMode", type text}, {"ArtifactId", type text}, {"ArtifactName", type text}, {"IsSuccess", type logical}, {"RequestId", type text}, {"ActivityId", type text}, {"RefreshType", type text}, {"LastRefreshTime", type datetime}, {"ArtifactKind", type text}, {"RefreshEnforcementPolicy", Int64.Type}, {"ItemId", type text}, {"BillingType", Int64.Type}})
+		in
+		    #"Changed Type"
+	lineageTag: 70e10205-3310-4ac1-b72e-d471eba139b7
+	queryGroup: 'Transform File from activity'
+
+	annotation PBI_ResultType = Table
+
+expression 'Transform File' =
+		let
+		    Source = (Parameter1 as binary) => let
+		    Source = Json.Document(Parameter1),
+		    #"Converted to Table" = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+		    #"Expanded Column1" = Table.ExpandRecordColumn(#"Converted to Table", "Column1", {"Id", "RecordType", "CreationTime", "Operation", "OrganizationId", "UserType", "UserKey", "Workload", "UserId", "ClientIP", "Activity", "ItemName", "WorkSpaceName", "DatasetName", "CapacityId", "CapacityName", "WorkspaceId", "ObjectId", "DatasetId", "DataConnectivityMode", "ArtifactId", "ArtifactName", "IsSuccess", "RequestId", "ActivityId", "RefreshType", "LastRefreshTime", "ArtifactKind", "RefreshEnforcementPolicy", "ItemId", "BillingType"}, {"Id", "RecordType", "CreationTime", "Operation", "OrganizationId", "UserType", "UserKey", "Workload", "UserId", "ClientIP", "Activity", "ItemName", "WorkSpaceName", "DatasetName", "CapacityId", "CapacityName", "WorkspaceId", "ObjectId", "DatasetId", "DataConnectivityMode", "ArtifactId", "ArtifactName", "IsSuccess", "RequestId", "ActivityId", "RefreshType", "LastRefreshTime", "ArtifactKind", "RefreshEnforcementPolicy", "ItemId", "BillingType"}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Expanded Column1",{{"Id", type text}, {"RecordType", Int64.Type}, {"CreationTime", type datetime}, {"Operation", type text}, {"OrganizationId", type text}, {"UserType", Int64.Type}, {"UserKey", type text}, {"Workload", type text}, {"UserId", type text}, {"ClientIP", type text}, {"Activity", type text}, {"ItemName", type text}, {"WorkSpaceName", type text}, {"DatasetName", type text}, {"CapacityId", type text}, {"CapacityName", type text}, {"WorkspaceId", type text}, {"ObjectId", type text}, {"DatasetId", type text}, {"DataConnectivityMode", type text}, {"ArtifactId", type text}, {"ArtifactName", type text}, {"IsSuccess", type logical}, {"RequestId", type text}, {"ActivityId", type text}, {"RefreshType", type text}, {"LastRefreshTime", type datetime}, {"ArtifactKind", type text}, {"RefreshEnforcementPolicy", Int64.Type}, {"ItemId", type text}, {"BillingType", Int64.Type}})
+		in
+		    #"Changed Type"
+		in
+		    Source
+	mAttributes: [ FunctionQueryBinding = "{""exemplarFormulaName"":""Transform Sample File""}" ]
+	lineageTag: 8ea33569-5410-4a24-a7d3-a7d146c806e4
+	queryGroup: 'Transform File from activity\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
+expression 'Latest Catalog Scan' =
+		let
+		    Source = try #"Monitor ADLS Files"("catalog/scans") otherwise #table(type table [Content = binary, Name = text, Extension = text, Date accessed = nullable datetime, Date modified = nullable datetime, Date created = nullable datetime, Attributes = record, Folder Path = text], {}),
+		    Files = Table.SelectRows(Source, each Text.EndsWith([Name], ".scanResults.json") and [Attributes]?[Hidden]? <> true),
+		    Latest = if Table.RowCount(Files) = 0 then null else Binary.Buffer(Table.Sort(Files, {{"Date modified", Order.Descending}}){0}[Content]),
+		    Json = if Latest = null then null else Json.Document(Latest)
+		in
+		    Json
+	lineageTag: 7a239dc4-1320-4a0c-864d-0889b7f65020
+
+	annotation PBI_ResultType = Record
+
+expression MonitorStorageAccountName = "<storage-account-name>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000001
+
+annotation PBI_ResultType = Text
+
+expression MonitorStorageContainerName = "<container-name>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000002
+
+annotation PBI_ResultType = Text
+
+expression MonitorStorageRootPath = "fabric-monitor" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000003
+
+annotation PBI_ResultType = Text
+
+expression MonitorDfsEndpointSuffix = "core.usgovcloudapi.net" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000004
+
+annotation PBI_ResultType = Text
+
+expression 'Monitor ADLS Files' =
+let
+    Source = (relativePath as text) as table =>
+        let
+            AccountName = MonitorStorageAccountName,
+            ContainerName = MonitorStorageContainerName,
+            RootPath = Text.Trim(Text.From(MonitorStorageRootPath), "/"),
+            Relative = Text.Trim(Text.From(relativePath), "/"),
+            BaseUrl = "https://" & AccountName & ".dfs." & MonitorDfsEndpointSuffix,
+            AllFiles = AzureStorage.DataLake(BaseUrl),
+            PathParts = List.Select({ContainerName, RootPath, Relative}, each _ <> null and Text.From(_) <> ""),
+            PathNeedle = "/" & Text.Combine(List.Transform(PathParts, each Text.From(_)), "/") & "/",
+            Filtered = Table.SelectRows(AllFiles, each Text.Contains(Text.Replace([Folder Path], "\\", "/"), PathNeedle) and [Attributes]?[Hidden]? <> true)
+        in
+            Filtered
+in
+    Source
+lineageTag: 10000000-0000-4000-8000-000000000005
+
+annotation PBI_ResultType = Function
+

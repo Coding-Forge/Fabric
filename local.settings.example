@@ -11,7 +11,8 @@
     "AZURE_CLIENT_ID": "",
     "AZURE_CLIENT_SECRET": "",
 
-    "APPLICATION_MODULES": "Activity,Apps,Capacity,Catalog,Domains,FabricItems,Gateway,Graph,Refreshables,RefreshHistory,Roles,Tenant,Workspaces",
+    "APPLICATION_MODULES": "Activity,Apps,Capacity,CapacityMetrics,Catalog,Domains,FabricItems,Gateway,Graph,Refreshables,RefreshHistory,Roles,Tenant,Workspaces",
+    "OUTPUT_PATH": "Data",
 
     "STORAGE_ACCOUNT_CONN_STR": "",
     "STORAGE_ACCOUNT_URL": "https://fabricdemosg.blob.core.windows.net",
@@ -25,19 +26,24 @@
     "ON_FABRIC": "false",
 
     "ALL_WORKSPACES": "false",
+    "EXCLUDE_PERSONAL_WORKSPACES": "true",
+    "EXCLUDE_INACTIVE_WORKSPACES": "true",
     "IMPERSONATED_USER_NAME": "",
     "CAPACITY_METRICS_DATASET_ID": "",
 
     "ACTIVITY_CRON": "",
     "APPS_CRON": "",
     "CAPACITY_CRON": "",
+    "CAPACITY_METRICS_CRON": "",
     "CATALOG_CRON": "",
     "DOMAINS_CRON": "",
+    "FABRICITEMS_CRON": "",
     "GATEWAY_CRON": "",
     "GRAPH_CRON": "",
     "REFRESHABLES_CRON": "",
     "REFRESHHISTORY_CRON": "",
     "ROLES_CRON": "",
-    "TENANT_CRON": ""
+    "TENANT_CRON": "",
+    "WORKSPACES_CRON": ""
   }
 }

@@ -1,0 +1,29 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["DevMode"]
+
+annotation PBI_QueryOrder = ["MonitorStorageAccountName","MonitorStorageContainerName","MonitorStorageRootPath","MonitorDfsEndpointSuffix","Monitor ADLS Files","Capacities","Gateways","GatewayDatasources","GatewayDatasourceDetails","GatewayUsers","GatewayStatus","CatalogWorkspaces","CatalogDatasets","CatalogDatasourceUsages","CatalogDatasourceInstances","GatewayImpactBridge"]
+
+ref table Capacities
+ref table Gateways
+ref table GatewayDatasources
+ref table GatewayDatasourceDetails
+ref table GatewayUsers
+ref table GatewayStatus
+ref table CatalogWorkspaces
+ref table CatalogDatasets
+ref table CatalogDatasourceUsages
+ref table CatalogDatasourceInstances
+ref table GatewayImpactBridge
+
+ref cultureInfo en-US
+

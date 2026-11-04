@@ -42,6 +42,21 @@ def _saved(ctx):
 
 
 class GraphTests(unittest.IsolatedAsyncioTestCase):
+    async def test_explicit_audience_ids_override_name_prefixes(self):
+        ctx, calls = _ctx(_group_routes(
+            [{"id": "g1", "displayName": "PowerBI old"}, {"id": "g2", "displayName": "Nested"}],
+            {"g1": {"value": []}, "g2": {"value": [{"id": "nested-user"}]}},
+        ), groups=True)
+        ctx.PowerBIAudienceGroupIds = " G2 "
+        self.assertTrue(await graph.main(ctx))
+        saved = _saved(ctx)
+        self.assertEqual(
+            [group["isPowerBIAudienceGroup"] for group in saved["groups.json"]],
+            [False, True],
+        )
+        self.assertEqual(saved["groupmembers.json"][0]["memberId"], "nested-user")
+        self.assertTrue(any("/transitiveMembers/microsoft.graph.user" in url for url, _ in calls))
+
     async def test_requires_context(self):
         with self.assertRaises(RuntimeError):
             await graph.main(None)
@@ -133,7 +148,7 @@ def _group_routes(groups, members, users=None):
         f"{ROOT}/groups?": {"value": groups},
     }
     for gid, resp in members.items():
-        routes[f"{ROOT}/groups/{gid}/members"] = resp
+        routes[f"{ROOT}/groups/{gid}/transitiveMembers"] = resp
     return routes
 
 
@@ -322,7 +337,7 @@ class GraphGroupTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(by_group["g2"]["memberId"], "m2")
         self.assertIsNone(by_group["g2"]["mail"])
         self.assertTrue(
-            any("/groups/g1/members/microsoft.graph.user" in c[0] for c in calls)
+            any("/groups/g1/transitiveMembers/microsoft.graph.user" in c[0] for c in calls)
         )
 
     async def test_member_pages_are_followed(self):
@@ -330,13 +345,13 @@ class GraphGroupTests(unittest.IsolatedAsyncioTestCase):
         pages = [
             {
                 "value": [{"id": "m1"}],
-                "@odata.nextLink": f"{ROOT}/groups/g1/members/next",
+                "@odata.nextLink": f"{ROOT}/groups/g1/transitiveMembers/next",
             },
             {"value": [{"id": "m2"}]},
         ]
 
         async def invoke(rest_api, headers=None, json=None):
-            if rest_api.startswith(f"{ROOT}/groups/g1/members"):
+            if rest_api.startswith(f"{ROOT}/groups/g1/transitiveMembers"):
                 return pages.pop(0)
             if rest_api.startswith(f"{ROOT}/groups?"):
                 return {"value": groups}
@@ -362,7 +377,7 @@ class GraphGroupTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(
             sorted(r["groupId"] for r in _saved(ctx)["groupmembers.json"]), ["g0", "g1"]
         )
-        self.assertEqual(len([c for c in calls if "/members" in c[0]]), 2)
+        self.assertEqual(len([c for c in calls if "/transitiveMembers" in c[0]]), 2)
         self.assertEqual(len(_saved(ctx)["groups.json"]), 5)
         ctx.logger.warning.assert_called()
 
@@ -372,7 +387,7 @@ class GraphGroupTests(unittest.IsolatedAsyncioTestCase):
         with _env(GRAPH_MAX_GROUPS_FOR_MEMBERS="0"):
             self.assertIs(await graph.main(ctx), True)
         self.assertEqual(_saved(ctx)["groupmembers.json"], [])
-        self.assertFalse([c for c in calls if "/members" in c[0]])
+        self.assertFalse([c for c in calls if "/transitiveMembers" in c[0]])
 
     async def test_max_groups_invalid_value_uses_default(self):
         with _env(GRAPH_MAX_GROUPS_FOR_MEMBERS="lots"):

@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import posixpath
 import sys
 from pathlib import PurePosixPath
 from typing import TYPE_CHECKING
@@ -53,10 +54,6 @@ class File_Management(
         param: file_name is the name of the file to be saved
         param: content is a dictionary that is converted to bytes and saved as the path and file name
         """
-        print("What is the path?", path)
-        print("What is the file name?", file_name)
-        print("What is the content?", content)
-
         if not content:
             print("No content to save")
             return
@@ -66,7 +63,9 @@ class File_Management(
             return
 
         try:
-            if isinstance(content, (dict, list)):
+            if isinstance(content, bytes):
+                pass
+            elif isinstance(content, (dict, list)):
                 content = json.dumps(content)
                 content = content.encode("utf-8")
             else:
@@ -76,11 +75,7 @@ class File_Management(
             if self.context.OutputPath:
                 await self.lfm.save(path=path, file_name=file_name, content=content)
             elif self.context.StorageAccountContainerName:
-                root = self.context.StorageAccountContainerRootPath
-                if root:
-                    path = f"{root}/{path}{file_name}"
-                else:
-                    path = f"{path}{file_name}"
+                path = self._blob_path(path, file_name)
 
                 if os.environ.get("DRY_RUN", "").lower() in ("1", "true", "yes"):
                     print(f"\n{'=' * 60}")
@@ -98,12 +93,7 @@ class File_Management(
                 else:
                     await self.bfm.write_to_file(blob_name=path, content=content)
             elif self.context.LakehouseName:
-                if self.context.on_fabric:
-                    path = f"/lakehouse/default/Files/{self.context.PathInLakehouse}/{path}"
-                else:
-                    path = f"{self.context.LakehouseName}.Lakehouse/Files/{self.context.PathInLakehouse}/{path}"
-
-                path = path.replace("//", "/")
+                path = self._lakehouse_path(path)
 
                 await self.ftm.write_json_to_file(
                     path=path, file_name=file_name, json_data=content
@@ -262,11 +252,7 @@ class File_Management(
                 content = await self.lfm.read(path=path, file_name=file_name)
 
             elif self.context.StorageAccountContainerName:
-                root = self.context.StorageAccountContainerRootPath
-                if root:
-                    path = f"{root}/{path}{file_name}"
-                else:
-                    path = f"{path}{file_name}"
+                path = self._blob_path(path, file_name)
 
                 print(
                     f"[READ] Attempting to read blob: container={self.context.StorageAccountContainerName} path={path}"
@@ -283,8 +269,7 @@ class File_Management(
                 # TODO: create a directory
                 # TODO: upload/stream to location
 
-                path = f"{self.context.LakehouseName}.Lakehouse/Files/{self.context.PathInLakehouse}/{path}"
-                path = path.replace("//", "/")
+                path = self._lakehouse_path(path)
                 content = await self.ftm.read(file_name=file_name, path=path)
                 if content is not None:
                     content = content.decode("utf-8")
@@ -300,3 +285,17 @@ class File_Management(
             self.context.logger.error(f"Error reading file: {e}")
             print(f"Error: {e}")
             raise
+
+    def _blob_path(self, path: str, file_name: str) -> str:
+        return "/".join(
+            part.strip("/")
+            for part in (self.context.StorageAccountContainerRootPath or "", path, file_name)
+            if part
+        )
+
+    def _lakehouse_path(self, path: str) -> str:
+        base = (
+            "/lakehouse/default/Files" if self.context.on_fabric
+            else f"{self.context.LakehouseName}.Lakehouse/Files"
+        )
+        return posixpath.join(base, (self.context.PathInLakehouse or "").strip("/"), path.strip("/"))

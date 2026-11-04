@@ -3,7 +3,6 @@ import asyncio
 from env.context import utc_now
 from env.utility.admin_paging import fetch_all_pages
 
-_BASE_URL = "https://api.powerbi.com/v1.0/myorg/admin/widelySharedArtifacts"
 _ENDPOINTS = {
     "linksSharedToWholeOrganization": "widelysharedlinks_organization.json",
     "publishedToWeb": "widelysharedlinks_publishedtoweb.json",
@@ -34,7 +33,7 @@ async def main(context=None):
     for endpoint, file_name in _ENDPOINTS.items():
         entities = await fetch_all_pages(
             context,
-            f"{_BASE_URL}/{endpoint}",
+            context.get_powerbi_url(f"admin/widelySharedArtifacts/{endpoint}"),
             headers,
             "artifactAccessEntities",
             f"WidelySharedLinks ({endpoint})",

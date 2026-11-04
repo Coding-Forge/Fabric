@@ -58,6 +58,13 @@ def is_audience_group(display_name: str | None, prefixes: list[str]) -> bool:
     )
 
 
+def _split_ids(value) -> set[str]:
+    if not value:
+        return set()
+    values = value if isinstance(value, (list, tuple, set)) else str(value).split(",")
+    return {str(item).strip().lower() for item in values if str(item).strip()}
+
+
 def _failed(result: Any) -> bool:
     """Return True for empty responses and error dictionaries."""
     return not result or "ERROR" in result
@@ -113,8 +120,8 @@ async def _group_members(
     group: dict[str, Any],
     semaphore: asyncio.Semaphore,
 ) -> tuple[dict[str, Any], list[Any] | None]:
-    """Fetch the user members of one group; the member list is None when the call failed."""
-    url = f"{graph_url}/groups/{group['id']}/members/microsoft.graph.user?$select={MEMBER_SELECT}&$top={PAGE_SIZE}"
+    """Fetch transitive user members; the member list is None when the call failed."""
+    url = f"{graph_url}/groups/{group['id']}/transitiveMembers/microsoft.graph.user?$select={MEMBER_SELECT}&$top={PAGE_SIZE}"
     async with semaphore:
         members, error = await fetch_all(context, url, headers)
     if members is None:
@@ -162,6 +169,7 @@ async def main(context=None):
     )
     extract_groups = bool(context.GraphExtractGroups)
     graph_url = context.clients["graph"].get_api_root()
+    audience_ids = _split_ids(context.PowerBIAudienceGroupIds)
 
     graph_calls = [
         (
@@ -198,8 +206,9 @@ async def main(context=None):
             info = [
                 {
                     **g,
-                    "isPowerBIAudienceGroup": is_audience_group(
-                        g.get("displayName"), prefixes
+                    "isPowerBIAudienceGroup": (
+                        str(g.get("id", "")).lower() in audience_ids if audience_ids
+                        else is_audience_group(g.get("displayName"), prefixes)
                     ),
                 }
                 if isinstance(g, dict)

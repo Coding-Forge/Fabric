@@ -1,0 +1,154 @@
+table _Measures
+	lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3000
+
+	measure 'Total Activities' = COUNTROWS(activity)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3001
+
+	measure 'Unique Users' = DISTINCTCOUNT(activity[UserId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3002
+
+	measure 'Distinct Workspaces' = DISTINCTCOUNT(activity[WorkspaceId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3003
+
+	measure 'Distinct Artifacts' = DISTINCTCOUNT(activity[ArtifactId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3004
+
+	measure 'Successful Activities' = CALCULATE([Total Activities], activity[IsSuccess] = TRUE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3005
+
+	measure 'Failed Activities' = CALCULATE([Total Activities], activity[IsSuccess] = FALSE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3006
+
+	measure 'Success Rate' = DIVIDE([Successful Activities], [Total Activities])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3007
+
+	measure 'Refresh Activities' = CALCULATE([Total Activities], FILTER(activity, CONTAINSSTRING(LOWER(activity[Activity]), "refresh") || NOT ISBLANK(activity[RefreshType])))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3008
+
+	measure 'Activities Last 24 Hours' = CALCULATE([Total Activities], FILTER(activity, activity[CreationTime] >= NOW() - 1))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3009
+
+	measure 'Activities Last 7 Days' = CALCULATE([Total Activities], FILTER(activity, activity[CreationTime] >= NOW() - 7))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3010
+
+	measure 'Activities Last 30 Days' = CALCULATE([Total Activities], FILTER(activity, activity[CreationTime] >= NOW() - 30))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3011
+
+	measure 'Avg Activities per User' = DIVIDE([Total Activities], [Unique Users])
+		formatString: #,0.0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3012
+
+	measure 'Last Activity Time' = MAX(activity[CreationTime])
+		formatString: General Date
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3013
+
+	measure 'Unique Client IPs' = DISTINCTCOUNT(activity[ClientIP])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3014
+
+	measure 'Dataset Activities' = CALCULATE([Total Activities], FILTER(activity, NOT ISBLANK(activity[DatasetId]) || NOT ISBLANK(activity[DatasetName])))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3015
+
+	measure 'Capacity Activities' = CALCULATE([Total Activities], FILTER(activity, NOT ISBLANK(activity[CapacityId]) || NOT ISBLANK(activity[CapacityName])))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3016
+
+	measure 'Total Directory Users' = DISTINCTCOUNT(UserLicenseActivity[UserPrincipalName])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3017
+
+	measure 'Active Directory Users' = CALCULATE([Total Directory Users], UserLicenseActivity[HasActivity] = TRUE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3018
+
+	measure 'Inactive Directory Users' = CALCULATE([Total Directory Users], UserLicenseActivity[HasActivity] = FALSE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3019
+
+	measure 'Power BI Licensed Users' = CALCULATE([Total Directory Users], UserLicenseActivity[IsPowerBILicense] = TRUE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3020
+
+	measure 'Power BI Licensed Inactive Users' = CALCULATE([Total Directory Users], UserLicenseActivity[IsPowerBILicense] = TRUE(), UserLicenseActivity[HasActivity] = FALSE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3021
+
+	measure 'Audience Users' = DISTINCTCOUNT(AudienceUsage[UserPrincipalName])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3022
+
+	measure 'Audience Users With Activity' = CALCULATE([Audience Users], AudienceUsage[HasUsedPowerBI] = TRUE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3023
+
+	measure 'Audience Users Without Activity' = CALCULATE([Audience Users], AudienceUsage[HasUsedPowerBI] = FALSE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3024
+
+	measure 'Audience Usage Rate' = DIVIDE([Audience Users With Activity], [Audience Users])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3025
+
+	measure 'Catalog Workspaces' = DISTINCTCOUNT(CatalogWorkspaces[WorkspaceId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3026
+
+	measure 'Catalog Reports' = DISTINCTCOUNT(CatalogReports[ReportId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3027
+
+	measure 'Catalog Datasets' = DISTINCTCOUNT(CatalogDatasets[DatasetId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3028
+
+	measure 'Catalog Semantic Tables' = COUNTROWS(CatalogDatasetTables)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3029
+
+	measure 'Catalog Columns' = COUNTROWS(CatalogDatasetColumns)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3030
+
+	measure 'Catalog RLS Roles' = COUNTROWS(CatalogDatasetRoles)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3031
+
+	measure 'Catalog RLS Members' = COUNTROWS(CatalogDatasetRoleMembers)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3032
+
+	measure 'Datasets With RLS Roles' = CALCULATE([Catalog Datasets], CatalogDatasets[RoleCount] > 0)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3033
+
+	measure 'Reports With Sensitivity Label' = CALCULATE([Catalog Reports], NOT ISBLANK(CatalogReports[SensitivityLabelId]))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3034
+
+	measure 'Datasets With Sensitivity Label' = CALCULATE([Catalog Datasets], NOT ISBLANK(CatalogDatasets[SensitivityLabelId]))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3035
+
+	column Value
+		lineageTag: 88d94c62-827b-412f-a506-6a3deaf6f3b5
+		isNameInferred
+		sourceColumn: [Value]
+
+	partition _Measures = calculated
+		mode: import
+		source = ROW("Value", 0)
+
+	annotation PBI_ResultType = Table
+

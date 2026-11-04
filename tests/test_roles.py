@@ -44,6 +44,19 @@ class RolesTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(ctx.fm.save.await_args.kwargs["content"], [{"id": "g1"}])
         self.sleep.assert_not_awaited()
 
+    async def test_fabric_inventory_and_powerbi_roles_use_separate_audiences(self):
+        invoke = AsyncMock(side_effect=[
+            {"workspaces": [{"id": "workspace"}]}, {"value": []},
+        ])
+        ctx = make_context(invoke=invoke)
+        await roles.main(ctx)
+        self.assertEqual(
+            invoke.await_args_list[0].kwargs["headers"], ctx.clients["tenant"].get_headers.return_value
+        )
+        self.assertEqual(
+            invoke.await_args_list[1].kwargs["headers"], ctx.clients["pbi"].get_headers.return_value
+        )
+
     async def test_group_pages_use_skip_steps_of_5000(self):
         ids = [{"id": str(i)} for i in range(5001)]
         urls = []

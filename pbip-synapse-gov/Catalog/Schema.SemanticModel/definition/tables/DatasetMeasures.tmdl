@@ -1,0 +1,78 @@
+table DatasetMeasures
+	lineageTag: 029df086-7182-4b6d-a6f5-f153e22db087
+
+	column DatasetTableKey
+		dataType: string
+		lineageTag: 701496b9-a0e8-4738-84fe-339162bafcaf
+		summarizeBy: none
+		sourceColumn: DatasetTableKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column MeasureKey
+		dataType: string
+		lineageTag: 8cd7514a-6979-479e-8fcd-0ff76056ef3d
+		summarizeBy: none
+		sourceColumn: MeasureKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column TableName
+		dataType: string
+		lineageTag: 36739c47-30a0-4354-b4fd-611e7491f4e4
+		summarizeBy: none
+		sourceColumn: TableName
+
+		annotation SummarizationSetBy = Automatic
+
+	column MeasureName
+		dataType: string
+		lineageTag: e3703474-7e3a-4001-8838-db68f44e3eb1
+		summarizeBy: none
+		sourceColumn: MeasureName
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsHidden
+		dataType: string
+		lineageTag: f626d847-b433-4747-81e6-eb9ae224df17
+		summarizeBy: none
+		sourceColumn: IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Expression
+		dataType: string
+		lineageTag: db6beafd-2aed-4013-bc06-6622f1a60f16
+		summarizeBy: none
+		sourceColumn: Expression
+
+		annotation SummarizationSetBy = Automatic
+
+	partition DatasetMeasures = m
+		mode: import
+		source =
+				let
+				    Source = Base,
+				    #"Selected Workspace Columns" = Table.SelectColumns(Source, {"id", "name", "datasets"}),
+				    #"Renamed Workspace Columns" = Table.RenameColumns(#"Selected Workspace Columns", {{"id", "WorkspaceId"}, {"name", "WorkspaceName"}}),
+				    #"Expanded datasets" = Table.ExpandListColumn(#"Renamed Workspace Columns", "datasets"),
+				    #"Filtered datasets" = Table.SelectRows(#"Expanded datasets", each [datasets] <> null),
+				    #"Expanded dataset records" = Table.ExpandRecordColumn(#"Filtered datasets", "datasets", {"id", "name", "tables"}, {"DatasetId", "DatasetName", "tables"}),
+				    #"Expanded tables" = Table.ExpandListColumn(#"Expanded dataset records", "tables"),
+				    #"Filtered tables" = Table.SelectRows(#"Expanded tables", each [tables] <> null),
+				    #"Expanded table records" = Table.ExpandRecordColumn(#"Filtered tables", "tables", {"name", "measures"}, {"TableName", "measures"}),
+				    #"Added DatasetTableKey" = Table.AddColumn(#"Expanded table records", "DatasetTableKey", each Text.Combine(List.Transform({[DatasetId], [TableName]}, each if _ = null then "" else Text.From(_)), "|"), type text),
+				    #"Expanded measures" = Table.ExpandListColumn(#"Added DatasetTableKey", "measures"),
+				    #"Filtered measures" = Table.SelectRows(#"Expanded measures", each [measures] <> null),
+				    #"Expanded measure records" = Table.ExpandRecordColumn(#"Filtered measures", "measures", {"name", "isHidden", "expression"}, {"MeasureName", "IsHidden", "Expression"}),
+				    #"Added MeasureKey" = Table.AddColumn(#"Expanded measure records", "MeasureKey", each Text.Combine(List.Transform({[DatasetTableKey], [MeasureName]}, each if _ = null then "" else Text.From(_)), "|"), type text),
+				    #"Reordered Columns" = Table.ReorderColumns(#"Added MeasureKey", {"WorkspaceId", "WorkspaceName", "DatasetId", "DatasetName", "DatasetTableKey", "MeasureKey", "TableName", "MeasureName", "IsHidden", "Expression"}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Reordered Columns",{"WorkspaceId", "WorkspaceName", "DatasetId", "DatasetName"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -1,6 +1,8 @@
-import logging
-import azure.functions as func
 import asyncio
+import logging
+
+import azure.functions as func
+
 from app.monitor import main as Monitor
 
 app = func.FunctionApp()

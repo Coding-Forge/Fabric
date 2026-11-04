@@ -1,0 +1,72 @@
+table Dataflows
+	lineageTag: b924045d-f73c-43ad-82c3-11ce62d86db5
+
+	column WorkspaceId
+		dataType: string
+		lineageTag: afc458d7-d40c-46d6-8959-558bf051e313
+		summarizeBy: none
+		sourceColumn: WorkspaceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceName
+		dataType: string
+		lineageTag: de2ad9dc-8cd7-44cb-a7ea-5d52b79da75f
+		summarizeBy: none
+		sourceColumn: WorkspaceName
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataflowId
+		dataType: string
+		lineageTag: 194b79f4-e46a-4da1-9ee5-688a2d281fe9
+		summarizeBy: none
+		sourceColumn: DataflowId
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataflowName
+		dataType: string
+		lineageTag: 7a207299-0185-43b5-b245-c4eff3aa7d49
+		summarizeBy: none
+		sourceColumn: DataflowName
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 99f120c9-72cc-4a7f-954b-d25adde2224d
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	column ConfiguredBy
+		dataType: string
+		lineageTag: f934e251-6621-4953-b760-4207ffbe0c4d
+		summarizeBy: none
+		sourceColumn: ConfiguredBy
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dataflows = m
+		mode: import
+		source =
+				let
+				    Source = Base,
+				    #"Selected Workspace Columns" = Table.SelectColumns(Source, {"id", "name", "dataflows"}),
+				    #"Renamed Workspace Columns" = Table.RenameColumns(#"Selected Workspace Columns", {{"id", "WorkspaceId"}, {"name", "WorkspaceName"}}),
+				    #"Expanded dataflows" = Table.ExpandListColumn(#"Renamed Workspace Columns", "dataflows"),
+				    #"Filtered dataflows" = Table.SelectRows(#"Expanded dataflows", each [dataflows] <> null),
+				    #"Added DataflowId" = Table.AddColumn(#"Filtered dataflows", "DataflowId", each if Value.Is([dataflows], type record) then Record.FieldOrDefault([dataflows], "objectId", Record.FieldOrDefault([dataflows], "id", null)) else null, type text),
+				    #"Added DataflowName" = Table.AddColumn(#"Added DataflowId", "DataflowName", each if Value.Is([dataflows], type record) then Record.FieldOrDefault([dataflows], "name", Record.FieldOrDefault([dataflows], "displayName", null)) else null, type text),
+				    #"Added Description" = Table.AddColumn(#"Added DataflowName", "Description", each if Value.Is([dataflows], type record) then Record.FieldOrDefault([dataflows], "description", null) else null, type text),
+				    #"Added ConfiguredBy" = Table.AddColumn(#"Added Description", "ConfiguredBy", each if Value.Is([dataflows], type record) then Record.FieldOrDefault([dataflows], "configuredBy", null) else null, type text),
+				    #"Removed Raw Column" = Table.RemoveColumns(#"Added ConfiguredBy", {"dataflows"})
+				in
+				    #"Removed Raw Column"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

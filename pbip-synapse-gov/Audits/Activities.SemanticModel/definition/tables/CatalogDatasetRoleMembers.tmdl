@@ -1,0 +1,82 @@
+table CatalogDatasetRoleMembers
+	lineageTag: 7a239dc4-1320-4a0c-864d-0889b7f65007
+
+	column WorkspaceId
+		dataType: string
+		lineageTag: 31fcab6a-f58b-4786-8f95-736ceb514d88
+		summarizeBy: none
+		sourceColumn: WorkspaceId
+
+	column DatasetId
+		dataType: string
+		lineageTag: b08108e0-f6f7-432f-937b-dd25d159e566
+		summarizeBy: none
+		sourceColumn: DatasetId
+
+	column DatasetName
+		dataType: string
+		lineageTag: 4cf80c56-b73d-42a1-9d06-85ca9d363c35
+		summarizeBy: none
+		sourceColumn: DatasetName
+
+	column RoleName
+		dataType: string
+		lineageTag: d25ad516-670a-41f7-92a9-05bd6f4e464e
+		summarizeBy: none
+		sourceColumn: RoleName
+
+	column MemberId
+		dataType: string
+		lineageTag: 7e64ab09-8c67-4c61-9a0e-78795e5b3ca8
+		summarizeBy: none
+		sourceColumn: MemberId
+
+	column MemberName
+		dataType: string
+		lineageTag: 2fe3358f-b81c-46fe-9253-213122917477
+		summarizeBy: none
+		sourceColumn: MemberName
+
+	column MemberType
+		dataType: string
+		lineageTag: add0af62-4b2e-4f56-841e-8acebd8b404b
+		summarizeBy: none
+		sourceColumn: MemberType
+
+	column IdentityProvider
+		dataType: string
+		lineageTag: af85053b-e707-4e26-81e2-49adef9dbf1b
+		summarizeBy: none
+		sourceColumn: IdentityProvider
+
+	partition CatalogDatasetRoleMembers = m
+		mode: import
+		source =
+				let
+				    CatalogScan = #"Latest Catalog Scan",
+				    Empty = #table(type table [WorkspaceId = text, DatasetId = text, DatasetName = text, RoleName = text, MemberId = text, MemberName = text, MemberType = text, IdentityProvider = text], {}),
+				    Output = if CatalogScan = null then Empty else
+				        let
+				            Json = CatalogScan,
+				            Workspaces = try Json[workspaces] otherwise {},
+				            WorkspaceRows = Table.FromList(Workspaces, Splitter.SplitByNothing(), {"Workspace"}),
+				            WorkspaceExpanded = Table.ExpandRecordColumn(Table.TransformColumns(WorkspaceRows, {{"Workspace", each Record.SelectFields(_, {"id", "datasets"}, MissingField.UseNull), type record}}), "Workspace", {"id", "datasets"}, {"WorkspaceId", "datasets"}),
+				            WithDatasets = Table.SelectRows(WorkspaceExpanded, each [datasets] <> null and List.Count([datasets]) > 0),
+				            DatasetList = if Table.RowCount(WithDatasets) = 0 then Empty else Table.ExpandListColumn(WithDatasets, "datasets"),
+				            DatasetExpanded = if Table.RowCount(WithDatasets) = 0 then Empty else Table.ExpandRecordColumn(Table.TransformColumns(DatasetList, {{"datasets", each Record.SelectFields(_, {"id", "name", "roles"}, MissingField.UseNull), type record}}), "datasets", {"id", "name", "roles"}, {"DatasetId", "DatasetName", "roles"}),
+				            WithRoles = if Table.RowCount(WithDatasets) = 0 then Empty else Table.SelectRows(DatasetExpanded, each [roles] <> null and List.Count([roles]) > 0),
+				            RoleList = if Table.RowCount(WithDatasets) = 0 or Table.RowCount(WithRoles) = 0 then Empty else Table.ExpandListColumn(WithRoles, "roles"),
+				            RoleExpanded = if Table.RowCount(WithDatasets) = 0 or Table.RowCount(WithRoles) = 0 then Empty else Table.ExpandRecordColumn(Table.TransformColumns(RoleList, {{"roles", each Record.SelectFields(_, {"name", "members"}, MissingField.UseNull), type record}}), "roles", {"name", "members"}, {"RoleName", "members"}),
+				            WithMembers = if Table.RowCount(WithDatasets) = 0 or Table.RowCount(WithRoles) = 0 then Empty else Table.SelectRows(RoleExpanded, each [members] <> null and List.Count([members]) > 0),
+				            MemberList = if Table.RowCount(WithDatasets) = 0 or Table.RowCount(WithRoles) = 0 or Table.RowCount(WithMembers) = 0 then Empty else Table.ExpandListColumn(WithMembers, "members"),
+				            MemberExpanded = if Table.RowCount(WithDatasets) = 0 or Table.RowCount(WithRoles) = 0 or Table.RowCount(WithMembers) = 0 then Empty else Table.ExpandRecordColumn(Table.TransformColumns(MemberList, {{"members", each Record.SelectFields(_, {"memberId", "memberName", "memberType", "identityProvider"}, MissingField.UseNull), type record}}), "members", {"memberId", "memberName", "memberType", "identityProvider"}, {"MemberId", "MemberName", "MemberType", "IdentityProvider"}),
+				            Changed = if Table.RowCount(WithDatasets) = 0 or Table.RowCount(WithRoles) = 0 or Table.RowCount(WithMembers) = 0 then Empty else Table.TransformColumnTypes(MemberExpanded, {{"WorkspaceId", type text}, {"DatasetId", type text}, {"DatasetName", type text}, {"RoleName", type text}, {"MemberId", type text}, {"MemberName", type text}, {"MemberType", type text}, {"IdentityProvider", type text}})
+				        in
+				            Changed
+				in
+				    Output
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

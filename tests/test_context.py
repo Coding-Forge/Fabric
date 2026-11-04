@@ -117,6 +117,22 @@ class _FakeSession:
 
 
 class InvokeApiErrorTests(unittest.IsolatedAsyncioTestCase):
+    async def test_relative_request_uses_sovereign_root(self):
+        for cloud, host in (
+            ("Gcc", "api.powerbigov.us"),
+            ("GccHigh", "api.high.powerbigov.us"),
+            ("Dod", "api.mil.powerbigov.us"),
+        ):
+            with self.subTest(cloud=cloud):
+                ctx = Context()
+                ctx.set_ServicePrincipal("client", "test-secret", "tenant", cloud)
+                session = _FakeSession(_FakeResponse(200, json_body={"value": []}))
+                with patch.object(ctx_mod.aiohttp, "ClientSession", return_value=session):
+                    await ctx.invokeAPI("admin/groups", headers={"test": "headers"})
+                self.assertEqual(
+                    session.calls[0][1][0], f"https://{host}/v1.0/myorg/admin/groups"
+                )
+
     def setUp(self):
         # retryable statuses (429/503/504) back off via asyncio.sleep; keep tests instant
         self.sleep = AsyncMock()

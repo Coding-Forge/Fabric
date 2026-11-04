@@ -1,0 +1,40 @@
+expression MonitorStorageAccountName = "<storage-account-name>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000001
+
+annotation PBI_ResultType = Text
+
+expression MonitorStorageContainerName = "<container-name>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000002
+
+annotation PBI_ResultType = Text
+
+expression MonitorStorageRootPath = "fabric-monitor" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000003
+
+annotation PBI_ResultType = Text
+
+expression MonitorDfsEndpointSuffix = "core.usgovcloudapi.net" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+lineageTag: 10000000-0000-4000-8000-000000000004
+
+annotation PBI_ResultType = Text
+
+expression 'Monitor ADLS Files' =
+let
+    Source = (relativePath as text) as table =>
+        let
+            AccountName = MonitorStorageAccountName,
+            ContainerName = MonitorStorageContainerName,
+            RootPath = Text.Trim(Text.From(MonitorStorageRootPath), "/"),
+            Relative = Text.Trim(Text.From(relativePath), "/"),
+            BaseUrl = "https://" & AccountName & ".dfs." & MonitorDfsEndpointSuffix,
+            AllFiles = AzureStorage.DataLake(BaseUrl),
+            PathParts = List.Select({ContainerName, RootPath, Relative}, each _ <> null and Text.From(_) <> ""),
+            PathNeedle = "/" & Text.Combine(List.Transform(PathParts, each Text.From(_)), "/") & "/",
+            Filtered = Table.SelectRows(AllFiles, each Text.Contains(Text.Replace([Folder Path], "\\", "/"), PathNeedle) and [Attributes]?[Hidden]? <> true)
+        in
+            Filtered
+in
+    Source
+lineageTag: 10000000-0000-4000-8000-000000000005
+
+annotation PBI_ResultType = Function

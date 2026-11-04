@@ -31,7 +31,10 @@ class Client:
 
         sp = self._context.get_ServicePrincipal() or {}
         try:
-            key = (sp["TenantId"], sp["AppId"], sp["AppSecret"])
+            key = (
+                sp["TenantId"], sp["AppId"], sp["AppSecret"],
+                self._context.cloud.authority_host,
+            )
         except KeyError as ex:
             raise RuntimeError(f"Service principal is missing {ex}") from ex
 
@@ -40,7 +43,7 @@ class Client:
                 self._app = msal.ConfidentialClientApplication(
                     client_id=key[1],
                     client_credential=key[2],
-                    authority=f"https://login.microsoftonline.com/{key[0]}",
+                    authority=f"{key[3]}/{key[0]}",
                 )
                 self._app_key = key
             return self._app
@@ -58,7 +61,7 @@ class Client:
 
         # This needs to stay as a list
         scopes = [self.scope]
-        
+
         # Acquire a token using client credentials
         try:
             result = app.acquire_token_for_client(scopes=scopes)
@@ -79,6 +82,8 @@ class Client:
 
                 else:
                     message = result.get("error_description", "Authentication failed.")
+                    if "AADSTS7000215" in message:
+                        message += " Use the client secret VALUE, not the secret ID."
                     self._context.logger.error(f"Token acquisition failed for {self.scope}: {message}")
                     raise RuntimeError(f"Token acquisition failed for {self.scope}: {message}")
 

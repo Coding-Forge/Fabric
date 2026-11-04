@@ -50,7 +50,7 @@ class AuditRunTests(unittest.IsolatedAsyncioTestCase):
         for p in ps:
             p.start()
         try:
-            await a.run()
+            return await a.run()
         finally:
             for p in ps:
                 p.stop()
@@ -68,13 +68,38 @@ class AuditRunTests(unittest.IsolatedAsyncioTestCase):
         returns_false = _module("Gateway", False)  # explicit failure
         raises = _module("Tenant", exc=RuntimeError("boom"))
         a = self._audit(["Activity", "Apps", "Gateway", "Tenant"], state)
-        await self._run(a, Activity=ok, Apps=returns_none, Gateway=returns_false, Tenant=raises)
+        result = await self._run(a, Activity=ok, Apps=returns_none, Gateway=returns_false, Tenant=raises)
 
+        self.assertIs(result, False)
         saved = self._saved(a)
         self.assertNotEqual(saved["activity"]["lastRun"], old)
         self.assertNotEqual(saved["apps"]["lastRun"], old)
         self.assertEqual(saved["gateway"]["lastRun"], old)
         self.assertEqual(saved["tenant"]["lastRun"], old)
+
+    async def test_government_skips_fabric_collectors_without_authentication(self):
+        old = _ts(3)
+        fabric_modules = [
+            "FabricItemDefinitions", "FabricItemAccessPermissions", "FabricItemJobHistory",
+            "FabricConnections", "FabricDeploymentPipelineOperations", "GitConnections",
+            "Tags", "DelegatedSettings", "Domains", "FabricItems", "Tenant", "Roles", "Workspaces",
+        ]
+        for cloud in ("Gcc", "GccHigh", "Dod"):
+            with self.subTest(cloud=cloud):
+                modules = {
+                    name: _module(name) for name in ["Activity", "WidelySharedLinks", *fabric_modules]
+                }
+                state = {name.lower(): {"lastRun": old} for name in modules}
+                a = self._audit(list(modules), state)
+                a.set_ServicePrincipal("tenant", "client", "test-secret", environment=cloud)
+                self.assertIs(await self._run(a, **modules), True)
+                self.assertNotIn("tenant", a.context.clients)
+                a.context.clients["pbi"].get_headers.assert_not_called()
+                for name in fabric_modules:
+                    self.assertEqual(modules[name].calls, 0)
+                    self.assertEqual(state[name.lower()]["lastRun"], old)
+                self.assertEqual(modules["Activity"].calls, 1)
+                self.assertEqual(modules["WidelySharedLinks"].calls, 1)
 
     async def test_exception_in_one_module_does_not_stop_others(self):
         old = _ts(2)

@@ -1,17 +1,19 @@
 """Read semantics: None only when the file is not found, otherwise errors propagate."""
 import unittest
 from types import SimpleNamespace
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, mock_open, patch
 
 from azure.core.exceptions import ResourceNotFoundError
 
 from env.utility.fabric import File_Table_Management
 from env.utility.file_management import File_Management
+from env.context import Context
+from env.utility import fabric
 
 
 def _ctx(**kw):
     base = dict(StorageAccountContainerName=None, StorageAccountContainerRootPath=None, OutputPath=None,
-                LakehouseName=None, PathInLakehouse="p", logger=MagicMock())
+                LakehouseName=None, PathInLakehouse="p", on_fabric=False, logger=MagicMock())
     base.update(kw)
     return SimpleNamespace(**base)
 
@@ -23,8 +25,23 @@ def _fm(ctx):
 
 
 class FabricReadTests(unittest.IsolatedAsyncioTestCase):
+    async def test_mounted_lakehouse_reads_without_remote_credentials(self):
+        ftm = File_Table_Management()
+        context = Context()
+        context.on_fabric = True
+        with patch.object(fabric, "ClientSecretCredential") as credential, patch(
+            "env.utility.fabric.open", mock_open(read_data=b"state"), create=True
+        ) as open_file:
+            ftm.set_context(context)
+            result = await ftm.read("/lakehouse/default/Files/stage", "state.yaml")
+        self.assertEqual(result, b"state")
+        self.assertIsNone(ftm.fsc)
+        credential.assert_not_called()
+        open_file.assert_called_once_with("/lakehouse/default/Files/stage/state.yaml", "rb")
+
     def _ftm(self, download):
         ftm = File_Table_Management()
+        ftm.context = SimpleNamespace(on_fabric=False)
         ftm.fsc = MagicMock()
         file_client = ftm.fsc.get_directory_client.return_value.get_file_client.return_value
         file_client.download_file = download

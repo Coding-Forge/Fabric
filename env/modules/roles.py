@@ -41,11 +41,13 @@ async def main(context=None):
         raise RuntimeError("Context is None")
 
 
-    headers =  context.clients['pbi'].get_headers()
+    headers = context.clients["tenant"].get_headers()
+    powerbi_headers = context.clients["pbi"].get_headers()
 
 
     items = set()
-    next_url = WORKSPACES_URL
+    workspaces_url = context.get_fabric_url("v1/admin/workspaces")
+    next_url = workspaces_url
     while next_url:
         results = await _get_with_retry(context, next_url, headers)
 
@@ -53,7 +55,7 @@ async def main(context=None):
             items.add(item["id"])
 
         continuationToken = results.get("continuationToken")
-        next_url = f"{WORKSPACES_URL}?continuationToken={quote(continuationToken)}" if continuationToken else None
+        next_url = f"{workspaces_url}?continuationToken={quote(continuationToken)}" if continuationToken else None
 
     ceiling = len(items)
     cnt = 0
@@ -62,11 +64,11 @@ async def main(context=None):
 
     all_groups = []
     for i in range(0, ceiling, 5000):
-        results = await _get_with_retry(context, f'{base_url}&$skip={i}', headers)
+        results = await _get_with_retry(context, f'{base_url}&$skip={i}', powerbi_headers)
         all_groups.extend(results.get('value', []))
     print(f'Total groups retrieved: {len(all_groups)}')
-    
-    
+
+
     pivotDate = utc_now()
     content = all_groups
     index = str(cnt).zfill(5)

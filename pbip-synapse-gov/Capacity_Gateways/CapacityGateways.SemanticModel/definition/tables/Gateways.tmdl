@@ -1,0 +1,73 @@
+table Gateways
+	lineageTag: db58f14e-4c6c-4edb-94fd-576027936b86
+
+	column GatewayId
+		dataType: string
+		lineageTag: aaa9d2bf-571c-4f1e-923b-8392f54b4b1c
+		summarizeBy: none
+		sourceColumn: GatewayId
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayName
+		dataType: string
+		lineageTag: 19083b5d-bd28-4298-8a06-666f6e644000
+		summarizeBy: none
+		sourceColumn: GatewayName
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayType
+		dataType: string
+		lineageTag: 15a4839e-7724-419f-b110-820a9b45afea
+		summarizeBy: none
+		sourceColumn: GatewayType
+
+		annotation SummarizationSetBy = Automatic
+
+	column GatewayStatus
+		dataType: string
+		lineageTag: bd6271eb-2398-4635-8c4f-4decbcb36e30
+		summarizeBy: none
+		sourceColumn: GatewayStatus
+
+		annotation SummarizationSetBy = Automatic
+
+	column SnapshotDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 9fd585ed-3974-4bad-aab7-03c77459ad82
+		summarizeBy: none
+		sourceColumn: SnapshotDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Gateways = m
+		mode: import
+		source =
+				let
+								GetSnapshotDate = (folderPath as text) as nullable date =>
+									let
+										parts = List.Select(Text.Split(folderPath, "\"), each _ <> ""),
+										count = List.Count(parts),
+										parsed = try #date(Number.FromText(parts{count - 3}), Number.FromText(parts{count - 2}), Number.FromText(parts{count - 1})) otherwise null
+									in
+										parsed,
+								Source = #"Monitor ADLS Files"("gateways"),
+								Filtered = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true and Text.Lower([Name]) = "gateways.json"),
+								Rows = List.Combine(List.Transform(Table.ToRecords(Filtered), (file) => let parsed = try Json.Document(file[Content]) otherwise {}, items = if Value.Is(parsed, type list) then parsed else if Value.Is(parsed, type record) then {parsed} else {}, snapshot = GetSnapshotDate(file[Folder Path]), records = List.Transform(items, each Record.AddField(_, "SnapshotDate", snapshot)) in records)),
+								Table0 = if List.Count(Rows) = 0 then #table(type table [GatewayId=nullable text, GatewayName=nullable text, GatewayType=nullable text, GatewayStatus=nullable text, SnapshotDate=nullable date], {}) else Table.FromRecords(Rows, type table [id=nullable text, name=nullable text, type=nullable text, status=nullable text, SnapshotDate=nullable date], MissingField.UseNull),
+								Renamed = Table.RenameColumns(Table0, {{"id", "GatewayId"}, {"name", "GatewayName"}, {"type", "GatewayType"}, {"status", "GatewayStatus"}}, MissingField.Ignore),
+								Selected = Table.SelectColumns(Renamed, {"GatewayId", "GatewayName", "GatewayType", "GatewayStatus", "SnapshotDate"}, MissingField.UseNull),
+								Sorted = Table.Sort(Selected, {{"SnapshotDate", Order.Descending}}),
+								Buffered = Table.Buffer(Sorted),
+								Deduped = Table.Distinct(Buffered, {"GatewayId"})
+				in
+								Deduped
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

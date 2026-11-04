@@ -36,6 +36,12 @@ from env.modules import (
 from env.utility.file_management import File_Management
 
 content = None
+FABRIC_ONLY_MODULES = frozenset({
+    "Domains", "FabricItems", "Tenant", "Roles", "Workspaces",
+    "GitConnections", "Tags", "DelegatedSettings", "FabricConnections",
+    "FabricDeploymentPipelineOperations", "FabricItemAccessPermissions",
+    "FabricItemJobHistory", "FabricItemDefinitions",
+})
 
 # Retain only names, resolving globals at dispatch time for runtime injection.
 _MODULES = frozenset(
@@ -98,7 +104,10 @@ class Audits:
     def __setup_clients(self):
         self.context.clients["pbi"] = PbiClient(self.context)
         self.context.clients["graph"] = GraphClient(self.context)
-        self.context.clients["tenant"] = TenantClient(self.context)
+        if self.context.cloud.supports_fabric_api:
+            self.context.clients["tenant"] = TenantClient(self.context)
+        else:
+            self.context.clients.pop("tenant", None)
 
     def set_logging_config(self, log_level, log_file):
         self.context.set_log_config(log_level, log_file)
@@ -142,7 +151,7 @@ class Audits:
                 exc_info=e,
             )
             print(f"Error: {e}")
-            return
+            return False
 
         # The context shares this same dict, so modules can persist extra keys
         # (for example catalog.lastFullScan) that are saved with the final state.
@@ -151,6 +160,14 @@ class Audits:
         # get the modules selected in the configuration for the application
         # modules = settings.get("ApplicationModules").replace(" ","").split(",")
         modules = self.context.ApplicationModules.replace(" ", "").split(",")
+        if not self.context.cloud.supports_fabric_api:
+            skipped = [module for module in modules if module in FABRIC_ONLY_MODULES]
+            if skipped:
+                self.context.logger.warning(
+                    "Skipping Fabric REST modules for %s: %s",
+                    self.context.cloud.name, ", ".join(skipped),
+                )
+            modules = [module for module in modules if module not in FABRIC_ONLY_MODULES]
 
         run_jobs = []
 
@@ -205,7 +222,7 @@ class Audits:
             self.context.logger.error(f"Error check globals: {e}")
 
             print(f"Error check globals: {e}")
-            return
+            return False
 
         def remove_carriage_returns(string):
             return re.sub(r"\r", "", string.strip())
@@ -265,6 +282,8 @@ class Audits:
         except Exception as e:
             self.context.logger.error("Error saving state.yaml file: %s", e, exc_info=e)
             print(f"fm Error: {e}")
+            return False
+        return all(outcomes.get(job, False) for job in run_jobs)
 
     @staticmethod
     def _default_last_run() -> str:
@@ -347,7 +366,10 @@ class Audits:
         self.context.set_OutputPath(OutputPath)
 
     def set_CatlogGetModifiedParameters(self, CatalogGetModifiedParameters):
-        self.context.set_CatlogGetModifiedParameters(CatalogGetModifiedParameters)
+        self.set_CatalogGetModifiedParameters(CatalogGetModifiedParameters)
+
+    def set_CatalogGetModifiedParameters(self, CatalogGetModifiedParameters):
+        self.context.set_CatalogGetModifiedParameters(CatalogGetModifiedParameters)
 
     def set_capacity_metrics_dataset_id(self, capacity_metrics_dataset_id):
         self.context.set_capacity_metrics_dataset_id(capacity_metrics_dataset_id)
@@ -355,12 +377,12 @@ class Audits:
     def set_CatalogGetInfoParameters(self, CatalogGetInfoParameters):
         self.context.set_CatalogGetInfoParameters(CatalogGetInfoParameters)
 
-    def set_ServicePrincipal(self, tenant_id, client_id, client_secret):
+    def set_ServicePrincipal(self, tenant_id, client_id, client_secret, environment="Commercial"):
         self.context.set_ServicePrincipal(
             TenantId=tenant_id,
             AppId=client_id,
             AppSecret=client_secret,
-            Environment="Public",
+            Environment=environment,
         )
 
     def set_LakehouseName(self, LakehouseName):
@@ -448,6 +470,15 @@ class Audits:
 
     def exclude_inactivate_workspaces(self, exclude_personal_workspaces):
         self.context.set_exclude_inactive_workspaces(exclude_personal_workspaces)
+
+    def exclude_inactive_workspaces(self, exclude_inactive_workspaces):
+        self.context.set_exclude_inactive_workspaces(exclude_inactive_workspaces)
+
+    def set_GraphExtractGroups(self, GraphExtractGroups):
+        self.context.set_GraphExtractGroups(GraphExtractGroups)
+
+    def set_PowerBIAudienceGroupIds(self, PowerBIAudienceGroupIds):
+        self.context.set_PowerBIAudienceGroupIds(PowerBIAudienceGroupIds)
 
     def set_ImpersonatedUserName(self, impersonatedUserName):
         self.context.set_ImpersonatedUserName(impersonatedUserName)

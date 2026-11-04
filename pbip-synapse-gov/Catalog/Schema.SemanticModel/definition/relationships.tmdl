@@ -1,0 +1,67 @@
+relationship d5fe3a23-0ea3-702a-cc22-54b848846362
+	fromColumn: Tables.DatasetId
+	toColumn: Datasets.DatasetId
+
+relationship d5080000-b187-c413-dab8-f8bd6fa3f962
+	crossFilteringBehavior: bothDirections
+	fromCardinality: one
+	fromColumn: Datasets.DatasetId
+	toColumn: Reports.DatasetId
+
+relationship c9ad2430-6667-0d15-c191-fbf663e314ab
+	fromColumn: Datasets.WorkspaceId
+	toColumn: Workspaces.WorkspaceId
+
+relationship 780b65c0-b372-b255-708c-f63c7f8569a0
+	fromColumn: DatasetExpressions.DatasetId
+	toColumn: Datasets.DatasetId
+
+relationship a07e6db9-c8dd-32d9-fdaf-a46db263b30d
+	fromColumn: DatasetRefreshScheduleDays.DatasetId
+	toColumn: Datasets.DatasetId
+
+relationship c68a5df6-15bc-43a0-76e9-8d62bae32090
+	crossFilteringBehavior: bothDirections
+	fromCardinality: one
+	fromColumn: Datasets.DatasetId
+	toColumn: DatasetRefreshSchedules.DatasetId
+
+relationship 79f912cd-9d6d-f3de-3402-a7a4871aa578
+	crossFilteringBehavior: bothDirections
+	fromCardinality: one
+	fromColumn: Datasets.DatasetId
+	toColumn: DatasetRefreshScheduleTimes.DatasetId
+
+relationship aa573a1c-f755-9ed5-ac72-d1eaac2895e4
+	fromColumn: DatasetDatasourceUsages.DatasetId
+	toColumn: Datasets.DatasetId
+
+relationship bb23c5e3-d113-d309-153f-60193753f99f
+	fromColumn: DatasetDatasourceUsages.DatasourceInstanceId
+	toColumn: DatasourceInstances.DatasourceInstanceId
+
+relationship 064255d6-9725-5c8f-9a79-0544566b6d7e
+	crossFilteringBehavior: bothDirections
+	fromColumn: Dataflows.WorkspaceId
+	toColumn: Workspaces.WorkspaceId
+
+relationship 695f9367-e5bb-69d9-0611-913260a2ea90
+	crossFilteringBehavior: bothDirections
+	fromColumn: Dashboards.WorkspaceId
+	toColumn: Workspaces.WorkspaceId
+
+relationship a5ebc8c1-5bbb-187f-dccd-505f7331b591
+	crossFilteringBehavior: bothDirections
+	fromColumn: Columns.DatasetTableKey
+	toColumn: Tables.DatasetTableKey
+
+relationship 69ecaed5-051f-b480-d7f9-9d7d0a0cecad
+	crossFilteringBehavior: bothDirections
+	fromColumn: DatasetMeasures.DatasetTableKey
+	toColumn: Tables.DatasetTableKey
+
+relationship 3634691c-df60-54e0-da81-9426f1ed2ab5
+	crossFilteringBehavior: bothDirections
+	fromColumn: Datamarts.WorkspaceId
+	toColumn: Workspaces.WorkspaceId
+

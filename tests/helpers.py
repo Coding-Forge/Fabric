@@ -19,4 +19,7 @@ def make_context(state=None, invoke=None):
     pbi = MagicMock()
     pbi.get_headers.return_value = {"Authorization": "Bearer x"}
     ctx.clients = {"pbi": pbi}
+    tenant = MagicMock()
+    tenant.get_headers.return_value = {"Authorization": "tenant-test"}
+    ctx.clients["tenant"] = tenant
     return ctx

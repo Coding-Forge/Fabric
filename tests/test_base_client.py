@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 from env.clients import baseClient
 from env.clients.baseClient import Client
+from env.cloud import get_cloud_profile
 from tests.helpers import make_context
 
 SP = {"TenantId": "tenant-1", "AppId": "app-1", "AppSecret": "secret-1", "Environment": "Public"}
@@ -55,6 +56,18 @@ class BaseClientTests(unittest.TestCase):
         c.get_headers()
         self.assertEqual(self.app_cls.call_count, 2)
         self.assertEqual(self.app_cls.call_args.kwargs["client_credential"], "rotated")
+
+    def test_cloud_authority_change_invalidates_cached_app(self):
+        c, ctx = _client()
+        c.get_headers()
+        ctx.cloud = get_cloud_profile("GccHigh")
+        c.get_headers()
+        c.get_headers()
+        self.assertEqual(self.app_cls.call_count, 2)
+        self.assertEqual(
+            self.app_cls.call_args.kwargs["authority"],
+            "https://login.microsoftonline.us/tenant-1",
+        )
 
     def test_each_client_has_its_own_app(self):
         a, _ = _client()

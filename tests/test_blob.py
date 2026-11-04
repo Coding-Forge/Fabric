@@ -5,13 +5,42 @@ from unittest.mock import MagicMock, patch
 
 from env.utility import blob
 from env.utility.blob import Blob_File_Management
+from env.cloud import get_cloud_profile
+from env.context import Context
+from env.utility.file_management import File_Management
 
 
 def _context():
-    return SimpleNamespace(storage_url="https://acct.blob.test", StorageAccountContainerName="cont")
+    return SimpleNamespace(
+        storage_url="https://acct.blob.test", StorageAccountContainerName="cont",
+        StorageAccountConnStr=None, cloud=get_cloud_profile(None),
+    )
 
 
 class BlobFileManagementTests(unittest.IsolatedAsyncioTestCase):
+    async def test_connection_string_supports_strict_snapshot_write_and_read(self):
+        context = Context()
+        context.StorageAccountConnStr = "test-connection"
+        context.StorageAccountContainerName = "cont"
+        client = MagicMock()
+        client.download_blob.return_value.readall.return_value = b'{"items": []}'
+        with patch.object(blob, "DefaultAzureCredential") as credential, patch.object(
+            blob.BlobClient, "from_connection_string", return_value=client
+        ) as constructor:
+            fm = File_Management()
+            fm.content(context)
+            await fm.save_snapshot("collector", "state.json", {"items": []})
+            self.assertEqual(
+                await fm.read_snapshot("collector", "state.json"), {"items": []}
+            )
+        credential.assert_not_called()
+        self.assertEqual(constructor.call_count, 2)
+        constructor.assert_called_with(
+            conn_str="test-connection", container_name="cont",
+            blob_name="collector/state.json",
+        )
+        client.upload_blob.assert_called_once_with(b'{"items": []}', overwrite=True)
+
     def _bfm(self):
         with patch.object(blob, "DefaultAzureCredential") as cred:
             bfm = Blob_File_Management()
@@ -21,7 +50,7 @@ class BlobFileManagementTests(unittest.IsolatedAsyncioTestCase):
 
     def test_set_context_binds_context_and_default_credential(self):
         bfm = self._bfm()
-        self.cred.assert_called_once_with()
+        self.cred.assert_called_once_with(authority=bfm.context.cloud.azure_authority_host)
         self.assertEqual(bfm.context.storage_url, "https://acct.blob.test")
         self.assertIs(bfm.credentials, self.cred.return_value)
 

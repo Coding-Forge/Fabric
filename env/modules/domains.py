@@ -10,12 +10,12 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-    headers = context.clients["pbi"].get_headers()
+    headers = context.clients["tenant"].get_headers()
 
     # Use the current run date so a snapshot never lands in a prior day's folder.
     pivotDate = utc_now().replace(hour=0, minute=0, second=0, microsecond=0)
 
-    url = "https://api.fabric.microsoft.com/v1/admin/domains"
+    url = context.get_fabric_url("v1/admin/domains")
 
     response = await context.invokeAPI(url, headers=headers)
 
@@ -33,7 +33,7 @@ async def main(context=None):
         domainId = domain["id"]
 
         response = await context.invokeAPI(
-            f"https://api.fabric.microsoft.com/v1/admin/domains/{domainId}/workspaces",
+            context.get_fabric_url(f"v1/admin/domains/{domainId}/workspaces"),
             headers=headers,
         )
 

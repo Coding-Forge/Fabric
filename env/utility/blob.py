@@ -15,9 +15,18 @@ class Blob_File_Management:
         self.context = context
         # DefaultAzureCredential works both locally (via AZURE_CLIENT_ID / AZURE_CLIENT_SECRET /
         # AZURE_TENANT_ID env vars or `az login`) and in Azure (via Managed Identity).
-        self.credentials = DefaultAzureCredential()
+        self.credentials = (
+            None if context.StorageAccountConnStr
+            else DefaultAzureCredential(authority=context.cloud.azure_authority_host)
+        )
 
     def _get_client(self, blob_name: str) -> BlobClient:
+        if self.context.StorageAccountConnStr:
+            return BlobClient.from_connection_string(
+                conn_str=self.context.StorageAccountConnStr,
+                container_name=self.context.StorageAccountContainerName,
+                blob_name=blob_name,
+            )
         return BlobClient(
             account_url=self.context.storage_url,
             container_name=self.context.StorageAccountContainerName,
@@ -42,7 +51,7 @@ class Blob_File_Management:
     async def read_from_file(self, blob_name: str):
         try:
             blob_client = self._get_client(blob_name)
-            print(f"[BLOB READ] Using URL auth: {self.context.storage_url} | blob: {blob_name}")
+            print(f"[BLOB READ] Reading blob: {blob_name}")
             raw = await asyncio.to_thread(lambda: blob_client.download_blob().readall())
             print(f"[BLOB READ] Read {len(raw)} bytes from {blob_name}")
             return yaml.safe_load(raw)
@@ -52,4 +61,3 @@ class Blob_File_Management:
         except Exception as e:
             print(f"[BLOB READ] Failed to read {blob_name}: {type(e).__name__}: {e}")
             raise
-

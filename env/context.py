@@ -9,9 +9,11 @@ import sys
 from collections.abc import Awaitable, Callable, Coroutine
 from datetime import datetime, timezone
 from typing import Any
+from urllib.parse import urljoin
 
 import aiohttp
 
+from env.cloud import get_cloud_profile
 from env.utility import http_retry
 from env.utility.file_management import File_Management
 
@@ -171,6 +173,8 @@ async def _error_result(response: aiohttp.ClientResponse) -> dict[str, Any]:
 
 class Context:
     def __init__(self):
+        self.cloud = get_cloud_profile(None)
+        self.PowerBIAudienceGroupIds = None
         self.CatalogGetInfoParameters = "lineage=true&datasourceDetails=true&getArtifactUsers=true&datasetSchema=true&datasetExpressions=true"
         self.CatalogGetModifiedParameters = (
             "excludePersonalWorkspaces=false&excludeInActiveWorkspaces=true"
@@ -306,12 +310,23 @@ class Context:
         self.CatalogGetModifiedParameters = CatalogGetModifiedParameters
 
     def set_ServicePrincipal(self, AppId, AppSecret, TenantId, Environment):
+        self.cloud = get_cloud_profile(Environment)
         self.ServicePrincipal = {
             "AppId": AppId,
             "AppSecret": AppSecret,
             "TenantId": TenantId,
-            "Environment": Environment,
+            "Environment": self.cloud.name,
         }
+
+    def get_powerbi_url(self, rest_api: str) -> str:
+        return urljoin(self.cloud.powerbi_api_root, rest_api)
+
+    def get_fabric_url(self, rest_api: str) -> str:
+        if not self.cloud.supports_fabric_api:
+            raise RuntimeError(
+                f"Fabric REST APIs are not enabled for CLOUD_ENVIRONMENT={self.cloud.name}"
+            )
+        return urljoin(self.cloud.fabric_api_root, rest_api)
 
     def set_ImpersonatedUserName(self, impersonatedUserName):
         self.impersonatedUserName = impersonatedUserName
@@ -401,6 +416,12 @@ class Context:
 
     def set_ApplicationModules(self, ApplicationModules):
         self.ApplicationModules = ApplicationModules
+
+    def set_GraphExtractGroups(self, GraphExtractGroups):
+        self.GraphExtractGroups = GraphExtractGroups
+
+    def set_PowerBIAudienceGroupIds(self, PowerBIAudienceGroupIds):
+        self.PowerBIAudienceGroupIds = PowerBIAudienceGroupIds
 
     def get_ServicePrincipal(self):
         return self.ServicePrincipal
@@ -707,9 +728,7 @@ class Context:
         headers: dict
         body: dict
         """
-        api_root = "https://api.powerbi.com/v1.0/myorg/"
-
-        url = rest_api if rest_api.startswith("http") else api_root + rest_api
+        url = self.get_powerbi_url(rest_api)
 
         def _log(method, url, status, result=None):
             if result is None:
@@ -732,7 +751,7 @@ class Context:
                     connector=aiohttp.TCPConnector(**_CONNECTOR_KWARGS),
                     timeout=_TIMEOUT,
                 ) as session,
-                session.get(url=rest_api, headers=headers) as response,
+                session.get(url=url, headers=headers) as response,
             ):
                 if response.ok:
                     try:
@@ -812,8 +831,6 @@ class Context:
                         print(f"[API] GET {url} -> HTTP {response.status} | ERROR")
                         return await _error_result(response)
             else:
-                url = rest_api if rest_api.startswith("http") else api_root + rest_api
-
                 async with (
                     aiohttp.ClientSession(
                         connector=aiohttp.TCPConnector(**_CONNECTOR_KWARGS),

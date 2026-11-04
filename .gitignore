@@ -1,4 +1,5 @@
 .azure
+GeneralDynamics/
 config.json
 
 # Ignore all files in the root except the .gitignore file

@@ -1,0 +1,134 @@
+table CatalogWorkspaces
+	lineageTag: 2403fc67-9fc4-473d-b7c0-0d46d2eef19f
+
+	column WorkspaceId
+		dataType: string
+		lineageTag: f16850cc-5215-4029-9b48-866032ab056f
+		summarizeBy: none
+		sourceColumn: WorkspaceId
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceName
+		dataType: string
+		lineageTag: 6461981e-e7d0-4724-9e84-c0dc8755104e
+		summarizeBy: none
+		sourceColumn: WorkspaceName
+
+		annotation SummarizationSetBy = Automatic
+
+	column WorkspaceType
+		dataType: string
+		lineageTag: cdc75604-9a55-48b5-8b8c-92c4ccde8874
+		summarizeBy: none
+		sourceColumn: WorkspaceType
+
+		annotation SummarizationSetBy = Automatic
+
+	column State
+		dataType: string
+		lineageTag: 17d4ef26-c011-4af4-9d19-c5d401ec21fb
+		summarizeBy: none
+		sourceColumn: State
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsOnDedicatedCapacity
+		dataType: string
+		lineageTag: 980a0189-41fe-49fe-a231-00f4848487a1
+		summarizeBy: none
+		sourceColumn: IsOnDedicatedCapacity
+
+		annotation SummarizationSetBy = Automatic
+
+	column CapacityId
+		dataType: string
+		lineageTag: 6a0d9a6a-90c7-41ff-8e76-5577003a1cc1
+		summarizeBy: none
+		sourceColumn: CapacityId
+
+		annotation SummarizationSetBy = Automatic
+
+	column ReportCount
+		dataType: int64
+		lineageTag: e52d81a0-d265-48dd-a23e-6ea12295a00d
+		summarizeBy: sum
+		sourceColumn: ReportCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatasetCount
+		dataType: int64
+		lineageTag: 3b7e6691-145b-4c29-b8a6-4ae875318305
+		summarizeBy: sum
+		sourceColumn: DatasetCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column DataflowCount
+		dataType: int64
+		lineageTag: 40dc377f-88bd-4d25-ae8f-51983b28957c
+		summarizeBy: sum
+		sourceColumn: DataflowCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column DatamartCount
+		dataType: int64
+		lineageTag: df28273f-de62-4ce6-91df-52d3353d46b7
+		summarizeBy: sum
+		sourceColumn: DatamartCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column DashboardCount
+		dataType: int64
+		lineageTag: 4f2c93cd-dce7-4bc3-a934-c6ee89cd7db1
+		summarizeBy: sum
+		sourceColumn: DashboardCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column SnapshotDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: ae06cc54-418e-437e-a4f9-7f8ca4529a0f
+		summarizeBy: none
+		sourceColumn: SnapshotDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition CatalogWorkspaces = m
+		mode: import
+		source =
+				let
+								GetSnapshotDate = (folderPath as text) as nullable date =>
+									let
+										parts = List.Select(Text.Split(folderPath, "\"), each _ <> ""),
+										count = List.Count(parts),
+										parsed = try #date(Number.FromText(parts{count - 3}), Number.FromText(parts{count - 2}), Number.FromText(parts{count - 1})) otherwise null
+									in
+										parsed,
+								Source = #"Monitor ADLS Files"("catalog/scans"),
+								Filtered = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true and Text.EndsWith(Text.Lower([Name]), ".json")),
+								Rows = List.Combine(List.Transform(Table.ToRecords(Filtered), (file) => let parsed = try Json.Document(file[Content]) otherwise {}, workspaces = if Value.Is(parsed, type record) and Record.HasFields(parsed, "workspaces") and Value.Is(parsed[workspaces], type list) then parsed[workspaces] else {}, snapshot = GetSnapshotDate(file[Folder Path]), records = List.Transform(workspaces, each Record.AddField(_, "SnapshotDate", snapshot)) in records)),
+								Table0 = if List.Count(Rows) = 0 then #table(type table [WorkspaceId=nullable text, WorkspaceName=nullable text, WorkspaceType=nullable text, State=nullable text, IsOnDedicatedCapacity=nullable text, CapacityId=nullable text, ReportCount=nullable number, DatasetCount=nullable number, DataflowCount=nullable number, DatamartCount=nullable number, DashboardCount=nullable number, SnapshotDate=nullable date], {}) else Table.FromRecords(Rows, type table [id=nullable text, name=nullable text, type=nullable text, state=nullable text, isOnDedicatedCapacity=any, capacityId=nullable text, reports=any, datasets=any, dataflows=any, datamarts=any, dashboards=any, SnapshotDate=nullable date], MissingField.UseNull),
+								Renamed = Table.RenameColumns(Table0, {{"id", "WorkspaceId"}, {"name", "WorkspaceName"}, {"type", "WorkspaceType"}, {"state", "State"}, {"isOnDedicatedCapacity", "IsOnDedicatedCapacity"}, {"capacityId", "CapacityId"}}, MissingField.Ignore),
+								WithReports = Table.AddColumn(Renamed, "ReportCount", each if Value.Is([reports], type list) then List.Count([reports]) else 0, Int64.Type),
+								WithDatasets = Table.AddColumn(WithReports, "DatasetCount", each if Value.Is([datasets], type list) then List.Count([datasets]) else 0, Int64.Type),
+								WithDataflows = Table.AddColumn(WithDatasets, "DataflowCount", each if Value.Is([dataflows], type list) then List.Count([dataflows]) else 0, Int64.Type),
+								WithDatamarts = Table.AddColumn(WithDataflows, "DatamartCount", each if Value.Is([datamarts], type list) then List.Count([datamarts]) else 0, Int64.Type),
+								WithDashboards = Table.AddColumn(WithDatamarts, "DashboardCount", each if Value.Is([dashboards], type list) then List.Count([dashboards]) else 0, Int64.Type),
+								Selected = Table.SelectColumns(WithDashboards, {"WorkspaceId", "WorkspaceName", "WorkspaceType", "State", "IsOnDedicatedCapacity", "CapacityId", "ReportCount", "DatasetCount", "DataflowCount", "DatamartCount", "DashboardCount", "SnapshotDate"}, MissingField.UseNull),
+								Sorted = Table.Sort(Selected, {{"SnapshotDate", Order.Descending}}),
+								Buffered = Table.Buffer(Sorted),
+								Deduped = Table.Distinct(Buffered, {"WorkspaceId"})
+				in
+								Deduped
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
