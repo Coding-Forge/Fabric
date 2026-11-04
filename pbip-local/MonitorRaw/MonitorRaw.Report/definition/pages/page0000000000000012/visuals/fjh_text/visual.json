@@ -1,0 +1,76 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "fjh_text",
+  "position": {
+    "x": 20,
+    "y": 10,
+    "width": 1240,
+    "height": 150,
+    "z": 0,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Fabric Job History — retained observations",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "18pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Explicitly selected Notebook, DataPipeline and SparkJobDefinition targets only. Most APIs expose 100 completed plus active jobs; polling gaps cannot be recovered.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Latest observation per workspace/item/job across retained days, even for deselected items. Status is last observed, not live. Job Date uses start UTC, not the Calendar window; missing start dates remain undated.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Slicers filter retained job facts only. Unfiltered coverage shows latest finished-poll outcomes, including empty/failed targets; incomplete evidence may omit unvisited targets. Raw failure payloads excluded.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Check collection status first. Not collected means disabled, unconfigured or never run; blank counts are not healthy zeroes. This read-only report neither enables collection nor selects targets.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,41 +1,161 @@
-import asyncio
-from datetime import datetime
+"""Microsoft Graph extraction (users, licenses, SKUs, groups and group members).
 
-import requests
+Settings (environment variables):
+
+* ``GRAPH_EXTRACT_GROUPS`` - truthy enables groups.json and groupmembers.json (read by ``Context``).
+* ``GRAPH_AUDIENCE_GROUP_PREFIXES`` - comma separated, case-insensitive display name prefixes that
+  mark a group as a Power BI audience group (default ``PowerBI,Power BI``).
+* ``GRAPH_MAX_GROUPS_FOR_MEMBERS`` - maximum number of groups whose members are fetched (default 200).
+
+Required Graph permissions: User.Read.All, Group.Read.All, GroupMember.Read.All.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import os
+from typing import Any
+
+from env.context import utc_now
+
+DEFAULT_AUDIENCE_PREFIXES = "PowerBI,Power BI"
+DEFAULT_MAX_GROUPS_FOR_MEMBERS = 200
+MEMBER_CONCURRENCY = 4
+PAGE_SIZE = 999
+USER_SELECT = (
+    "id,displayName,userPrincipalName,mail,accountEnabled,userType,assignedLicenses"
+)
+SKU_SELECT = "id,skuId,skuPartNumber,capabilityStatus,consumedUnits,prepaidUnits"
+GROUP_SELECT = "id,displayName,mail,mailEnabled,securityEnabled,groupTypes"
+MEMBER_SELECT = "id,displayName,userPrincipalName,mail,accountEnabled,userType"
+
+
+def audience_prefixes() -> list[str]:
+    """Return the lower-cased audience group name prefixes from ``GRAPH_AUDIENCE_GROUP_PREFIXES``."""
+    raw = os.environ.get("GRAPH_AUDIENCE_GROUP_PREFIXES", DEFAULT_AUDIENCE_PREFIXES)
+    return [p.strip().lower() for p in raw.split(",") if p.strip()]
+
+
+def max_groups_for_members() -> int:
+    """Return the group cap from ``GRAPH_MAX_GROUPS_FOR_MEMBERS`` (default 200, minimum 0)."""
+    try:
+        return max(
+            0,
+            int(
+                os.environ.get(
+                    "GRAPH_MAX_GROUPS_FOR_MEMBERS", DEFAULT_MAX_GROUPS_FOR_MEMBERS
+                )
+            ),
+        )
+    except ValueError:
+        return DEFAULT_MAX_GROUPS_FOR_MEMBERS
+
+
+def is_audience_group(display_name: str | None, prefixes: list[str]) -> bool:
+    """Return True when ``display_name`` starts with one of the (lower-cased) prefixes."""
+    return bool(display_name) and any(
+        display_name.lower().startswith(p) for p in prefixes
+    )
 
 
 def _split_ids(value) -> set[str]:
     if not value:
         return set()
-    if isinstance(value, (list, tuple, set)):
-        return {str(item).strip().lower() for item in value if str(item).strip()}
-    return {item.strip().lower() for item in str(value).split(",") if item.strip()}
+    values = value if isinstance(value, (list, tuple, set)) else str(value).split(",")
+    return {str(item).strip().lower() for item in values if str(item).strip()}
 
 
-def _get_all_pages(url: str, headers: dict) -> list[dict]:
-    results = []
-    next_url = url
+def _failed(result: Any) -> bool:
+    """Return True for empty responses and error dictionaries."""
+    return not result or "ERROR" in result
+
+
+async def fetch_all(
+    context, url: str, headers: dict[str, str]
+) -> tuple[list[Any] | None, Any]:
+    """Fetch every page of a Graph collection by following ``@odata.nextLink``.
+
+    :param context: Application context providing ``invokeAPI``.
+    :param url: First page URL.
+    :param headers: Request headers.
+    :return: ``(items, None)`` on success, or ``(None, failed_response)`` if any page fails.
+    """
+    items: list[Any] = []
+    next_url: str | None = url
     while next_url:
-        response = requests.get(next_url, headers=headers)
-        if response.status_code != 200:
-            if response.status_code == 403:
-                raise RuntimeError(
-                    "Graph request failed with 403 Authorization_RequestDenied. "
-                    "Grant admin consent for Microsoft Graph application permissions "
-                    "User.Read.All, Group.Read.All, and Directory.Read.All, then rerun Graph. "
-                    f"Response: {response.text}"
-                )
-            raise RuntimeError(f"Graph request failed: {response.status_code} {response.text}")
+        try:
+            result = await context.invokeAPI(rest_api=next_url, headers=headers)
+        except Exception as exc:  # noqa: BLE001 - one failed call must not abort others
+            context.logger.error(f"Graph request failed: {type(exc).__name__}: {exc}")
+            return None, {"ERROR": f"{type(exc).__name__}: {exc}"}
+        if _failed(result):
+            return None, result
+        items.extend(result.get("value") or [])
+        next_url = result.get("@odata.nextLink")
+    return items, None
 
-        payload = response.json()
-        results.extend(payload.get("value", []))
-        next_url = payload.get("@odata.nextLink")
-    return results
+
+def build_user_licenses(users: list[Any]) -> list[dict[str, Any]]:
+    """Flatten ``assignedLicenses`` into one row per user per license."""
+    rows = []
+    for user in users:
+        if not isinstance(user, dict):
+            continue
+        for lic in user.get("assignedLicenses") or []:
+            rows.append(
+                {
+                    "userId": user.get("id"),
+                    "userPrincipalName": user.get("userPrincipalName"),
+                    "skuId": lic.get("skuId"),
+                    "disabledPlans": lic.get("disabledPlans") or [],
+                }
+            )
+    return rows
+
+
+async def _group_members(
+    context,
+    graph_url: str,
+    headers: dict[str, str],
+    group: dict[str, Any],
+    semaphore: asyncio.Semaphore,
+) -> tuple[dict[str, Any], list[Any] | None]:
+    """Fetch transitive user members; the member list is None when the call failed."""
+    url = f"{graph_url}/groups/{group['id']}/transitiveMembers/microsoft.graph.user?$select={MEMBER_SELECT}&$top={PAGE_SIZE}"
+    async with semaphore:
+        members, error = await fetch_all(context, url, headers)
+    if members is None:
+        context.logger.warning(f"Graph members for group {group['id']} failed: {error}")
+    return group, members
+
+
+def _member_rows(group: dict[str, Any], members: list[Any]) -> list[dict[str, Any]]:
+    """Build flat groupmembers.json rows for a group."""
+    return [
+        {
+            "groupId": group["id"],
+            "groupDisplayName": group.get("displayName"),
+            "isPowerBIAudienceGroup": group.get("isPowerBIAudienceGroup", False),
+            "memberId": m.get("id"),
+            "displayName": m.get("displayName"),
+            "userPrincipalName": m.get("userPrincipalName"),
+            "mail": m.get("mail"),
+            "accountEnabled": m.get("accountEnabled"),
+            "userType": m.get("userType"),
+        }
+        for m in members
+        if isinstance(m, dict)
+    ]
 
 
 async def main(context=None):
     """
     Graph
+
+    Saves users.json, userlicenses.json, subscribedskus.json and, when
+    ``context.GraphExtractGroups`` is set, groups.json and groupmembers.json.
+
+    :return: False if a required call or any group member call failed, otherwise True.
     """
     if context is None:
         raise RuntimeError("Context is None")
@@ -43,88 +163,97 @@ async def main(context=None):
     headers = context.clients["graph"].get_headers()
     headers["Content-Type"] = "application/json"
 
-    today = datetime.now()
-    lakehouse_catalog = f"graph/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
+    today = utc_now()
+    lakehouse_catalog = (
+        f"graph/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
+    )
+    extract_groups = bool(context.GraphExtractGroups)
     graph_url = context.clients["graph"].get_api_root()
-    audience_group_ids = _split_ids(context.PowerBIAudienceGroupIds)
+    audience_ids = _split_ids(context.PowerBIAudienceGroupIds)
 
-    users_url = (
-        f"{graph_url}/users?"
-        "$select=id,displayName,userPrincipalName,mail,accountEnabled,userType,assignedLicenses"
-        "&$top=999"
-    )
-    users = _get_all_pages(users_url, headers)
-    user_licenses = []
-    for user in users:
-        user_id = user.get("id")
-        upn = user.get("userPrincipalName")
-        for license_item in user.get("assignedLicenses") or []:
-            user_licenses.append(
-                {
-                    "userId": user_id,
-                    "userPrincipalName": upn,
-                    "skuId": license_item.get("skuId"),
-                    "disabledPlans": license_item.get("disabledPlans") or [],
-                }
+    graph_calls = [
+        (
+            "users",
+            f"{graph_url}/users?$select={USER_SELECT}&$top={PAGE_SIZE}",
+            "users.json",
+        ),
+        (
+            "subscribedSkus",
+            f"{graph_url}/subscribedSkus?$select={SKU_SELECT}",
+            "subscribedskus.json",
+        ),
+    ]
+    if extract_groups:
+        graph_calls.append(
+            (
+                "groups",
+                f"{graph_url}/groups?$filter=securityEnabled eq true&$select={GROUP_SELECT}&$top={PAGE_SIZE}",
+                "groups.json",
             )
-
-    subscribed_skus_url = (
-        f"{graph_url}/subscribedSkus?"
-        "$select=id,capabilityStatus,consumedUnits,prepaidUnits,skuId,skuPartNumber"
-    )
-    subscribed_skus = _get_all_pages(subscribed_skus_url, headers)
-
-    await context.fm.save(path=lakehouse_catalog, file_name="users.json", content=users)
-    await context.fm.save(path=lakehouse_catalog, file_name="userlicenses.json", content=user_licenses)
-    await context.fm.save(path=lakehouse_catalog, file_name="subscribedskus.json", content=subscribed_skus)
-
-    extract_groups = True if context.GraphExtractGroups is None else bool(context.GraphExtractGroups)
-    if not extract_groups:
-        return
-
-    groups_url = (
-        f"{graph_url}/groups?"
-        "$filter=securityEnabled eq true"
-        "&$select=id,displayName,mail,mailEnabled,securityEnabled,groupTypes"
-        "&$top=999"
-    )
-    groups = _get_all_pages(groups_url, headers)
-    for group in groups:
-        group["isPowerBIAudienceGroup"] = (
-            not audience_group_ids or str(group.get("id", "")).lower() in audience_group_ids
         )
 
-    group_members = []
-    for group in groups:
-        group_id = group.get("id")
-        if not group_id:
+    failures = 0
+    results: dict[str, list[Any]] = {}
+    for key, url, file_name in graph_calls:
+        info, error = await fetch_all(context, url, headers)
+        if info is None:
+            failures += 1
+            context.logger.error(f"Graph call {key} failed: {error}")
             continue
 
-        members_url = (
-            f"{graph_url}/groups/{group_id}/transitiveMembers/microsoft.graph.user?"
-            "$select=id,displayName,userPrincipalName,mail,accountEnabled,userType"
-            "&$top=999"
-        )
-        members = _get_all_pages(members_url, headers)
-        for member in members:
-            group_members.append(
+        if key == "groups":
+            prefixes = audience_prefixes()
+            info = [
                 {
-                    "groupId": group_id,
-                    "groupDisplayName": group.get("displayName"),
-                    "isPowerBIAudienceGroup": group.get("isPowerBIAudienceGroup"),
-                    "memberId": member.get("id"),
-                    "displayName": member.get("displayName"),
-                    "userPrincipalName": member.get("userPrincipalName"),
-                    "mail": member.get("mail"),
-                    "accountEnabled": member.get("accountEnabled"),
-                    "userType": member.get("userType"),
+                    **g,
+                    "isPowerBIAudienceGroup": (
+                        str(g.get("id", "")).lower() in audience_ids if audience_ids
+                        else is_audience_group(g.get("displayName"), prefixes)
+                    ),
                 }
-            )
+                if isinstance(g, dict)
+                else g
+                for g in info
+            ]
+        results[key] = info
+        await context.fm.save(path=lakehouse_catalog, file_name=file_name, content=info)
 
-    await context.fm.save(path=lakehouse_catalog, file_name="groups.json", content=groups)
-    await context.fm.save(path=lakehouse_catalog, file_name="groupmembers.json", content=group_members)
+    if "users" in results:
+        await context.fm.save(
+            path=lakehouse_catalog,
+            file_name="userlicenses.json",
+            content=build_user_licenses(results["users"]),
+        )
+
+    if "groups" in results:
+        groups = [g for g in results["groups"] if isinstance(g, dict) and g.get("id")]
+        limit = max_groups_for_members()
+        if len(groups) > limit:
+            context.logger.warning(
+                f"{len(groups)} groups found; fetching members for {limit} "
+                "audience-first (GRAPH_MAX_GROUPS_FOR_MEMBERS); result is partial"
+            )
+            # Stable sort: audience groups first, original order otherwise
+            groups = sorted(
+                groups, key=lambda g: not g.get("isPowerBIAudienceGroup", False)
+            )[:limit]
+
+        semaphore = asyncio.Semaphore(MEMBER_CONCURRENCY)
+        fetched = await asyncio.gather(
+            *(_group_members(context, graph_url, headers, g, semaphore) for g in groups)
+        )
+        rows: list[dict[str, Any]] = []
+        for group, members in fetched:
+            if members is None:
+                failures += 1
+                continue
+            rows.extend(_member_rows(group, members))
+        await context.fm.save(
+            path=lakehouse_catalog, file_name="groupmembers.json", content=rows
+        )
+
+    return failures == 0
 
 
 if __name__ == "__main__":
     asyncio.run(main())
-

@@ -5,6 +5,14 @@ The application was written using Python 3.10.13 and has successfully been teste
 
 # Getting Started
 
+Four additional **opt-in** collectors are available: `FabricItemAccessPermissions`, `FabricItemJobHistory`, `FabricConnections` and `FabricDeploymentPipelineOperations`. Configure explicit item scopes for permissions/jobs and check caller/resource permissions before enabling them. See [settings and API limits](docs/configuration-reference.md#scoped-fabric-collectors) and [scheduling, output and recovery guidance](docs/local-development.md#operating-the-four-fabric-collectors). These outputs are **not automatically integrated into MonitorRaw or existing reports**; offline tests do not establish live API/storage validation.
+
+`FabricItemDefinitions` is a separate **opt-in** collector for tenant-discovered
+notebooks and Fabric Data Factory pipelines. It preserves definitions and decoded
+pipeline JSON, and infers supported notebook table/file reads and writes without
+executing code. These are potential dependencies, not runtime evidence. See
+[enablement, permissions, sensitive output and resumable collection](docs/configuration-reference.md#notebook-and-data-pipeline-definitions).
+
 What you need to do to use this application
 1.	Create a Service Principal
 2.	Grant permissions to the Service Principal  
@@ -89,7 +97,20 @@ The following will set the module to run every day of the week
 * * * * 0-6
 ```
 
-### Arguments  
+### Scanner lineage (opt-in)
+
+Set `CATALOG_LINEAGE_ENABLED=true` with `Catalog` included in `APPLICATION_MODULES`
+to extract upstream/downstream report, semantic-model, dataflow and datasource
+relationships from existing scan responses. No additional API calls are made.
+Versioned JSON observations are saved under `lineage_edges/YYYY/MM/DD/`, including
+workspace/item coverage and successful empty results. This is relationship
+collection, not change detection or a complete Fabric lineage graph.
+See [configuration and limits](docs/configuration-reference.md#scanner-lineage).
+The [Catalog PBIP Lineage page](pbip-local/Catalog/README.md) can display these
+saved observations with workspace/item selectors, upstream/downstream tables,
+and coverage diagnostics.
+
+### Arguments
 
 The application can accept one argument that will retrieve all workspaces for the catalog that have been modified. This should be run at the beginning use of the Fabric Monitor and from that point on should be updated daily or monthly depending upon your needs. The following argument will cause the catalog to scan all modified workspaces.
 ```
@@ -251,8 +272,19 @@ you may not have to change the <capacity> but if you do you can find the capacit
 ```
 You can also use the FabricMonitor and provide the name of the Storage account and the container name plus the UTC offset, RangeStart and RangeEnd along with your SAS or Account Key.
 
+A third option is the Power BI Project in [pbip-local/MonitorRaw/](pbip-local/MonitorRaw/README.md). It reads the raw JSON output directly, from a local folder (`LOCAL_OUTPUT_PATH`) or from Blob Storage, and covers capacity metrics, activity, Git connections, tags, delegated settings and widely shared links. It has **not been validated in Power BI Desktop yet**; read its README (validation status and acceptance checklist) first.
+
 # Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+Run the unit tests from the repository root:
+```
+python3 -m unittest discover -s tests -t .
+```
+
+See [docs/changelog.md](docs/changelog.md) for recent bug fixes (B1–B16), behaviour notes (state/`lastRun`, 7-day first run, 30-day Activity limit, catalog polling caps) and known gaps, the opt-in E5 modules (`GitConnections`, `Tags`, `DelegatedSettings`, `WidelySharedLinks`), and [docs/configuration-reference.md](docs/configuration-reference.md) for environment variables.
+
+To check your version and upgrade, see [docs/updating.md](docs/updating.md). The version is in the top-level `VERSION` file and is logged at startup.
+
+The `CapacityMetrics` module was rewritten (plan item E7). It reads the Capacity Metrics app semantic model through the `executeQueries` REST API and writes a new output format, which is a breaking change for consumers of the old files. See the [changelog](docs/changelog.md) and [Capacity Metrics settings](docs/configuration-reference.md#capacity-metrics-capacitymetrics).
 
 # Contribute
 TODO: Explain how other users and developers can contribute to make your code better. 

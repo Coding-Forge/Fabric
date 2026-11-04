@@ -1,0 +1,54 @@
+/// Capacity dimension built from the capacity_metrics files (latest run wins per capacity).
+table Capacities
+	lineageTag: a53b1aa8-211a-43f1-adc2-67e9fcb2c932
+
+	column 'Capacity Id'
+		dataType: string
+		isHidden
+		lineageTag: 046c6698-d554-4d1a-a5b1-fdbadf69e374
+		summarizeBy: none
+		sourceColumn: Capacity Id
+
+	column 'Capacity Name'
+		dataType: string
+		lineageTag: c2a23bb7-4926-45f4-86cc-0d302209dfe2
+		summarizeBy: none
+		sourceColumn: Capacity Name
+
+	column SKU
+		dataType: string
+		lineageTag: 81f92161-b6c0-49e9-ac78-510309eb0e5c
+		summarizeBy: none
+		sourceColumn: SKU
+
+	partition Capacities = m
+		mode: import
+		source =
+				let
+				    Root = "C:\Projects\Tests\monitor-poc-output\capacity_metrics",
+				    Empty = #table(type table [#"Capacity Id" = text, #"Capacity Name" = text, SKU = text], {}),
+				
+				    EmptySource = #table(type table [Content = binary, Name = text, Extension = text, Date accessed = nullable datetime, Date modified = nullable datetime, Date created = nullable datetime, Attributes = record, Folder Path = text], {}),
+				    Source = try Folder.Files(Root) otherwise EmptySource,
+				    Matching = Table.SelectRows(Source, each Text.EndsWith(Text.Lower([Name]), ".capacity_metrics.json") and [Attributes]?[Hidden]? <> true),
+				
+				    Output = if Table.RowCount(Matching) = 0 then Empty else
+				        let
+				            Parsed = Table.AddColumn(Matching, "Json", each try Json.Document([Content]) otherwise null),
+				            Valid = Table.SelectRows(Parsed, each [Json] is record),
+				            WithRun = Table.AddColumn(Valid, "Run Key", each Text.BeforeDelimiter([Name], "_"), type text),
+				            WithId = Table.AddColumn(WithRun, "Capacity Id", each let v = Record.FieldOrDefault([Json], "capacityId", null) in if v = null then null else Text.Upper(Text.From(v)), type text),
+				            WithName = Table.AddColumn(WithId, "Capacity Name", each let v = Record.FieldOrDefault([Json], "capacityName", null) in if v = null then null else Text.From(v), type text),
+				            WithSku = Table.AddColumn(WithName, "SKU", each let v = Record.FieldOrDefault([Json], "sku", null) in if v = null then null else Text.From(v), type text),
+				            Slim = Table.SelectColumns(WithSku, {"Capacity Id", "Capacity Name", "SKU", "Run Key", "Date modified"}),
+				            Known = Table.SelectRows(Slim, each [Capacity Id] <> null),
+				            Sorted = Table.Buffer(Table.Sort(Known, {{"Run Key", Order.Descending}, {"Date modified", Order.Descending}})),
+				            Latest = Table.Distinct(Sorted, {"Capacity Id"}),
+				            Result = Table.RemoveColumns(Latest, {"Run Key", "Date modified"})
+				        in
+				            Table.TransformColumnTypes(Result, {{"Capacity Id", type text}, {"Capacity Name", type text}, {"SKU", type text}})
+				in
+				    Output
+
+	annotation PBI_ResultType = Table
+

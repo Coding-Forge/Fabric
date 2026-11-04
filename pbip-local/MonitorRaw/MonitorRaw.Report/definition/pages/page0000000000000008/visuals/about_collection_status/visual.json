@@ -1,0 +1,246 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "about_collection_status",
+  "position": {
+    "x": 19.981267561660943,
+    "y": 479.95004683109585,
+    "z": 2000,
+    "height": 222.59132063690291,
+    "width": 1240.0374648766781,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Collection Status"
+                    }
+                  },
+                  "Property": "Module"
+                }
+              },
+              "queryRef": "Collection Status.Module",
+              "nativeQueryRef": "Module"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Collection Status"
+                    }
+                  },
+                  "Property": "State"
+                }
+              },
+              "queryRef": "Collection Status.State",
+              "nativeQueryRef": "State"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Collection Status"
+                    }
+                  },
+                  "Property": "Last Attempt UTC"
+                }
+              },
+              "queryRef": "Collection Status.Last Attempt UTC",
+              "nativeQueryRef": "Last Attempt UTC"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Collection Status"
+                    }
+                  },
+                  "Property": "Snapshot UTC"
+                }
+              },
+              "queryRef": "Collection Status.Snapshot UTC",
+              "nativeQueryRef": "Snapshot UTC"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Collection Status"
+                    }
+                  },
+                  "Property": "Snapshot Row Count"
+                }
+              },
+              "queryRef": "Collection Status.Snapshot Row Count",
+              "nativeQueryRef": "Snapshot Row Count"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Collection Status"
+                    }
+                  },
+                  "Property": "Error Count"
+                }
+              },
+              "queryRef": "Collection Status.Error Count",
+              "nativeQueryRef": "Error Count"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Collection Status"
+                    }
+                  },
+                  "Property": "Load Error"
+                }
+              },
+              "queryRef": "Collection Status.Load Error",
+              "nativeQueryRef": "Load Error"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "63284a708a6a6eb59f19",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Collection Status"
+              }
+            },
+            "Property": "Module"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "ee974206a803f420ad65",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Collection Status"
+              }
+            },
+            "Property": "State"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "fcfa392f910f50459a85",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Collection Status"
+              }
+            },
+            "Property": "Last Attempt UTC"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "b78f21260ca300aef7b9",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Collection Status"
+              }
+            },
+            "Property": "Snapshot UTC"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "1a524534ddf08f49afb9",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Collection Status"
+              }
+            },
+            "Property": "Snapshot Row Count"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "64ef31245650b33043df",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Collection Status"
+              }
+            },
+            "Property": "Error Count"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "408fea1cb4168c2e725b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Collection Status"
+              }
+            },
+            "Property": "Load Error"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  }
+}

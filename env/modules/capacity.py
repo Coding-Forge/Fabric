@@ -1,10 +1,7 @@
 import asyncio
-import json
 
-import random
-import time
+from env.context import utc_now
 
-from datetime import datetime, timedelta
 
 async def main(context=None):
     """
@@ -23,20 +20,19 @@ async def main(context=None):
         headers = context.clients['pbi'].get_headers()
 
         response = await context.invokeAPI(url, headers=headers)
-        pivotDate = datetime.now()
+        pivotDate = utc_now()
 
         content = response.get("value")
 
         index = str(pageCount).zfill(5)
 
         Path = f"capacity/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
-        await context.fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.capacity.json",content=content)
+        await context.fm.save(path=Path, file_name=f"{pivotDate.strftime('%Y%m%d')}_{index}.capacity.json",content=content)
 
         try:
             continuationUri = response.get("continuationUri")
         except Exception as e:
             context.logger.error("ERROR", f"Error: {e}")
-            pass
 
         if continuationUri:
             if "continuationToken" in continuationUri:

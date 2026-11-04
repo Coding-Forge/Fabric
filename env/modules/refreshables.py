@@ -1,14 +1,6 @@
-import os
-import json
 import asyncio
-import time
-import requests
 
-from datetime import datetime, timedelta
-
-####### Refresh History PRECONFIGURATION #######
-today = datetime.now()
-####### CATALOG PRECONFIGURATION #######
+from env.context import utc_now
 
 
 async def main(context=None):
@@ -20,7 +12,7 @@ async def main(context=None):
     
     # get POWER BI context and settings -- this call must be synchronous
     headers = context.clients['pbi'].get_headers()
-    today = datetime.now()
+    today = utc_now()
 
     lakehouse_dir = f"datasetrefreshable/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
     file_name = "workspaces.datasets.refreshable.json"
@@ -39,4 +31,3 @@ async def main(context=None):
 
 if __name__ == "__main__":
     asyncio.run(main())
-

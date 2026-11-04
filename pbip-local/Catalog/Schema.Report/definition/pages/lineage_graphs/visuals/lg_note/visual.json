@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "lg_note",
+  "position": {
+    "x": 40,
+    "y": 90,
+    "z": 1000,
+    "height": 75,
+    "width": 1840,
+    "tabOrder": 1000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Each link is one observed dependency, not rows/bytes or conserved data flow. Node focus keeps links touching either endpoint; it does not calculate transitive impact. Workspace scopes the consumer, so sources can be external. Chord shows connectivity; ZoomCharts Network shows two category levels, not an arbitrary directed graph. See Lineage for full identities and file diagnostics. Custom visual data limits can omit nodes/links.",
+                    "textStyle": {
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

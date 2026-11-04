@@ -1,0 +1,112 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "lg_sankey",
+  "position": {
+    "x": 40,
+    "y": 455,
+    "z": 9000,
+    "height": 390,
+    "width": 1840,
+    "tabOrder": 9000
+  },
+  "visual": {
+    "visualType": "sankey02300D1BE6F5427989F3DE31CCA9E0F32020",
+    "query": {
+      "queryState": {
+        "Source": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Graph Links"
+                    }
+                  },
+                  "Property": "Source"
+                }
+              },
+              "queryRef": "Lineage Graph Links.Source",
+              "nativeQueryRef": "Source"
+            }
+          ]
+        },
+        "Destination": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Graph Links"
+                    }
+                  },
+                  "Property": "Consumer"
+                }
+              },
+              "queryRef": "Lineage Graph Links.Consumer",
+              "nativeQueryRef": "Consumer"
+            }
+          ]
+        },
+        "Weight": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Graph Links"
+                    }
+                  },
+                  "Property": "Graph Link Weight"
+                }
+              },
+              "queryRef": "Lineage Graph Links.Graph Link Weight",
+              "nativeQueryRef": "Graph Link Weight"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Sankey - upstream source to downstream consumer (dependency counts)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

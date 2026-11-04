@@ -1,0 +1,290 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "wi_workspace_table",
+  "position": {
+    "x": 40,
+    "y": 600,
+    "z": 10000,
+    "height": 415,
+    "width": 1810,
+    "tabOrder": 10000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Workspaces"
+                    }
+                  },
+                  "Property": "WorkspaceName"
+                }
+              },
+              "queryRef": "Workspaces.WorkspaceName",
+              "nativeQueryRef": "WorkspaceName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Workspaces"
+                    }
+                  },
+                  "Property": "WorkspaceId"
+                }
+              },
+              "queryRef": "Workspaces.WorkspaceId",
+              "nativeQueryRef": "WorkspaceId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Workspaces"
+                    }
+                  },
+                  "Property": "WorkspaceType"
+                }
+              },
+              "queryRef": "Workspaces.WorkspaceType",
+              "nativeQueryRef": "WorkspaceType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Workspaces"
+                    }
+                  },
+                  "Property": "State"
+                }
+              },
+              "queryRef": "Workspaces.State",
+              "nativeQueryRef": "State"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Workspaces"
+                    }
+                  },
+                  "Property": "DataRetrievalState"
+                }
+              },
+              "queryRef": "Workspaces.DataRetrievalState",
+              "nativeQueryRef": "DataRetrievalState"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Workspaces"
+                    }
+                  },
+                  "Property": "IsOnDedicatedCapacity"
+                }
+              },
+              "queryRef": "Workspaces.IsOnDedicatedCapacity",
+              "nativeQueryRef": "IsOnDedicatedCapacity"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Workspaces"
+                    }
+                  },
+                  "Property": "CapacityId"
+                }
+              },
+              "queryRef": "Workspaces.CapacityId",
+              "nativeQueryRef": "CapacityId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Workspaces"
+                    }
+                  },
+                  "Property": "DefaultDatasetStorageFormat"
+                }
+              },
+              "queryRef": "Workspaces.DefaultDatasetStorageFormat",
+              "nativeQueryRef": "DefaultDatasetStorageFormat"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Workspace details'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "985afc587d871b7185a2",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspaces"
+              }
+            },
+            "Property": "WorkspaceName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "93e7f28610d0a0e1c098",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspaces"
+              }
+            },
+            "Property": "WorkspaceId"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "4019015d919dc8e10003",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspaces"
+              }
+            },
+            "Property": "WorkspaceType"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "b910de12477507c68a3b",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspaces"
+              }
+            },
+            "Property": "State"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "3b73e780d9910ae390bb",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspaces"
+              }
+            },
+            "Property": "DataRetrievalState"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "0bd6928591745e0b2a21",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspaces"
+              }
+            },
+            "Property": "IsOnDedicatedCapacity"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "cc3e4b0b93ee45e10793",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspaces"
+              }
+            },
+            "Property": "CapacityId"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "93a12bd06826d4b9c3d2",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspaces"
+              }
+            },
+            "Property": "DefaultDatasetStorageFormat"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

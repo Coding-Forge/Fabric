@@ -4,15 +4,48 @@ import logging
 import os
 from collections.abc import Sequence
 
+from env import config
+from env.audit import Audits
+from env.version import get_version
+
+logger = logging.getLogger(__name__)
+_resolve_local_output_path = config._resolve_local_output_path
+_COMMERCIAL_ALIASES = {
+    "TENANT_ID": "COMMERCIAL_TENANT_ID",
+    "CLIENT_ID": "COMMERCIAL_CLIENT_ID",
+    "CLIENT_SECRET": "COMMERCIAL_CLIENT_SECRET",
+}
+
+
+def _get_bool(key: str, default: bool = False) -> bool:
+    return os.environ.get(key, str(default)).lower() in ("1", "true", "yes")
+
+
+def _get_env(*names: str) -> str:
+    if (
+        os.environ.get("LOCAL_OUTPUT_PATH")
+        and names
+        and names[0] in _COMMERCIAL_ALIASES
+    ):
+        names = (_COMMERCIAL_ALIASES[names[0]], *names)
+    for name in names:
+        if os.environ.get(name):
+            return os.environ[name]
+    raise KeyError(names[0])
+
 
 async def main(settings: dict | None = None, *, env_file: str | None = None):
-    from env.config import build_audit
+    audit = config.build_audit(
+        settings=settings,
+        load_env_file=settings is not None or env_file is not None,
+        env_file=env_file,
+        audit=Audits(),
+    )
 
-    audit = build_audit(settings=settings, load_env_file=True, env_file=env_file)
-
-    logging.info("Starting Fabric Monitor run")
-    await audit.run()
-    logging.info("Fabric Monitor run complete")
+    logger.info("Starting Fabric Monitor run (version %s)", get_version())
+    if await audit.run() is False:
+        raise RuntimeError("Fabric Monitor run failed; see module and storage errors.")
+    logger.info("Fabric Monitor run complete")
 
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

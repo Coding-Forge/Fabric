@@ -1,0 +1,451 @@
+table _Measures
+	lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3000
+
+	measure 'Total Activities' = COUNTROWS(activity)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3001
+
+	measure 'Unique Users' = DISTINCTCOUNT(activity[UserId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3002
+
+	measure 'Distinct Workspaces' = DISTINCTCOUNT(activity[WorkspaceId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3003
+
+	measure 'Distinct Artifacts' = DISTINCTCOUNT(activity[ArtifactId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3004
+
+	measure 'Successful Activities' = CALCULATE([Total Activities], activity[IsSuccess] = TRUE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3005
+
+	measure 'Failed Activities' = CALCULATE([Total Activities], activity[IsSuccess] = FALSE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3006
+
+	measure 'Success Rate' = DIVIDE([Successful Activities], [Total Activities])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3007
+
+	measure 'Refresh Activities' = CALCULATE([Total Activities], FILTER(activity, CONTAINSSTRING(LOWER(activity[Activity]), "refresh") || NOT ISBLANK(activity[RefreshType])))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3008
+
+	measure 'Activities Last 24 Hours' = CALCULATE([Total Activities], FILTER(activity, activity[CreationTime] >= NOW() - 1))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3009
+
+	measure 'Activities Last 7 Days' = CALCULATE([Total Activities], FILTER(activity, activity[CreationTime] >= NOW() - 7))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3010
+
+	measure 'Activities Last 30 Days' = CALCULATE([Total Activities], FILTER(activity, activity[CreationTime] >= NOW() - 30))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3011
+
+	measure 'Avg Activities per User' = DIVIDE([Total Activities], [Unique Users])
+		formatString: #,0.0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3012
+
+	measure 'Last Activity Time' = MAX(activity[CreationTime])
+		formatString: General Date
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3013
+
+	measure 'Unique Client IPs' = DISTINCTCOUNT(activity[ClientIP])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3014
+
+	measure 'Dataset Activities' = CALCULATE([Total Activities], FILTER(activity, NOT ISBLANK(activity[DatasetId]) || NOT ISBLANK(activity[DatasetName])))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3015
+
+	measure 'Capacity Activities' = CALCULATE([Total Activities], FILTER(activity, NOT ISBLANK(activity[CapacityId]) || NOT ISBLANK(activity[CapacityName])))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3016
+
+	measure 'Total Directory Users' = DISTINCTCOUNT(UserLicenseActivity[UserPrincipalName])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3017
+
+	measure 'Active Directory Users' = CALCULATE([Total Directory Users], UserLicenseActivity[HasActivity] = TRUE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3018
+
+	measure 'Inactive Directory Users' = CALCULATE([Total Directory Users], UserLicenseActivity[HasActivity] = FALSE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3019
+
+	measure 'Power BI Licensed Users' = CALCULATE([Total Directory Users], UserLicenseActivity[IsPowerBILicense] = TRUE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3020
+
+	measure 'Power BI Licensed Inactive Users' = CALCULATE([Total Directory Users], UserLicenseActivity[IsPowerBILicense] = TRUE(), UserLicenseActivity[HasActivity] = FALSE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3021
+
+	measure 'Audience Users' = DISTINCTCOUNT(AudienceUsage[UserPrincipalName])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3022
+
+	measure 'Audience Users With Activity' = CALCULATE([Audience Users], AudienceUsage[HasUsedPowerBI] = TRUE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3023
+
+	measure 'Audience Users Without Activity' = CALCULATE([Audience Users], AudienceUsage[HasUsedPowerBI] = FALSE())
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3024
+
+	measure 'Audience Usage Rate' = DIVIDE([Audience Users With Activity], [Audience Users])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3025
+
+	measure 'Catalog Workspaces' = DISTINCTCOUNT(CatalogWorkspaces[WorkspaceId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3026
+
+	measure 'Catalog Reports' = DISTINCTCOUNT(CatalogReports[ReportId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3027
+
+	measure 'Catalog Datasets' = DISTINCTCOUNT(CatalogDatasets[DatasetId])
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3028
+
+	measure 'Catalog Semantic Tables' = COUNTROWS(CatalogDatasetTables)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3029
+
+	measure 'Catalog Columns' = COUNTROWS(CatalogDatasetColumns)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3030
+
+	measure 'Catalog RLS Roles' = COUNTROWS(CatalogDatasetRoles)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3031
+
+	measure 'Catalog RLS Members' = COUNTROWS(CatalogDatasetRoleMembers)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3032
+
+	measure 'Datasets With RLS Roles' = CALCULATE([Catalog Datasets], CatalogDatasets[RoleCount] > 0)
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3033
+
+	measure 'Reports With Sensitivity Label' = CALCULATE([Catalog Reports], NOT ISBLANK(CatalogReports[SensitivityLabelId]))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3034
+
+	measure 'Datasets With Sensitivity Label' = CALCULATE([Catalog Datasets], NOT ISBLANK(CatalogDatasets[SensitivityLabelId]))
+		formatString: #,0
+		lineageTag: 2fa1f2c7-d00e-4bcb-9f9d-df1b4e7c3035
+
+	measure 'Directory Users' = DISTINCTCOUNT(GraphUsers[UserObjectId])
+		formatString: #,0
+		lineageTag: 755e9190-bcb9-4cf7-8eae-a582956eed72
+
+	measure 'Directory Groups' = DISTINCTCOUNT(GraphGroups[GroupId])
+		formatString: #,0
+		lineageTag: e61714d5-92c6-43cb-8689-832859e9285d
+
+	measure 'Power BI Audience Groups' = CALCULATE([Directory Groups], GraphGroups[IsPowerBIAudienceGroup] = TRUE())
+		formatString: #,0
+		lineageTag: 59b31cd8-a783-485f-b714-c108328c3ddd
+
+	measure 'Subscribed SKUs' = DISTINCTCOUNT(GraphSubscribedSkus[SkuId])
+		formatString: #,0
+		lineageTag: 5b98f732-cd9b-4ab7-9bf4-0674921dbeab
+
+	measure 'Consumed License Seats' = SUM(GraphSubscribedSkus[ConsumedUnits])
+		formatString: #,0
+		lineageTag: 0cfec13e-652c-42f0-9cba-1561a550095e
+
+	measure 'Enabled License Seats' = SUM(GraphSubscribedSkus[EnabledUnits])
+		formatString: #,0
+		lineageTag: 0c20fc6c-c2df-4628-9b34-6cbafaa0938b
+
+	measure 'License Utilization %' = DIVIDE([Consumed License Seats], [Enabled License Seats])
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 436fd7ec-b10b-430f-bfa9-9ffd893ff29b
+
+	measure 'Users Without Power BI License' = CALCULATE([Total Directory Users], UserLicenseActivity[IsPowerBILicense] = FALSE())
+		formatString: #,0
+		lineageTag: eb561eb3-0b26-4e95-a229-2b9b6613ee0a
+
+	measure 'Failure Rate' = DIVIDE([Failed Activities], [Successful Activities] + [Failed Activities])
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Risk & Anomalies
+		lineageTag: 8e8882d2-a611-4524-8553-e6223bc9c882
+
+	measure 'Failures Last 7 Days' = CALCULATE([Failed Activities], FILTER(activity, activity[CreationTime] >= NOW() - 7))
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: 735da93a-905d-474b-ac24-f57382c46120
+
+	measure 'Human Activities' = CALCULATE([Total Activities], activity[Is System Activity] = FALSE())
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: 5ff95a59-ba83-4ec3-87d1-f7d829ab6bcc
+
+	/// Activities whose local hour is before 07:00 or from 19:00 on, or that fall on Saturday/Sunday (Day of Week Sort 6 and 7).
+	measure 'Off-hours Activities' = CALCULATE([Total Activities], FILTER(activity, NOT ISBLANK(activity[Hour of Day]) && (activity[Hour of Day] < 7 || activity[Hour of Day] >= 19 || activity[Day of Week Sort] >= 6)))
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: adf31816-ae96-4c59-a6c2-2a921b65e932
+
+	measure 'Off-hours %' = DIVIDE([Off-hours Activities], [Total Activities])
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Risk & Anomalies
+		lineageTag: dbccee95-9588-43c4-a699-2e0bfe4ae1a0
+
+	/// Activities per local day. Use with activity[Event Date] on the axis.
+	measure 'Daily Activities' = [Total Activities]
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: a33e2aa4-03d9-4c01-9d78-cf42de416729
+
+	/// Average of the daily totals over the PRIOR 7 days [day-7, day-1]; the day being tested is excluded so a spike does not dilute its own baseline. Days with no activity are not counted; blank when there is no prior day.
+	measure 'Daily Activities 7D Avg' =
+			VAR d = MAX(activity[Event Date])
+			VAR win = CALCULATETABLE(VALUES(activity[Event Date]), activity[Event Date] >= d - 7, activity[Event Date] <= d - 1)
+			RETURN IF(ISBLANK(d), BLANK(), AVERAGEX(win, [Total Activities]))
+		formatString: #,0.0
+		displayFolder: Risk & Anomalies
+		lineageTag: 0db5506d-ab54-4eae-b9fc-4818a743f437
+
+	/// Population standard deviation of the daily totals over the same prior 7-day window [day-7, day-1] (current day excluded); blank when there is no prior day.
+	measure 'Daily Std Dev 7D' =
+			VAR d = MAX(activity[Event Date])
+			VAR win = CALCULATETABLE(VALUES(activity[Event Date]), activity[Event Date] >= d - 7, activity[Event Date] <= d - 1)
+			RETURN IF(ISBLANK(d) || COUNTROWS(win) = 0, BLANK(), STDEVX.P(win, [Total Activities]))
+		formatString: #,0.0
+		displayFolder: Risk & Anomalies
+		lineageTag: 421998ad-230d-4e90-9b4f-3c27cea785dc
+
+	/// 1 on a single day when the daily total is at least 10 and above the prior-7-day average + 2 standard deviations (when the standard deviation is 0 the threshold falls back to 1.5 x the average). Blank baseline (no prior days) or an average of 0 never flags.
+	measure 'Spike Flag' =
+			VAR d = [Daily Activities]
+			VAR avgg = [Daily Activities 7D Avg]
+			VAR sd = [Daily Std Dev 7D]
+			VAR threshold = IF(sd > 0, avgg + 2 * sd, avgg * 1.5)
+			RETURN IF(HASONEVALUE(activity[Event Date]) && NOT ISBLANK(avgg) && NOT ISBLANK(sd) && avgg > 0 && d >= 10 && d > threshold, 1, 0)
+		formatString: 0
+		displayFolder: Risk & Anomalies
+		lineageTag: 75e10073-c7f9-4b0d-a924-b6bc76d3ca70
+
+	measure 'Spike Days' = SUMX(VALUES(activity[Event Date]), [Spike Flag])
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: f5a1aae9-a612-4911-8991-5befea5db42b
+
+	/// Daily total on spike days only (blank otherwise); plotted as the spike marker series.
+	measure 'Spike Day Activities' = IF([Spike Flag] = 1, [Daily Activities])
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: b2b51811-3155-4818-bac4-4ecf83c3d8ea
+
+	measure 'Sharing Operations' = CALCULATE([Total Activities], activity[Operation Category] = "Sharing")
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: a4c9046d-618f-4596-acf9-e8aa237fe19e
+
+	measure 'Export Operations' = CALCULATE([Total Activities], activity[Operation Category] = "Export")
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: 97468769-262e-46c1-ac9a-36c46529735d
+
+	measure 'Security Operations' = CALCULATE([Total Activities], activity[Operation Category] = "Security")
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: 5a7c4be7-6f14-40ae-8489-dde0ca57a97f
+
+	measure 'Sharing Export Security Operations' = CALCULATE([Total Activities], activity[Operation Category] IN {"Sharing", "Export", "Security"})
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: e2232854-aa54-4c76-bf53-0725f1198f5e
+
+	/// Earliest event ever recorded for the current (UserId, ClientIP) combination, ignoring every other filter.
+	measure 'First Seen Time' = CALCULATE(MIN(activity[CreationTime]), ALLEXCEPT(activity, activity[UserId], activity[ClientIP]))
+		formatString: General Date
+		displayFolder: Risk & Anomalies
+		lineageTag: c18e122f-d9be-45b8-ad60-c7d2f5285000
+
+	/// Earliest event timestamp (CreationTime) inside the selected Event Date (local date) range (other slicers are ignored).
+	measure 'Period Start' = CALCULATE(MIN(activity[CreationTime]), ALLEXCEPT(activity, activity[Event Date]))
+		formatString: General Date
+		displayFolder: Risk & Anomalies
+		lineageTag: 4553a703-37a5-442e-9db2-374a70015fac
+
+	/// 1 when the (UserId, ClientIP) pair has a client IP and was first seen inside the selected period. Always 0 when the period starts at the very first recorded event (no earlier baseline to compare with).
+	measure 'Is New Client IP' =
+			VAR firstSeen = [First Seen Time]
+			VAR periodStart = [Period Start]
+			VAR dataStart = CALCULATE(MIN(activity[CreationTime]), ALL(activity))
+			RETURN IF(NOT ISBLANK(SELECTEDVALUE(activity[ClientIP])) && NOT ISBLANK(SELECTEDVALUE(activity[UserId])) && periodStart > dataStart && firstSeen >= periodStart, 1, 0)
+		formatString: 0
+		displayFolder: Risk & Anomalies
+		lineageTag: c2b4b9a0-dd1e-4915-96ca-8e2d3d991609
+
+	measure 'First-Seen IPs' = SUMX(SUMMARIZE(activity, activity[UserId], activity[ClientIP]), [Is New Client IP])
+		formatString: #,0
+		displayFolder: Risk & Anomalies
+		lineageTag: f7c8c24d-8ec7-490a-ba00-d31a07bf937a
+
+	/// Dataset refresh events: every activity whose Operation Category is Refresh (RefreshDataset and other refresh operations). Not filtered by actor, so scheduled refreshes by service principals are included.
+	measure 'Refresh Events' = CALCULATE(COUNTROWS(activity), activity[Operation Category] = "Refresh")
+		formatString: #,0
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1001
+
+	measure 'Failed Refreshes' = CALCULATE(COUNTROWS(activity), activity[Operation Category] = "Refresh", activity[IsSuccess] = FALSE())
+		formatString: #,0
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1002
+
+	/// Refresh events that did not fail (IsSuccess is not FALSE), so Succeeded + Failed = Refresh Events.
+	measure 'Succeeded Refreshes' = [Refresh Events] - [Failed Refreshes]
+		formatString: #,0
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1003
+
+	measure 'Refresh Failure Rate' = DIVIDE([Failed Refreshes], [Refresh Events])
+		formatString: 0.0%;-0.0%;0.0%
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1004
+
+	measure 'Datasets Refreshed' = CALCULATE(DISTINCTCOUNT(activity[DatasetName]), activity[Operation Category] = "Refresh")
+		formatString: #,0
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1005
+
+	measure 'Credential Changes' = CALCULATE(COUNTROWS(activity), activity[Effective Activity] = "UpdateDatasourceCredentials")
+		formatString: #,0
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1006
+
+	measure 'Parameter Changes' = CALCULATE(COUNTROWS(activity), activity[Effective Activity] = "UpdateDatasetParameters")
+		formatString: #,0
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1007
+
+	measure 'Credential and Parameter Changes' = [Credential Changes] + [Parameter Changes]
+		formatString: #,0
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1008
+
+	/// Local time (Event Time Local) of the latest refresh event in the current filter context.
+	measure 'Last Refresh Event Time' = CALCULATE(MAX(activity[Event Time Local]), activity[Operation Category] = "Refresh")
+		formatString: General Date
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1009
+
+	/// Failed when any refresh at the latest refresh timestamp failed, otherwise Succeeded; blank when there is no refresh event.
+	measure 'Last Refresh Status' =
+			VAR lastUtc = CALCULATE(MAX(activity[CreationTime]), activity[Operation Category] = "Refresh")
+			VAR failedAtLast = CALCULATE(COUNTROWS(activity), activity[Operation Category] = "Refresh", activity[CreationTime] = lastUtc, activity[IsSuccess] = FALSE())
+			RETURN IF(ISBLANK(lastUtc), BLANK(), IF(failedAtLast > 0, "Failed", "Succeeded"))
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1010
+
+	/// Hours between the latest refresh event (CreationTime, UTC) and the current UTC time. Grows as data ages, so it is only meaningful when the audit extract is current.
+	measure 'Hours Since Last Refresh' =
+			VAR lastUtc = CALCULATE(MAX(activity[CreationTime]), activity[Operation Category] = "Refresh")
+			RETURN IF(ISBLANK(lastUtc), BLANK(), ROUND((UTCNOW() - lastUtc) * 24, 1))
+		formatString: #,0.0
+		displayFolder: Refresh Health
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d1011
+
+	/// Activities attributed to a capacity that exists in Capacities (activity[Capacity Key] matches Capacities[Capacity Id]); activities without a known capacity are excluded.
+	measure 'Activities on Capacity' = CALCULATE([Total Activities], FILTER(activity, NOT ISBLANK(RELATED(Capacities[Capacity Id]))))
+		formatString: #,0
+		displayFolder: Activity vs Capacity
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d2001
+
+	measure 'Refreshes on Capacity' = CALCULATE([Refresh Events], FILTER(activity, NOT ISBLANK(RELATED(Capacities[Capacity Id]))))
+		formatString: #,0
+		displayFolder: Activity vs Capacity
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d2002
+
+	measure 'Users on Capacity' = CALCULATE(DISTINCTCOUNT(activity[UserId]), FILTER(activity, NOT ISBLANK(RELATED(Capacities[Capacity Id]))))
+		formatString: #,0
+		displayFolder: Activity vs Capacity
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d2003
+
+	/// Days (UTC Metric Date) in the current filter context with at least one overloaded timepoint (billable utilization above the SKU limit) or carry-over above 0.
+	measure 'Throttled Days' = COUNTROWS(FILTER(VALUES(CapacityMetrics[Metric Date]), [Overload Timepoints] > 0 || COALESCE([Max Carry Over %], 0) > 0))
+		formatString: #,0
+		displayFolder: Activity vs Capacity
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d2004
+
+	/// Axis helper: use with 'UTC Hours'[Hour (UTC)]. Activities per UTC hour (activity[Event Hour UTC]) on known capacities; total when no single hour is in context.
+	measure 'Activities by Hour (UTC)' =
+			VAR h = SELECTEDVALUE('UTC Hours'[Hour (UTC)])
+			RETURN IF(ISBLANK(h), [Activities on Capacity], CALCULATE([Activities on Capacity], activity[Event Hour UTC] = h))
+		formatString: #,0
+		displayFolder: Activity vs Capacity
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d2005
+
+	/// Axis helper: use with 'UTC Hours'[Hour (UTC)]. Refresh events per UTC hour on known capacities.
+	measure 'Refreshes by Hour (UTC)' =
+			VAR h = SELECTEDVALUE('UTC Hours'[Hour (UTC)])
+			RETURN IF(ISBLANK(h), [Refreshes on Capacity], CALCULATE([Refreshes on Capacity], activity[Event Hour UTC] = h))
+		formatString: #,0
+		displayFolder: Activity vs Capacity
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d2006
+
+	/// Axis helper: use with 'UTC Hours'[Hour (UTC)]. Highest billable utilization (background + interactive) among timepoints whose UTC hour equals the axis hour.
+	measure 'Peak Utilization by Hour (UTC)' =
+			VAR h = SELECTEDVALUE('UTC Hours'[Hour (UTC)])
+			RETURN IF(ISBLANK(h), [Peak Utilization %], MAXX(FILTER(CapacityMetrics, HOUR(CapacityMetrics[Timepoint]) = h), COALESCE(CapacityMetrics[Background billable CU %], 0) + COALESCE(CapacityMetrics[Interactive billable CU %], 0)))
+		formatString: 0.0%
+		displayFolder: Activity vs Capacity
+		lineageTag: 6a1f0c52-3b7e-4d18-9c41-5e0a2b7d2007
+
+	/// Local time (Event Time Local) of the earliest event in the current filter context.
+	measure 'First Activity Time (Local)' = MIN(activity[Event Time Local])
+		formatString: General Date
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3001
+
+	/// Local time (Event Time Local) of the latest event in the current filter context.
+	measure 'Last Activity Time (Local)' = MAX(activity[Event Time Local])
+		formatString: General Date
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3002
+
+	/// Catalog reports whose ReportId matches the ArtifactId of the activities in context. Blank when none, so tables listing catalog reports only show matches.
+	measure 'Catalog Report Matches' = CALCULATE(COUNTROWS(CatalogReports), TREATAS(VALUES(activity[ArtifactId]), CatalogReports[ReportId]))
+		formatString: #,0
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3003
+
+	/// Catalog reports in the workspace(s) of the activities in context (activity[WorkspaceId] matched to CatalogReports[WorkspaceId]; no physical relationship).
+	measure 'Catalog Reports in Workspace' = CALCULATE(DISTINCTCOUNT(CatalogReports[ReportId]), TREATAS(VALUES(activity[WorkspaceId]), CatalogReports[WorkspaceId]))
+		formatString: #,0
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3004
+
+	/// Catalog datasets in the workspace(s) of the activities in context (activity[WorkspaceId] matched to CatalogDatasets[WorkspaceId]; no physical relationship).
+	measure 'Catalog Datasets in Workspace' = CALCULATE(DISTINCTCOUNT(CatalogDatasets[DatasetId]), TREATAS(VALUES(activity[WorkspaceId]), CatalogDatasets[WorkspaceId]))
+		formatString: #,0
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3005
+
+	/// Directory/licence rows whose UserPrincipalName matches the activity UserId in context. Blank when none, so licence tables only list the drilled user's licences.
+	measure 'Licence Rows for User' = CALCULATE(COUNTROWS(UserLicenseActivity), TREATAS(VALUES(activity[UserId]), UserLicenseActivity[UserPrincipalName]))
+		formatString: #,0
+		displayFolder: Drillthrough
+		lineageTag: 7c2d1e60-4a8b-4f31-9d52-6b1e3c8a3006
+
+	column Value
+		lineageTag: 88d94c62-827b-412f-a506-6a3deaf6f3b5
+		isNameInferred
+		sourceColumn: [Value]
+
+	partition _Measures = calculated
+		mode: import
+		source = ROW("Value", 0)
+
+	annotation PBI_ResultType = Table
+

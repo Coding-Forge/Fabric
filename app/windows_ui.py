@@ -26,6 +26,15 @@ MODULES = [
     "Roles",
     "Tenant",
     "Workspaces",
+    "GitConnections",
+    "Tags",
+    "DelegatedSettings",
+    "WidelySharedLinks",
+    "FabricItemAccessPermissions",
+    "FabricItemJobHistory",
+    "FabricItemDefinitions",
+    "FabricConnections",
+    "FabricDeploymentPipelineOperations",
 ]
 
 CLOUD_ENVIRONMENTS = ("Commercial", "Gcc", "GccHigh", "Dod")

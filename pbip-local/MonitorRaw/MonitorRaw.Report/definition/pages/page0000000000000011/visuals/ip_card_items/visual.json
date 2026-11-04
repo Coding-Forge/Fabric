@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "ip_card_items",
+  "position": {
+    "x": 335,
+    "y": 325,
+    "width": 295,
+    "height": 80,
+    "z": 7000,
+    "tabOrder": 7000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Items With Grants"
+                }
+              },
+              "queryRef": "Item Permissions.Items With Grants",
+              "nativeQueryRef": "Items With Grants"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

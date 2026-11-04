@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "rd_catalog",
+  "position": { "x": 1210, "y": 500, "z": 31, "height": 560, "width": 675 },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "CatalogReports" } }, "Property": "ReportName" } }, "queryRef": "CatalogReports.ReportName", "nativeQueryRef": "ReportName" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "CatalogReports" } }, "Property": "WorkspaceName" } }, "queryRef": "CatalogReports.WorkspaceName", "nativeQueryRef": "WorkspaceName" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "CatalogReports" } }, "Property": "ModifiedBy" } }, "queryRef": "CatalogReports.ModifiedBy", "nativeQueryRef": "ModifiedBy" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "CatalogReports" } }, "Property": "Endorsement" } }, "queryRef": "CatalogReports.Endorsement", "nativeQueryRef": "Endorsement" },
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "_Measures" } }, "Property": "Catalog Report Matches" } }, "queryRef": "_Measures.Catalog Report Matches", "nativeQueryRef": "Catalog Report Matches" }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        { "properties": { "textSize": { "expr": { "Literal": { "Value": "9D" } } } } }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": { "expr": { "Literal": { "Value": "true" } } },
+            "text": { "expr": { "Literal": { "Value": "'Catalog entry (matched on ArtifactId = ReportId)'" } } },
+            "fontSize": { "expr": { "Literal": { "Value": "11D" } } }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

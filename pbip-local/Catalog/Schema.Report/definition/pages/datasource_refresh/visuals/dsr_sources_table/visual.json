@@ -1,0 +1,146 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "dsr_sources_table",
+  "position": {
+    "x": 40,
+    "y": 620,
+    "z": 10000,
+    "height": 395,
+    "width": 895,
+    "tabOrder": 10000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasourceInstances"
+                    }
+                  },
+                  "Property": "DatasourceInstanceId"
+                }
+              },
+              "queryRef": "DatasourceInstances.DatasourceInstanceId",
+              "nativeQueryRef": "DatasourceInstanceId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasourceInstances"
+                    }
+                  },
+                  "Property": "DatasourceType"
+                }
+              },
+              "queryRef": "DatasourceInstances.DatasourceType",
+              "nativeQueryRef": "DatasourceType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasourceInstances"
+                    }
+                  },
+                  "Property": "GatewayId"
+                }
+              },
+              "queryRef": "DatasourceInstances.GatewayId",
+              "nativeQueryRef": "GatewayId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasourceInstances"
+                    }
+                  },
+                  "Property": "ExtensionDataSourceKind"
+                }
+              },
+              "queryRef": "DatasourceInstances.ExtensionDataSourceKind",
+              "nativeQueryRef": "ExtensionDataSourceKind"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasourceInstances"
+                    }
+                  },
+                  "Property": "ExtensionDataSourcePath"
+                }
+              },
+              "queryRef": "DatasourceInstances.ExtensionDataSourcePath",
+              "nativeQueryRef": "ExtensionDataSourcePath"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasourceInstances"
+                    }
+                  },
+                  "Property": "Url"
+                }
+              },
+              "queryRef": "DatasourceInstances.Url",
+              "nativeQueryRef": "Url"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Datasource instances'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

@@ -1,0 +1,179 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.15.0/schema.json",
+  "name": "lg_network",
+  "position": {
+    "x": 980,
+    "y": 865,
+    "z": 11000,
+    "height": 440,
+    "width": 900,
+    "tabOrder": 11000
+  },
+  "visual": {
+    "visualType": "ZoomChartsDrillDownNetworkProA2D748C23BD44BE2BB019402882BCA19",
+    "query": {
+      "queryState": {
+        "Nodes": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Graph Links"
+                    }
+                  },
+                  "Property": "Source"
+                }
+              },
+              "queryRef": "Lineage Graph Links.Source",
+              "nativeQueryRef": "Source"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Graph Links"
+                    }
+                  },
+                  "Property": "Consumer"
+                }
+              },
+              "queryRef": "Lineage Graph Links.Consumer",
+              "nativeQueryRef": "Consumer"
+            }
+          ]
+        },
+        "Size": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Graph Links"
+                    }
+                  },
+                  "Property": "Graph Link Weight"
+                }
+              },
+              "queryRef": "Lineage Graph Links.Graph Link Weight",
+              "nativeQueryRef": "Graph Link Weight"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "license": [
+        {
+          "properties": {
+            "lastVersionUsed": {
+              "expr": {
+                "Literal": {
+                  "Value": "'v1.12.71.0'"
+                }
+              }
+            },
+            "lastVersionUpdated": {
+              "expr": {
+                "Literal": {
+                  "Value": "1793799480000D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "trialLicense": [
+        {
+          "properties": {
+            "preTrialAccessStartDate": {
+              "expr": {
+                "Literal": {
+                  "Value": "1793746500000D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "general": [
+        {
+          "properties": {}
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'ZoomCharts Network - source / consumer categories'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "36b93db49a0704b7d3d8",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Lineage Graph Links"
+              }
+            },
+            "Property": "Source"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "b7a79eb4e2028e3845c6",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Lineage Graph Links"
+              }
+            },
+            "Property": "Consumer"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "703365c736b00c24cdb1",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Lineage Graph Links"
+              }
+            },
+            "Property": "Graph Link Weight"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

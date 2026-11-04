@@ -1,0 +1,277 @@
+/// One row per capacity and timepoint. Utilization and carry-over measure groups are merged; the latest run wins per (capacity, group, timepoint) so reruns are not double counted. Rows with a Load Error are malformed files.
+table 'Capacity Metrics'
+	lineageTag: f07a7950-df97-4674-82de-c43e71e17d2c
+
+	measure 'Max Utilization %' = MAX('Capacity Metrics'[SKU CU by timepoint %])
+		formatString: 0.0%
+		displayFolder: Utilization
+		lineageTag: 76b2a057-99e6-45a6-8819-b2988c0eada8
+
+	measure 'Avg Utilization %' = AVERAGE('Capacity Metrics'[SKU CU by timepoint %])
+		formatString: 0.0%
+		displayFolder: Utilization
+		lineageTag: 70ffdfe8-2cf7-442d-8318-1a408db74e35
+
+	measure 'Avg Background Billable %' = AVERAGE('Capacity Metrics'[Background billable CU %])
+		formatString: 0.0%
+		displayFolder: Utilization
+		lineageTag: 878159d7-4afc-46c7-81ff-d7f8ae03b8ff
+
+	measure 'Max Background Billable %' = MAX('Capacity Metrics'[Background billable CU %])
+		formatString: 0.0%
+		displayFolder: Utilization
+		lineageTag: 7f0d2942-f4b1-4662-902b-ce92e519a599
+
+	measure 'Avg Interactive Billable %' = AVERAGE('Capacity Metrics'[Interactive billable CU %])
+		formatString: 0.0%
+		displayFolder: Utilization
+		lineageTag: 3bc5ded5-d43d-4501-ba49-d230f9a7a361
+
+	measure 'Max Interactive Billable %' = MAX('Capacity Metrics'[Interactive billable CU %])
+		formatString: 0.0%
+		displayFolder: Utilization
+		lineageTag: 57aad287-f55d-4fa9-b310-01a7633b02da
+
+	measure 'CU Limit (max)' = MAX('Capacity Metrics'[CU limit])
+		formatString: #,0
+		displayFolder: Utilization
+		lineageTag: 33deebbd-c4a5-41a6-9c39-5cee492f6ee7
+
+	measure 'Max Carry Over %' = MAX('Capacity Metrics'[Cumulative carry over %])
+		formatString: 0.0%
+		displayFolder: Carry-over
+		lineageTag: b1af3dfe-7e70-4a72-b35e-045080e19514
+
+	measure 'Avg Carry Over Add %' = AVERAGE('Capacity Metrics'[Carry over add %])
+		formatString: 0.0%
+		displayFolder: Carry-over
+		lineageTag: fbbc5d7f-1972-4a8f-a26b-815dc3bb75ee
+
+	measure 'Avg Carry Over Burndown %' = AVERAGE('Capacity Metrics'[Carry over burndown %])
+		formatString: 0.0%
+		displayFolder: Carry-over
+		lineageTag: c2ed3518-c6d8-4a68-95f2-f4b438dd1fd4
+
+	measure 'Max Expected Burndown (min)' = MAX('Capacity Metrics'[Expected burndown in minutes])
+		formatString: #,0.0
+		displayFolder: Carry-over
+		lineageTag: c8d003eb-581a-4143-8a8d-d49b2e994ef9
+
+	measure 'Carry Over Status' =
+			IF(
+				COUNT('Capacity Metrics'[Cumulative carry over %]) = 0,
+				"No carry-over data. It needs a Capacity Metrics app version that exposes it.",
+				"Carry-over data available"
+			)
+		displayFolder: Carry-over
+		lineageTag: 9ee71453-a582-4b82-8032-f0d58d5f1eba
+
+	measure 'Capacity Count' = DISTINCTCOUNT('Capacity Metrics'[Capacity Id])
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 412b3311-fc15-4c8a-af6c-95ff8a118e98
+
+	measure 'Timepoint Count' = COUNT('Capacity Metrics'[Timepoint])
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 6040a1d3-c53e-4320-955e-edb73338b9dd
+
+	/// Existing JSON parse failures plus invalid/missing Fabric collection artifacts. API failures and unfinished runs are also exposed separately in Collection Status.
+	measure 'Load Errors' =
+			COALESCE(COUNTROWS(FILTER('Capacity Metrics', NOT ISBLANK('Capacity Metrics'[Load Error]))), 0)
+				+ COALESCE(COUNTROWS(FILTER('Activity', NOT ISBLANK('Activity'[Load Error]))), 0)
+				+ COALESCE(COUNTROWS(FILTER('Git Connections', NOT ISBLANK('Git Connections'[Load Error]))), 0)
+				+ COALESCE(COUNTROWS(FILTER('Tags', NOT ISBLANK('Tags'[Load Error]))), 0)
+				+ COALESCE(COUNTROWS(FILTER('Delegated Settings', NOT ISBLANK('Delegated Settings'[Load Error]))), 0)
+				+ COALESCE(COUNTROWS(FILTER('Widely Shared Links', NOT ISBLANK('Widely Shared Links'[Load Error]))), 0)
+				+ [Fabric Collection Load Errors]
+		formatString: #,0
+		displayFolder: Data health
+		lineageTag: 940e1648-45aa-4244-97d6-cb6111734fa5
+
+	column 'Capacity Id'
+		dataType: string
+		isHidden
+		lineageTag: 407e2cfd-4f8c-4150-91a1-329334ccd380
+		summarizeBy: none
+		sourceColumn: Capacity Id
+
+	column Timepoint
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 46c42648-bf08-4f91-a412-eeaa8dbaa633
+		summarizeBy: none
+		sourceColumn: Timepoint
+
+		variation Variation
+			isDefault
+			relationship: e4f47af6-d1db-4489-803f-0e737ca1b94e
+			defaultHierarchy: LocalDateTable_64c2df87-4145-446d-9489-b0ec65615e69.'Date Hierarchy'
+
+	column 'Metric Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 328eae9a-5672-4554-9556-59fcb85f47e2
+		summarizeBy: none
+		sourceColumn: Metric Date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'CU limit'
+		dataType: double
+		formatString: #,0
+		lineageTag: e60ba3bf-6224-4a7a-bf7e-44d34746e79d
+		summarizeBy: sum
+		sourceColumn: CU limit
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'SKU CU by timepoint %'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 9f312fff-a169-4663-88bf-758fbcfa2cf3
+		summarizeBy: sum
+		sourceColumn: SKU CU by timepoint %
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Background billable CU %'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: ebef3111-31bf-45b2-91be-3fe61ed2c266
+		summarizeBy: sum
+		sourceColumn: Background billable CU %
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Interactive billable CU %'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 0757eb5b-b70f-4689-a8b4-d435ffa05b87
+		summarizeBy: sum
+		sourceColumn: Interactive billable CU %
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'SKU CU by timepoint'
+		dataType: double
+		formatString: #,0.00
+		lineageTag: cc6ba74b-465a-4b34-accd-4723aac580a0
+		summarizeBy: sum
+		sourceColumn: SKU CU by timepoint
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Background non billable CU %'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: b96b2731-e7cf-48ed-ac71-45403ad5ca9c
+		summarizeBy: sum
+		sourceColumn: Background non billable CU %
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Interactive non billable CU %'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: dc308d95-3aaf-4b62-bc1e-0578753cf55e
+		summarizeBy: sum
+		sourceColumn: Interactive non billable CU %
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Carry over add %'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 1759e213-5af6-4a09-9ba5-11beb12b29ad
+		summarizeBy: sum
+		sourceColumn: Carry over add %
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Carry over burndown %'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 0eb1e6a3-534e-42aa-90bc-311fa4aa1baf
+		summarizeBy: sum
+		sourceColumn: Carry over burndown %
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cumulative carry over %'
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 1e18c9e8-826c-4e9d-9b73-4a3b5e9da8bf
+		summarizeBy: sum
+		sourceColumn: Cumulative carry over %
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Expected burndown in minutes'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: 9573db89-b919-4b6d-bb3d-5ab1a7f2c441
+		summarizeBy: sum
+		sourceColumn: Expected burndown in minutes
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Source File'
+		dataType: string
+		lineageTag: d9620be3-e049-4a40-bbc8-7b81cd35da5d
+		summarizeBy: none
+		sourceColumn: Source File
+
+	column 'Load Error'
+		dataType: string
+		lineageTag: 8c00bc65-7f92-44c2-8add-0ac0ffa70dbe
+		summarizeBy: none
+		sourceColumn: Load Error
+
+	partition 'Capacity Metrics' = m
+		mode: import
+		source =
+				let
+					Files = GetFiles("capacity_metrics"),
+					UtilMeasures = {"CU limit", "SKU CU by timepoint %", "Background billable CU %", "Interactive billable CU %", "SKU CU by timepoint", "Background non billable CU %", "Interactive non billable CU %"},
+					CarryMeasures = {"Carry over add %", "Carry over burndown %", "Cumulative carry over %", "Expected burndown in minutes"},
+					AllMeasures = UtilMeasures & CarryMeasures,
+					KeyColumns = {"Capacity Id", "Timepoint", "Metric Date"},
+				
+					Valid = Table.SelectRows(Files, each [ParseError] = null and [Json] is record),
+					WithMeta = AddColumns(Valid, {
+						{"Capacity Id", each ToText(JsonField([Json], "capacityId")), type text},
+						{"Metric Group", each Text.Lower(Coalesce(ToText(JsonField([Json], "group")), "")), type text},
+						{"Metric Day", each Coalesce(ToDate(JsonField([Json], "date")), [FileDate]), type nullable date},
+						{"Run Key", each Text.Start([FileName], 8), type text},
+						{"Rows", each let r = JsonField([Json], "rows") in if r is list then List.Select(r, (x) => x is record) else {}, type list}
+					}),
+					Expanded = Table.SelectRows(Table.ExpandListColumn(WithMeta, "Rows"), each [Rows] is record),
+					WithValues = AddColumns(Expanded, {
+						{"Timepoint", each ToUtcDateTime(GetRowValue([Rows], {"Timepoints[Timepoint]", "[Timepoints[Timepoint]]", "[Timepoint]", "Timepoint"})), type nullable datetime},
+						{"Metric Date", each Coalesce(DateTime.Date(ToUtcDateTime(GetRowValue([Rows], {"Timepoints[Timepoint]", "[Timepoints[Timepoint]]", "[Timepoint]", "Timepoint"}))), [Metric Day]), type nullable date}
+					} & List.Transform(AllMeasures, (m) => {m, (r) => CmMeasure(r[Rows], m), type nullable number})),
+					Slim = Table.SelectColumns(WithValues, {"Capacity Id", "Metric Group", "Run Key", "Timepoint", "Metric Date"} & AllMeasures),
+					Known = Table.SelectRows(Slim, each [Timepoint] <> null and [Capacity Id] <> null),
+				
+					// Latest run wins per capacity, group and timepoint
+					Sorted = Table.Buffer(Table.Sort(Known, {{"Run Key", Order.Descending}})),
+					Latest = Table.Distinct(Sorted, {"Capacity Id", "Metric Group", "Timepoint"}),
+				
+					Util = Table.SelectColumns(Table.SelectRows(Latest, each [Metric Group] = "utilization"), KeyColumns & UtilMeasures),
+					Carry = Table.SelectColumns(Table.SelectRows(Latest, each [Metric Group] = "carryover"), KeyColumns & CarryMeasures),
+					KeyRows = Table.Distinct(Table.Combine({Table.SelectColumns(Util, KeyColumns), Table.SelectColumns(Carry, KeyColumns)}), {"Capacity Id", "Timepoint"}),
+					JoinedUtil = Table.ExpandTableColumn(Table.NestedJoin(KeyRows, {"Capacity Id", "Timepoint"}, Util, {"Capacity Id", "Timepoint"}, "U", JoinKind.LeftOuter), "U", UtilMeasures),
+					JoinedCarry = Table.ExpandTableColumn(Table.NestedJoin(JoinedUtil, {"Capacity Id", "Timepoint"}, Carry, {"Capacity Id", "Timepoint"}, "C", JoinKind.LeftOuter), "C", CarryMeasures),
+					Measured = Table.AddColumn(Table.AddColumn(JoinedCarry, "Source File", each null, type text), "Load Error", each null, type text),
+				
+					// Malformed files stay visible as rows that carry only the error
+					Failed = Table.SelectRows(Files, each [ParseError] <> null),
+					ErrorRows = Table.RenameColumns(Table.SelectColumns(Failed, {"RelPath", "ParseError"}), {{"RelPath", "Source File"}, {"ParseError", "Load Error"}}),
+					Combined = Table.Combine({Measured, ErrorRows}),
+					Result = Table.TransformColumnTypes(Combined, {{"Capacity Id", type text}, {"Timepoint", type datetime}, {"Metric Date", type date}, {"Source File", type text}, {"Load Error", type text}} & List.Transform(AllMeasures, (m) => {m, type number}))
+				in
+					Result
+
+	annotation PBI_ResultType = Table
+

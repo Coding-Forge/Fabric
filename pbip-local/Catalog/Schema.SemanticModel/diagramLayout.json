@@ -1,0 +1,243 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 565,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 274,
+            "y": 707
+          },
+          "nodeIndex": "Base",
+          "nodeLineageTag": "c9163496-65a8-402f-96c0-b07e9d798a7c",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 2737,
+            "y": 1098
+          },
+          "nodeIndex": "Columns",
+          "nodeLineageTag": "c1befbcb-88ff-4df8-b40f-470706ba4ad5",
+          "size": {
+            "height": 393,
+            "width": 503
+          },
+          "zIndex": 11
+        },
+        {
+          "location": {
+            "x": 568,
+            "y": 63
+          },
+          "nodeIndex": "Dashboards",
+          "nodeLineageTag": "4b44c13e-5353-4b13-9c50-d2fabb0a1d67",
+          "size": {
+            "height": 233,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 852,
+            "y": 51
+          },
+          "nodeIndex": "Dataflows",
+          "nodeLineageTag": "b924045d-f73c-43ad-82c3-11ce62d86db5",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 13
+        },
+        {
+          "location": {
+            "x": 1136,
+            "y": 39
+          },
+          "nodeIndex": "Datamarts",
+          "nodeLineageTag": "cca4ff5d-bf23-47e3-bf74-408f2b987a78",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 3113,
+            "y": 566
+          },
+          "nodeIndex": "DatasetDatasourceUsages",
+          "nodeLineageTag": "73bc7c6b-f6f7-46a7-8b08-da63de8b65e8",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 12
+        },
+        {
+          "location": {
+            "x": 1000,
+            "y": 1036
+          },
+          "nodeIndex": "DatasetExpressions",
+          "nodeLineageTag": "55d421e9-f988-4e47-b0bc-1ac31c1f2ecb",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 2363,
+            "y": 607
+          },
+          "nodeIndex": "DatasetMeasures",
+          "nodeLineageTag": "029df086-7182-4b6d-a6f5-f153e22db087",
+          "size": {
+            "height": 341,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 2014,
+            "y": 1205
+          },
+          "nodeIndex": "DatasetRefreshScheduleDays",
+          "nodeLineageTag": "ccf12b38-f518-4026-bbd5-facd7ffe741f",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 2222,
+            "y": 9
+          },
+          "nodeIndex": "DatasetRefreshSchedules",
+          "nodeLineageTag": "4458d510-a890-45a2-8cbc-e637dda24def",
+          "size": {
+            "height": 270,
+            "width": 282
+          },
+          "zIndex": 17
+        },
+        {
+          "location": {
+            "x": 2840,
+            "y": 51
+          },
+          "nodeIndex": "DatasetRefreshScheduleTimes",
+          "nodeLineageTag": "becf471b-df93-4e0e-a196-601872d8fa09",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 16
+        },
+        {
+          "location": {
+            "x": 1404,
+            "y": 365
+          },
+          "nodeIndex": "Datasets",
+          "nodeLineageTag": "d97d035e-12ef-4d2d-a614-2010a9c32b81",
+          "size": {
+            "height": 387,
+            "width": 234
+          },
+          "zIndex": 15
+        },
+        {
+          "location": {
+            "x": 3338,
+            "y": 51
+          },
+          "nodeIndex": "DatasourceInstances",
+          "nodeLineageTag": "2475d32a-8032-4e79-8abb-3b7702dd546c",
+          "size": {
+            "height": 262,
+            "width": 304
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 1911,
+            "y": 395
+          },
+          "nodeIndex": "Reports",
+          "nodeLineageTag": "61475131-73a4-4150-b2c7-47716a5e4ebe",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 1704,
+            "y": 846
+          },
+          "nodeIndex": "Tables",
+          "nodeLineageTag": "b66b141b-48af-47c2-ae03-f9a56d52f858",
+          "size": {
+            "height": 306,
+            "width": 234
+          },
+          "zIndex": 14
+        },
+        {
+          "location": {
+            "x": 844,
+            "y": 561
+          },
+          "nodeIndex": "Workspaces",
+          "nodeLineageTag": "80a1ad7c-9389-423b-9c16-2119559cd91f",
+          "size": {
+            "height": 327,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 3418,
+            "y": 687
+          },
+          "nodeIndex": "RefreshInfo",
+          "nodeLineageTag": "f7cdd8a2-51e9-4854-b602-a29d10a0002c",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 1
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

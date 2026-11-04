@@ -1,0 +1,79 @@
+/// Latest snapshot of tenant tags (tags/YYYY/MM/DD/tags.json); older days are not summed.
+table Tags
+	lineageTag: cf10745f-db0a-4d5f-ae8d-f43f4c821548
+
+	measure 'Tag Count' = CALCULATE(COUNTROWS('Tags'), 'Tags'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 54b76ce3-4374-43e0-ba7a-586b7531eaff
+
+	column 'Tag Id'
+		dataType: string
+		lineageTag: 355e5693-a6d5-474e-94d8-9cfcc10e560b
+		summarizeBy: none
+		sourceColumn: Tag Id
+
+	column 'Display Name'
+		dataType: string
+		lineageTag: 3a2ced42-d0cf-40a7-b8e3-7e15aa12cbaf
+		summarizeBy: none
+		sourceColumn: Display Name
+
+	column 'Scope Type'
+		dataType: string
+		lineageTag: 53f98434-5823-4bbc-9fcd-2a9be8120ce9
+		summarizeBy: none
+		sourceColumn: Scope Type
+
+	column 'Domain Id'
+		dataType: string
+		lineageTag: accb1a85-302e-4391-8828-baf266aa873f
+		summarizeBy: none
+		sourceColumn: Domain Id
+
+	column 'Snapshot Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 3ceb42b7-e0b0-4111-857e-4c834fcaac9b
+		summarizeBy: none
+		sourceColumn: Snapshot Date
+
+		variation Variation
+			isDefault
+			relationship: 71d69a9a-a3dd-49a0-aa7f-90a270a46ed8
+			defaultHierarchy: LocalDateTable_f8f748ca-cf6a-49e5-87ba-f0ec4ede6633.'Date Hierarchy'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Source File'
+		dataType: string
+		lineageTag: 8593c576-4d5d-4776-a909-8080616776ca
+		summarizeBy: none
+		sourceColumn: Source File
+
+	column 'Load Error'
+		dataType: string
+		lineageTag: eb146b49-3fe8-487a-b2f2-b097388de4fc
+		summarizeBy: none
+		sourceColumn: Load Error
+
+	partition Tags = m
+		mode: import
+		source =
+				let
+					Items = ExpandItems(KeepLatestPerGroup(GetFiles("tags"), "Group")),
+					WithColumns = AddColumns(Items, {
+						{"Tag Id", each ToText(JsonField([Item], "id")), type text},
+						{"Display Name", each ToText(JsonField([Item], "displayName")), type text},
+						{"Scope Type", each ToText(JsonField(JsonField([Item], "scope"), "type")), type text},
+						{"Domain Id", each ToText(JsonField(JsonField([Item], "scope"), "domainId")), type text},
+						{"Snapshot Date", each [FileDate], type nullable date},
+						{"Source File", each if [ParseError] <> null then [RelPath] else null, type text},
+						{"Load Error", each [ParseError], type text}
+					}),
+					Result = Table.SelectColumns(WithColumns, {"Tag Id", "Display Name", "Scope Type", "Domain Id", "Snapshot Date", "Source File", "Load Error"})
+				in
+					Result
+
+	annotation PBI_ResultType = Table
+

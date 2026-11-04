@@ -1,0 +1,57 @@
+/// Latest committed successful discovery, including a successful empty list. This is caller-visible coverage, not a tenant inventory.
+table 'Deployment Pipelines'
+	lineageTag: 5d27c348-4870-4fd7-970a-46ba16aa8261
+
+	measure 'Visible Pipeline Count' =
+			IF(
+				CALCULATE(SELECTEDVALUE('Collection Status'[Has Snapshot]), 'Collection Status'[Module] = "fabricdeploymentpipelineoperations"),
+				COALESCE(COUNTROWS('Deployment Pipelines'), 0)
+			)
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: cf967830-ccf4-47b1-a0ed-f7d66b5233b8
+
+	column 'Pipeline Id'
+		dataType: string
+		lineageTag: 9ec9968b-a13a-498f-9788-0d5d00172c92
+		summarizeBy: none
+		sourceColumn: Pipeline Id
+
+	column 'Pipeline Name'
+		dataType: string
+		lineageTag: d3780b4d-21bc-40f4-a6c3-3ff7a5618988
+		summarizeBy: none
+		sourceColumn: Pipeline Name
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: aa17a512-330c-43ea-a332-c584a272eb72
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	column 'Run Id'
+		dataType: string
+		isHidden
+		lineageTag: 60e63aaf-a4f2-46a3-85a8-32ea34817149
+		summarizeBy: none
+		sourceColumn: Run Id
+
+	partition 'Deployment Pipelines' = m
+		mode: import
+		source =
+				let
+				  Snapshot = FabricDeploymentData[Snapshot],
+				  Items = Table.FromList(Coalesce(JsonField(Snapshot, "records"), {}), Splitter.SplitByNothing(), {"Item"}),
+				  WithColumns = AddColumns(Items, {
+						{"Pipeline Id", each Text.Lower(JsonField([Item], "id")), type text},
+						{"Pipeline Name", each JsonField([Item], "displayName"), type text},
+						{"Observed At UTC", each ToUtcDateTime(JsonField(Snapshot, "observedAt")), type nullable datetime},
+						{"Run Id", each JsonField(Snapshot, "runId"), type text}
+					}),
+				  Custom = Table.RemoveColumns(WithColumns, {"Item"})
+				in
+				  Custom
+
+	annotation PBI_ResultType = Table
+

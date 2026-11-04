@@ -1,0 +1,122 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "cnx_table",
+  "position": {
+    "x": 20,
+    "y": 415,
+    "width": 1240,
+    "height": 285,
+    "z": 7000,
+    "tabOrder": 7000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connections"
+                    }
+                  },
+                  "Property": "Connection Label"
+                }
+              },
+              "queryRef": "Connections.Connection Label",
+              "nativeQueryRef": "Connection Label"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connections"
+                    }
+                  },
+                  "Property": "Connection Id"
+                }
+              },
+              "queryRef": "Connections.Connection Id",
+              "nativeQueryRef": "Connection Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connections"
+                    }
+                  },
+                  "Property": "Connectivity Type"
+                }
+              },
+              "queryRef": "Connections.Connectivity Type",
+              "nativeQueryRef": "Connectivity Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connections"
+                    }
+                  },
+                  "Property": "Connection Type"
+                }
+              },
+              "queryRef": "Connections.Connection Type",
+              "nativeQueryRef": "Connection Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connections"
+                    }
+                  },
+                  "Property": "Privacy Level"
+                }
+              },
+              "queryRef": "Connections.Privacy Level",
+              "nativeQueryRef": "Privacy Level"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connections"
+                    }
+                  },
+                  "Property": "Gateway Assignment"
+                }
+              },
+              "queryRef": "Connections.Gateway Assignment",
+              "nativeQueryRef": "Gateway Assignment"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connections"
+                    }
+                  },
+                  "Property": "Gateway Id"
+                }
+              },
+              "queryRef": "Connections.Gateway Id",
+              "nativeQueryRef": "Gateway Id"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

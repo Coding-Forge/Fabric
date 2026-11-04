@@ -1,0 +1,158 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.15.0/schema.json",
+  "name": "lg_chord",
+  "position": {
+    "x": 40,
+    "y": 865,
+    "z": 10000,
+    "height": 440,
+    "width": 900,
+    "tabOrder": 10000
+  },
+  "visual": {
+    "visualType": "ChordChart1444757060245",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Graph Links"
+                    }
+                  },
+                  "Property": "Source"
+                }
+              },
+              "queryRef": "Lineage Graph Links.Source",
+              "nativeQueryRef": "Source"
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Graph Links"
+                    }
+                  },
+                  "Property": "Consumer"
+                }
+              },
+              "queryRef": "Lineage Graph Links.Consumer",
+              "nativeQueryRef": "Consumer"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Graph Links"
+                    }
+                  },
+                  "Property": "Graph Link Weight"
+                }
+              },
+              "queryRef": "Lineage Graph Links.Graph Link Weight",
+              "nativeQueryRef": "Graph Link Weight"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Chord - connectivity (ribbons are not directional arrows)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "2d9ea32e37a305e80003",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Lineage Graph Links"
+              }
+            },
+            "Property": "Source"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "35eab64b0dca74594124",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Lineage Graph Links"
+              }
+            },
+            "Property": "Consumer"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "046be8b6b6b08121d710",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Lineage Graph Links"
+              }
+            },
+            "Property": "Graph Link Weight"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

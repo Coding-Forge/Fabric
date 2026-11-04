@@ -1,0 +1,114 @@
+table 'Lineage Edges'
+	lineageTag: 9cc885f2-638b-4ccd-aad7-f2748ee59d05
+
+	measure 'Upstream Links' =
+			IF(COUNTROWS('Lineage Workspaces') > 0,
+				COALESCE(CALCULATE(COUNTROWS('Lineage Edges'), KEEPFILTERS('Lineage Edges'[Direction] = "upstream")), 0))
+		formatString: #,0
+		lineageTag: 739f868d-c45e-4df3-96d2-3ceca4416a48
+
+	measure 'Downstream Links' =
+			IF(COUNTROWS('Lineage Workspaces') > 0,
+				COALESCE(CALCULATE(COUNTROWS('Lineage Edges'), KEEPFILTERS('Lineage Edges'[Direction] = "downstream")), 0))
+		formatString: #,0
+		lineageTag: 0a9691ca-9052-4d35-8fbd-b4d0725cc69d
+
+	measure 'Unresolved References' =
+			IF(COUNTROWS('Lineage Workspaces') > 0,
+				COALESCE(CALCULATE(COUNTROWS('Lineage Edges'),
+					KEEPFILTERS('Lineage Edges'[Resolution] = "Unresolved / metadata unavailable")), 0))
+		formatString: #,0
+		lineageTag: 6119ed2b-f46d-4af1-a5b6-772c52260a0b
+
+	column 'Item Key'
+		dataType: string
+		isHidden
+		lineageTag: a1f3af65-e134-4196-a917-fd800e6c0421
+		summarizeBy: none
+		sourceColumn: Item Key
+
+	column 'Query Item'
+		dataType: string
+		lineageTag: 52354c32-049a-4e69-bb90-bbd1ec1621da
+		summarizeBy: none
+		sourceColumn: Query Item
+
+	column 'Query Item Id'
+		dataType: string
+		lineageTag: 05c01ac1-6347-47fc-ba24-51f5d3ce8394
+		summarizeBy: none
+		sourceColumn: Query Item Id
+
+	column 'Query Item Type'
+		dataType: string
+		lineageTag: 572b60b1-4571-40f9-860b-4e63f3ccf1fa
+		summarizeBy: none
+		sourceColumn: Query Item Type
+
+	column Direction
+		dataType: string
+		lineageTag: 2a7af7f3-b897-4812-999f-b1d9dd5ed9f5
+		summarizeBy: none
+		sourceColumn: Direction
+
+	column 'Related Item'
+		dataType: string
+		lineageTag: 7486bbd9-e740-4423-9316-0b9da4537f1e
+		summarizeBy: none
+		sourceColumn: Related Item
+
+	column 'Related Item Id'
+		dataType: string
+		lineageTag: d6b7ceb4-280e-4cad-8987-ef978df3bcd7
+		summarizeBy: none
+		sourceColumn: Related Item Id
+
+	column 'Related Type'
+		dataType: string
+		lineageTag: 8dc5b8ff-b3d3-47ce-a189-9fb9c5ada0cf
+		summarizeBy: none
+		sourceColumn: Related Type
+
+	column 'Related Workspace Id'
+		dataType: string
+		lineageTag: e821098f-a13a-44aa-9290-74ea2536a263
+		summarizeBy: none
+		sourceColumn: Related Workspace Id
+
+	column 'Relation Type'
+		dataType: string
+		lineageTag: 4f01bea5-dfa3-4028-9f47-24b9d5c150c9
+		summarizeBy: none
+		sourceColumn: Relation Type
+
+	column Resolution
+		dataType: string
+		lineageTag: 69ed2085-2bf9-4d9c-ae63-9c0c192c0949
+		summarizeBy: none
+		sourceColumn: Resolution
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: d91c61ae-2706-41ee-adae-e6c167c59e3f
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	column 'Scan Id'
+		dataType: string
+		lineageTag: ac32e8a5-c67a-4dc8-9397-2e73aee84534
+		summarizeBy: none
+		sourceColumn: Scan Id
+
+	partition 'Lineage Edges' = m
+		mode: import
+		source =
+				Table.FromRecords(LineageData[Edges],
+					type table [#"Item Key" = nullable text, #"Query Item" = nullable text, #"Query Item Id" = nullable text,
+						#"Query Item Type" = nullable text, Direction = nullable text, #"Related Item" = nullable text,
+						#"Related Item Id" = nullable text, #"Related Type" = nullable text, #"Related Workspace Id" = nullable text,
+						#"Relation Type" = nullable text, Resolution = nullable text, #"Observed At UTC" = nullable datetime,
+						#"Scan Id" = nullable text], MissingField.UseNull)
+
+	annotation PBI_ResultType = Table
+

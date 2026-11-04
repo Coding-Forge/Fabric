@@ -1,18 +1,19 @@
 import os
 import json
-import time
 import asyncio
 import argparse
 
 # from codetiming import Timer
 import sys
 
-from datetime import datetime, timedelta
+from datetime import timedelta
+
+from env.context import Context, utc_now, utc_stamp
+from env.utility.lineage_edges import scan_snapshot
 # from env.utility.helps import Bob
 
 ####### CATALOG PRECONFIGURATION #######
 catalog_types = ["scan","snapshots"]
-today = datetime.now()
 getInfoDetails = "lineage=true&datasourceDetails=true&getArtifactUsers=true&datasetSchema=false&datasetExpressions=false"
 getModifiedWorkspacesParams = "excludePersonalWorkspaces=False&excludeInActiveWorkspaces=False"
 FullScanAfterDays = 30
@@ -20,6 +21,8 @@ reset  = True
 
 throttleErrorSleepSeconds = 3700
 scanStatusSleepSeconds = 15
+MAX_SCAN_STATUS_ATTEMPTS = 120   # 120 polls * 15s = 30 minutes per scan
+MAX_SCAN_STATUS_ERRORS = 5       # consecutive status errors before the batch is failed
 getInfoOuterBatchCount = 1500
 getInfoInnerBatchCount = 100
 runsInParallel = 16       
@@ -28,9 +31,16 @@ runsInParallel = 16
 def RunFullScan(value=False):
     FullScan = value
 
-async def main(context=None):
-    """
-    Catalog Scans (Catalog meta data)
+async def main(context: Context | None = None) -> bool:
+    """Discover modified workspaces and asynchronously save their catalog scans.
+
+    Empty discovery succeeds without scanning or updating ``lastFullScan``.
+    A completed, nonempty full scan updates ``context.current_state``.
+
+    :param context: API clients, scan configuration, storage, and shared state.
+    :return: True for successful scans or no work, False for invalid discovery
+        responses or failed scans.
+    :raises RuntimeError: If context is missing.
     """
 
     if not context:
@@ -39,6 +49,12 @@ async def main(context=None):
     
     FullScan = False
     allWorkspaces = context.all_workspaces
+    lineage_enabled = os.environ.get("CATALOG_LINEAGE_ENABLED", "").strip().lower() in (
+        "1",
+        "true",
+        "yes",
+        "on",
+    )
 
     headers = context.clients['pbi'].get_headers()
 
@@ -53,21 +69,21 @@ async def main(context=None):
         LastFullScan = (context.current_state.get("catalog") or {}).get("lastFullScan")
 
     if LastRun is None:
-        LastRun = datetime.now()
+        LastRun = utc_stamp()
 
     if LastFullScan is None:
-        LastFullScan = datetime.now() - timedelta(days=30)
+        LastFullScan = utc_stamp(utc_now() - timedelta(days=FullScanAfterDays))
         FullScan = True     
 
     lastRun_tm = context.convert_dt_str(LastRun)
     lastFullScan_tm = context.convert_dt_str(LastFullScan)
 
-    # pivotScan = lastRun_tm + timedelta(days=-30)
-    # pivotFullScan = lastFullScan_tm + timedelta(days=-30)    
-
-    if abs(lastFullScan_tm - lastRun_tm) >= timedelta(days=30):
+    # A full scan is due when the last one is at least FullScanAfterDays old
+    if utc_now() - lastFullScan_tm >= timedelta(days=FullScanAfterDays):
         FullScan = True
-        LastRun = (datetime.now()-timedelta(days=30)).strftime("%Y-%m-%d")
+
+    if FullScan:
+        LastRun = (utc_now()-timedelta(days=30)).strftime("%Y-%m-%d")
     else:
         LastRun = lastRun_tm.strftime("%Y-%m-%d")
 
@@ -87,21 +103,39 @@ async def main(context=None):
 
     result = await context.invokeAPI(rest_api=rest_api, headers=headers)
 
-    workspaces = list()
+    workspaces: list[str] = list()
 
-    if result and "error" not in result:
-        # The API returns {"value": [...]} — unwrap the list
-        workspace_list = result.get("value", result) if isinstance(result, dict) else result
-        for workspace in workspace_list:
-            if isinstance(workspace, dict):
-                workspaces.append(workspace.get("id"))
-    elif "error" in result:
-        # Handle the error case
-        context.logger.error(f"Error was thrown: {result}")
-        return
-    else:
+    if result is None or (
+        isinstance(result, dict) and ("ERROR" in result or "error" in result)
+    ):
+        context.logger.error("Error was thrown: %s", result)
+        return False
+
+    # Discovery supports a raw list or a {"value": [...]} envelope.
+    workspace_list = result.get("value") if isinstance(result, dict) else result
+    if not isinstance(workspace_list, list):
+        context.logger.error("Invalid workspace discovery response: expected a list")
+        return False
+
+    for index, workspace in enumerate(workspace_list):
+        if (
+            not isinstance(workspace, dict)
+            or "ERROR" in workspace
+            or "error" in workspace
+            or not isinstance(workspace.get("id"), str)
+            or not workspace["id"].strip()
+        ):
+            context.logger.error(
+                "Invalid workspace discovery record at index %d: "
+                "expected an object with a nonempty string id",
+                index,
+            )
+            return False
+        workspaces.append(workspace["id"])
+
+    if not workspaces:
         context.logger.info("No modified workspaces found for the time period searched")
-        return
+        return True
     # The first thing is to get all the workspaces that have been modified
     # Split into groups of 500
     # scroll through the list of workspaces and get the scan results for each workspace
@@ -154,9 +188,11 @@ async def main(context=None):
     # build in a sleep for 10 seconds every 15 groups
     # to avoid throttling
 
-    async def get_workspace_info(workspace_groups, FullScan=False,fileIndex=0, headers=None):
-        workspaceScanResults = []
-        
+    async def get_workspace_info(workspace_groups, FullScan=False,fileIndex=0, headers=None) -> bool:
+        """Start a scan for a group of workspaces, poll until done and save the result.
+
+        :return: True when the scan result was saved, False on any failure.
+        """
         body = {
             "workspaces":workspace_groups
         }
@@ -165,95 +201,119 @@ async def main(context=None):
         
         result = None
         try:
-            # print(f"Getting lineage for {len(workspace_groups)} workspaces and the body is {body}")
             result = await context.invokeAPI(rest_api=rest_api, headers=headers, json=body)
         except Exception as e:
-            print(f"Error getting lineage: {e} with result: {result}")
-            time.sleep(60*3)
+            context.logger.error(f"Error getting lineage: {e} with result: {result}")
+            await asyncio.sleep(60*3)
+            return False
 
+        if result is None or "ERROR" in result:
+            context.logger.error(f"getInfo failed for batch {fileIndex}: {result}")
+            return False
 
-        if result is None:
-             return "Result for getInfo is none {body}"
-        elif "ERROR" in result:
-            context.logger.error(f"Error: {result}")
-        else:
-            # print(f"what is the result: {result}")
+        workspaceScanResult = result
+        scanId = workspaceScanResult.get("id")
+        attempts = 0
+        consecutiveErrors = 0
 
-            workspaceScanResults.append(result)
-            for workspaceScanResult in workspaceScanResults:
-                # print(f"Sleeping for {scanStatusSleepSeconds} seconds to prevent overloading the API with requests")
-                # time.sleep(scanStatusSleepSeconds)
-                while(workspaceScanResult.get("status") in ["Running", "NotStarted"]):
-                    try:
-                        # print(f"Getting scan status for workspace {workspaceScanResult.get('id')}")
-                        rest_api = f"admin/workspaces/scanStatus/{workspaceScanResult.get('id')}"
-                        result = await context.invokeAPI(rest_api=rest_api, headers=headers)
-                    except Exception as e:
-                        context.logger.error(f"Scan status Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
-                        await asyncio.sleep(throttleErrorSleepSeconds)
+        while workspaceScanResult.get("status") in ["Running", "NotStarted"]:
+            if attempts >= MAX_SCAN_STATUS_ATTEMPTS:
+                context.logger.error(f"Scan {scanId} did not finish after {attempts} status checks; failing the batch")
+                return False
+            attempts += 1
 
+            await asyncio.sleep(scanStatusSleepSeconds)
 
-                    if "ERROR" in result:
-                        context.logger.error(f"Error: {result}")
-                    else:
-                        workspaceScanResult["status"] = result.get("status")
-                        try:
-                            if workspaceScanResult is not None and  "status" in workspaceScanResult and "Succeeded" in workspaceScanResult["status"]:
-                                id = workspaceScanResult.get("id")
+            statusResult = await context.invokeAPI(rest_api=f"admin/workspaces/scanStatus/{scanId}", headers=headers)
 
-                                # print(f"Getting scan results for scan {id}")
-                                rest_api = f"admin/workspaces/scanResult/{id}"
-                                scanResult = await context.invokeAPI(rest_api=rest_api, headers=headers)
+            if not statusResult or "ERROR" in statusResult:
+                consecutiveErrors += 1
+                context.logger.error(f"Scan status error for {scanId} ({consecutiveErrors}/{MAX_SCAN_STATUS_ERRORS}): {statusResult}")
+                if consecutiveErrors >= MAX_SCAN_STATUS_ERRORS:
+                    return False
+                continue
 
-                                # TODO: create a better check on whether scan results were returned or error thrown
-                                if "ERRORs" in scanResult:
-                                    context.logger.error(f"Error: Did not get scan results for workspace {id}")
-                                else:
-                                    today = datetime.now()
-                                    path = f"catalog/scans/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
-                                    #dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=path)
-                                    try:
-                                        if FullScan:
-                                            file_name=f"scanResults.fullscan.json"
-                                        else:
-                                            file_name=f"scanResults.json"
-                                        
-                                        index = str(fileIndex).zfill(5)
-                                        file_name = f"{today.strftime('%Y%m%d')}_{index}.{file_name}"
-                                        print(f"Saving scan results to {file_name}")
-                                        
-                                        await context.fm.save(path=path, file_name=file_name, content=scanResult)
-                                        return "Saved"
-                                        #await FF.write_json_to_file(directory_client=dc, file_name="scanResults.json", json_data=scanResult)
-                                    except TypeError as e:
-                                        context.logger.error(f"Please fix the async to handle the Error: {e} -- is this the issue")
-                            else:
-                                context.logger.error(f"Information: Waiting for Scan results.....")
-                        except Exception as e:
-                            print(e)
-                            pass
+            consecutiveErrors = 0
+            workspaceScanResult["status"] = statusResult.get("status")
 
+        if workspaceScanResult.get("status") != "Succeeded":
+            context.logger.error(f"Scan {scanId} ended with status {workspaceScanResult.get('status')}")
+            return False
 
+        scanResult = await context.invokeAPI(rest_api=f"admin/workspaces/scanResult/{scanId}", headers=headers)
 
+        if not scanResult or "ERROR" in scanResult:
+            context.logger.error(f"Did not get scan results for scan {scanId}: {scanResult}")
+            return False
+
+        today = utc_now()
+        path = f"catalog/scans/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
+        file_name = "scanResults.fullscan.json" if FullScan else "scanResults.json"
+        index = str(fileIndex).zfill(5)
+        file_name = f"{today.strftime('%Y%m%d')}_{index}.{file_name}"
+        print(f"Saving scan results to {file_name}")
+
+        await context.fm.save(path=path, file_name=file_name, content=scanResult)
+        if lineage_enabled:
+            try:
+                snapshot = scan_snapshot(
+                    scanResult, scanId, workspace_groups, utc_stamp(today), FullScan
+                )
+                await context.fm.save_snapshot(
+                    path=f"lineage_edges/{today.strftime('%Y/%m/%d')}/",
+                    file_name=f"{scanId}.lineage_edges.json",
+                    content=snapshot,
+                )
+            except (ValueError, TypeError, RuntimeError, OSError):
+                context.logger.error(
+                    "Catalog lineage extraction or persistence failed for batch %d",
+                    fileIndex,
+                )
+                return False
+        return True
+
+    failures = 0
     counter = int()
     batch_number = int()
     for i in range(0, len(groups), 16):
         batch_number += 1
-        print(f"Processing batch number {batch_number} of {len(groups)//16} batches")
+        print(f"Processing batch number {batch_number} of {-(-len(groups)//16)} batches")
 
         batch = groups[i:i+16]
-        item_number = int()
-        
-        # Process the batch
-        for item in batch:
-            counter += 1
-            item_number += 1
-            print(f"Processing item number {item_number}")
-            output = await get_workspace_info(workspace_groups=item, FullScan=FullScan,fileIndex=counter, headers=headers)
-            print(output)
 
-        # print("I sleeping")
-        time.sleep(30)  # Pause for 10 minutes
+        # Refresh the token per batch (MSAL caches it) so long runs do not hit 401
+        headers = context.clients['pbi'].get_headers()
+
+        # Run up to 16 scans concurrently; each polls scanStatus with sleeps
+        first_index = counter + 1
+        counter += len(batch)
+        outcomes = await asyncio.gather(
+            *(
+                get_workspace_info(workspace_groups=item, FullScan=FullScan, fileIndex=first_index + offset, headers=headers)
+                for offset, item in enumerate(batch)
+            ),
+            return_exceptions=True,
+        )
+        for outcome in outcomes:
+            if isinstance(outcome, BaseException):
+                context.logger.error(f"Scan group raised: {outcome}")
+            if outcome is not True:
+                failures += 1
+
+        # pause between batches to avoid throttling, without blocking the event loop;
+        # no pause is needed after the final batch
+        if i + 16 < len(groups):
+            await asyncio.sleep(30)
+
+    if failures:
+        context.logger.error(f"Catalog finished with {failures} failed scan group(s); lastFullScan not updated")
+        return False
+
+    # Persist lastFullScan so the next run is incremental until the full-scan interval elapses
+    if FullScan and isinstance(context.current_state, dict):
+        context.current_state.setdefault("catalog", {})["lastFullScan"] = utc_stamp()
+
+    return True
 
     # while not work_queue.empty():
     #     counter += 1

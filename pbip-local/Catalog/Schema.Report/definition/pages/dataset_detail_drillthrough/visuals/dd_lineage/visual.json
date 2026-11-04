@@ -1,0 +1,132 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "dd_lineage",
+  "position": {
+    "x": 40,
+    "y": 715,
+    "z": 5000,
+    "height": 300,
+    "width": 895,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetDatasourceUsages"
+                    }
+                  },
+                  "Property": "WorkspaceName"
+                }
+              },
+              "queryRef": "DatasetDatasourceUsages.WorkspaceName",
+              "nativeQueryRef": "WorkspaceName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetDatasourceUsages"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "DatasetDatasourceUsages.DatasetName",
+              "nativeQueryRef": "DatasetName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetDatasourceUsages"
+                    }
+                  },
+                  "Property": "DatasetId"
+                }
+              },
+              "queryRef": "DatasetDatasourceUsages.DatasetId",
+              "nativeQueryRef": "DatasetId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetDatasourceUsages"
+                    }
+                  },
+                  "Property": "DatasourceInstanceId"
+                }
+              },
+              "queryRef": "DatasetDatasourceUsages.DatasourceInstanceId",
+              "nativeQueryRef": "DatasourceInstanceId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetDatasourceUsages"
+                    }
+                  },
+                  "Property": "DatasetDatasourceUsageKey"
+                }
+              },
+              "queryRef": "DatasetDatasourceUsages.DatasetDatasourceUsageKey",
+              "nativeQueryRef": "DatasetDatasourceUsageKey"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Datasource lineage'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

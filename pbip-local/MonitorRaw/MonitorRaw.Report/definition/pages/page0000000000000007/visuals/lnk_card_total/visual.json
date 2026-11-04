@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "lnk_card_total",
+  "position": {
+    "x": 20,
+    "y": 90,
+    "width": 400,
+    "height": 100,
+    "z": 2000,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Widely Shared Links"
+                    }
+                  },
+                  "Property": "Shared Link Count"
+                }
+              },
+              "queryRef": "Widely Shared Links.Shared Link Count",
+              "nativeQueryRef": "Shared Link Count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

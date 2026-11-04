@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "lg_errors",
+  "position": {
+    "x": 1280,
+    "y": 350,
+    "z": 8000,
+    "height": 90,
+    "width": 600,
+    "tabOrder": 8000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Diagnostics"
+                    }
+                  },
+                  "Property": "Snapshot Load Errors"
+                }
+              },
+              "queryRef": "Lineage Diagnostics.Snapshot Load Errors",
+              "nativeQueryRef": "Snapshot Load Errors"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

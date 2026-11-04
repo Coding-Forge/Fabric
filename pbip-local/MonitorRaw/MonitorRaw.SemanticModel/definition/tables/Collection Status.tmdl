@@ -1,0 +1,288 @@
+/// One diagnostic row per supported Fabric collector, including not-collected and successful-empty states. Disconnected from inventory/history so slicers cannot hide collection health.
+table 'Collection Status'
+	lineageTag: f4a4127d-4e64-487c-b731-c5bcfe02897b
+
+	measure 'Connections Collection Status' =
+			VAR _State = CALCULATE(SELECTEDVALUE('Collection Status'[State]), 'Collection Status'[Module] = "fabricconnections")
+			VAR _Snapshot = CALCULATE(MAX('Collection Status'[Snapshot UTC]), 'Collection Status'[Module] = "fabricconnections")
+			RETURN _State & IF(NOT ISBLANK(_Snapshot), " | Snapshot UTC: " & FORMAT(_Snapshot, "yyyy-MM-dd HH:mm:ss"))
+		displayFolder: Data health
+		lineageTag: 5a00647f-855b-499c-8626-ab39cbb760c9
+
+	measure 'Deployment Collection Status' =
+			VAR _State = CALCULATE(SELECTEDVALUE('Collection Status'[State]), 'Collection Status'[Module] = "fabricdeploymentpipelineoperations")
+			VAR _Snapshot = CALCULATE(MAX('Collection Status'[Snapshot UTC]), 'Collection Status'[Module] = "fabricdeploymentpipelineoperations")
+			RETURN _State & IF(NOT ISBLANK(_Snapshot), " | Discovery UTC: " & FORMAT(_Snapshot, "yyyy-MM-dd HH:mm:ss"))
+		displayFolder: Data health
+		lineageTag: c669c81a-f87c-4341-b189-e2b1b3001aa1
+
+	measure 'Fabric Collection Load Errors' = COALESCE(CALCULATE(SUM('Collection Status'[Error Count]), REMOVEFILTERS('Collection Status')), 0)
+		formatString: #,0
+		displayFolder: Data health
+		lineageTag: 7cc61b80-147b-4866-bc5c-b07ebbe233fb
+
+	measure 'Item Permissions Collection Status' =
+			VAR _State = CALCULATE(SELECTEDVALUE('Collection Status'[State]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+			VAR _Snapshot = CALCULATE(MAX('Collection Status'[Snapshot UTC]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+			VAR _Attempt = CALCULATE(MAX('Collection Status'[Last Attempt UTC]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+			VAR _LatestCycle = CALCULATE(SELECTEDVALUE('Collection Status'[Permission Latest Cycle Id]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+			VAR _Start = CALCULATE(MAX('Collection Status'[Permission Observation Start UTC]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+			VAR _End = CALCULATE(MAX('Collection Status'[Permission Observation End UTC]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+			RETURN _State
+				& IF(NOT ISBLANK(_Snapshot), " | Selected evidence UTC: " & FORMAT(_Snapshot, "yyyy-MM-dd HH:mm:ss"))
+				& IF(NOT ISBLANK(_Start), " | Observations UTC: " & FORMAT(_Start, "yyyy-MM-dd HH:mm:ss") & " to " & FORMAT(_End, "yyyy-MM-dd HH:mm:ss"))
+				& IF(NOT ISBLANK(_Attempt), " | Latest attempt UTC: " & FORMAT(_Attempt, "yyyy-MM-dd HH:mm:ss"))
+				& IF(NOT ISBLANK(_LatestCycle), " | Latest cycle: " & _LatestCycle)
+		displayFolder: Data health
+		lineageTag: ba434cb0-248a-4e18-97be-ab29a52a4a9a
+
+	measure 'Fabric Jobs Collection Status' =
+			VAR _State = CALCULATE(SELECTEDVALUE('Collection Status'[State]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemjobhistory")
+			VAR _Snapshot = CALCULATE(MAX('Collection Status'[Snapshot UTC]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemjobhistory")
+			RETURN _State & IF(NOT ISBLANK(_Snapshot), " | Complete poll UTC: " & FORMAT(_Snapshot, "yyyy-MM-dd HH:mm:ss"))
+		displayFolder: Data health
+		lineageTag: 37702779-0462-4a53-ab85-8286137d58ea
+
+	measure 'Permission Successful Target Count' = CALCULATE(MAX('Collection Status'[Permission Successful Targets]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+		formatString: #,0
+		displayFolder: Permission coverage
+		lineageTag: 38e91b3b-8c5e-4616-a76d-e65506edf785
+
+	measure 'Permission Expected Target Count' = CALCULATE(MAX('Collection Status'[Permission Expected Targets]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+		formatString: #,0
+		displayFolder: Permission coverage
+		lineageTag: 08ad256f-edbd-4416-8aa3-438af1a02863
+
+	measure 'Permission Failed Target Count' = CALCULATE(MAX('Collection Status'[Permission Failed Targets]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+		formatString: #,0
+		displayFolder: Permission coverage
+		lineageTag: 2275b89f-8c61-4c81-8771-06b7d4168a94
+
+	measure 'Permission Deferred Target Count' = CALCULATE(MAX('Collection Status'[Permission Deferred Targets]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+		formatString: #,0
+		displayFolder: Permission coverage
+		lineageTag: ef9835a1-27f5-4a97-908b-418da2518f06
+
+	measure 'Permission Not Attempted Target Count' = CALCULATE(MAX('Collection Status'[Permission Not Attempted Targets]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+		formatString: #,0
+		displayFolder: Permission coverage
+		lineageTag: 8060d152-bca3-493f-8a96-0e57df1e363e
+
+	measure 'Permission Target Read Rate' = DIVIDE([Permission Successful Target Count], [Permission Expected Target Count])
+		formatString: 0.0%
+		displayFolder: Permission coverage
+		lineageTag: 241b2e6f-a92e-4a2a-bd6b-af4d9921095e
+
+	measure 'Permission Coverage Is Partial' = CALCULATE(SELECTEDVALUE('Collection Status'[Permission Partial Coverage]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions")
+		displayFolder: Permission coverage
+		lineageTag: f2b22878-12b9-4396-a32b-d617b1e358fc
+
+	measure 'Permission Coverage Warning' = IF([Permission Coverage Is Partial], [Item Permissions Collection Status])
+		displayFolder: Permission coverage
+		lineageTag: 66d9f7bf-0bb7-4856-a733-f172ea3e7ae5
+
+	column Module
+		dataType: string
+		lineageTag: 1043bfd1-1c72-467c-b918-5a36358a64f3
+		summarizeBy: none
+		sourceColumn: Module
+
+	column State
+		dataType: string
+		lineageTag: b7eca2c1-e671-488a-a093-1c6e8787e083
+		summarizeBy: none
+		sourceColumn: State
+
+	column 'Last Attempt UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: b2ae6ce3-5973-4e0c-9302-6e5da02694bf
+		summarizeBy: none
+		sourceColumn: Last Attempt UTC
+
+	column 'Snapshot UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 9e109267-0f0c-4bfa-b40a-579070993fa2
+		summarizeBy: none
+		sourceColumn: Snapshot UTC
+
+	column 'Snapshot Row Count'
+		dataType: double
+		formatString: #,0
+		lineageTag: da5951c9-a07f-410a-b408-497bd86fcf9b
+		summarizeBy: sum
+		sourceColumn: Snapshot Row Count
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Has Snapshot'
+		dataType: boolean
+		isHidden
+		lineageTag: b2ed4980-2c52-40aa-9758-6d77aba34df0
+		summarizeBy: none
+		sourceColumn: Has Snapshot
+
+	column 'Latest Run Complete'
+		dataType: boolean
+		lineageTag: ee55f0ce-7420-481c-b080-dd16e7b28d5a
+		summarizeBy: none
+		sourceColumn: Latest Run Complete
+
+	column 'Error Count'
+		dataType: double
+		formatString: #,0
+		lineageTag: 43233c22-8143-4c33-bbd9-bf7fbfc5c85d
+		summarizeBy: sum
+		sourceColumn: Error Count
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Load Error'
+		dataType: string
+		lineageTag: dc6157da-7510-4b60-9dc4-b57e79edc5f6
+		summarizeBy: none
+		sourceColumn: Load Error
+
+	column Coverage
+		dataType: string
+		lineageTag: 74d99aeb-5713-4374-a2ca-c92a60af2655
+		summarizeBy: none
+		sourceColumn: Coverage
+
+	column 'Permission Cycle Id'
+		dataType: string
+		lineageTag: 16f3ca05-cb74-4635-9eab-48113de5703c
+		summarizeBy: none
+		sourceColumn: Permission Cycle Id
+
+	column 'Permission Latest Cycle Id'
+		dataType: string
+		lineageTag: b611941f-3ae3-4daa-aabd-79e84d0c6c32
+		summarizeBy: none
+		sourceColumn: Permission Latest Cycle Id
+
+	column 'Permission Cycle Status'
+		dataType: string
+		lineageTag: a191ea0d-2ce9-4309-8ec2-d3679a0b55e4
+		summarizeBy: none
+		sourceColumn: Permission Cycle Status
+
+	column 'Permission Latest Attempt Status'
+		dataType: string
+		lineageTag: 7060e0f8-f968-4b13-b8e2-21a3e44430ae
+		summarizeBy: none
+		sourceColumn: Permission Latest Attempt Status
+
+	column 'Permission Successful Targets'
+		dataType: double
+		lineageTag: 47f50241-a4ed-4583-b4c4-a451fc7dafc3
+		summarizeBy: sum
+		sourceColumn: Permission Successful Targets
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Permission Failed Targets'
+		dataType: double
+		lineageTag: 0a84d3cc-75d1-4f56-8b62-e03f044b380e
+		summarizeBy: sum
+		sourceColumn: Permission Failed Targets
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Permission Deferred Targets'
+		dataType: double
+		lineageTag: 7b2007c4-2934-4ae2-a482-7115c1b0f5df
+		summarizeBy: sum
+		sourceColumn: Permission Deferred Targets
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Permission Not Attempted Targets'
+		dataType: double
+		lineageTag: f1623382-9ba0-4b41-aca8-831b4f8d8b30
+		summarizeBy: sum
+		sourceColumn: Permission Not Attempted Targets
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Permission Expected Targets'
+		dataType: double
+		lineageTag: d1af85c4-12ca-4b25-906a-5a4b5d8ca80d
+		summarizeBy: sum
+		sourceColumn: Permission Expected Targets
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Permission Unknown Targets'
+		dataType: double
+		lineageTag: eac8f447-ab3c-4d4f-b8d8-05f348241f1e
+		summarizeBy: sum
+		sourceColumn: Permission Unknown Targets
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Permission Remaining Tasks'
+		dataType: double
+		lineageTag: 996a027b-b69d-42c7-8b38-9e767ce44703
+		summarizeBy: sum
+		sourceColumn: Permission Remaining Tasks
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 'Permission Partial Coverage'
+		dataType: boolean
+		lineageTag: 36f67a52-10ee-4cff-876d-3e513e336385
+		summarizeBy: none
+		sourceColumn: Permission Partial Coverage
+
+	column 'Permission Observation Start UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 6e4c9592-10f1-49de-bb71-bb46978f87a4
+		summarizeBy: none
+		sourceColumn: Permission Observation Start UTC
+
+	column 'Permission Observation End UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: a73359a9-6cf2-4349-acb4-6f9e8eabf0cc
+		summarizeBy: none
+		sourceColumn: Permission Observation End UTC
+
+	partition 'Collection Status' = m
+		mode: import
+		source =
+				Table.FromRecords(
+					{FabricConnectionsData[Status], FabricDeploymentData[Status], FabricItemPermissionsData[Status], FabricItemJobsData[Status]},
+					type table [
+						Module = nullable text, State = nullable text, #"Last Attempt UTC" = nullable datetime,
+						#"Snapshot UTC" = nullable datetime, #"Snapshot Row Count" = nullable number,
+						#"Has Snapshot" = nullable logical, #"Latest Run Complete" = nullable logical,
+						#"Error Count" = nullable number, #"Load Error" = nullable text, Coverage = nullable text,
+						#"Permission Cycle Id" = nullable text, #"Permission Latest Cycle Id" = nullable text,
+						#"Permission Cycle Status" = nullable text, #"Permission Latest Attempt Status" = nullable text,
+						#"Permission Successful Targets" = nullable number, #"Permission Failed Targets" = nullable number,
+						#"Permission Deferred Targets" = nullable number, #"Permission Not Attempted Targets" = nullable number,
+						#"Permission Expected Targets" = nullable number, #"Permission Unknown Targets" = nullable number,
+						#"Permission Remaining Tasks" = nullable number, #"Permission Partial Coverage" = nullable logical,
+						#"Permission Observation Start UTC" = nullable datetime, #"Permission Observation End UTC" = nullable datetime
+					], MissingField.UseNull
+				)
+
+	annotation PBI_ResultType = Table
+

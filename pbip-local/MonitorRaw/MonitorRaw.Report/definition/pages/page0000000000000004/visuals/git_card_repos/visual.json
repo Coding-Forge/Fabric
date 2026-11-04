@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "git_card_repos",
+  "position": {
+    "x": 440,
+    "y": 90,
+    "width": 400,
+    "height": 100,
+    "z": 2000,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Git Connections"
+                    }
+                  },
+                  "Property": "Git Repository Count"
+                }
+              },
+              "queryRef": "Git Connections.Git Repository Count",
+              "nativeQueryRef": "Git Repository Count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

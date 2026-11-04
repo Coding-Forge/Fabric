@@ -100,6 +100,19 @@ Then reference the secret in your Function App settings:
 CLIENT_SECRET=@Microsoft.KeyVault(SecretUri=https://<vault>.vault.azure.net/secrets/ClientSecret/)
 ```
 
+### Via Bicep (E09, optional)
+
+`infra/main.bicep` can do both steps for an **existing** vault and secret. It was compile-validated only and has not been deployed.
+
+- `clientSecretKeyVaultSecretUri`: versionless secret URI. Sets `CLIENT_SECRET` to a Key Vault reference and enables a managed identity on the Function App.
+- `assignKeyVaultAccess` (opt-in, default `false`) with `keyVaultName` and optionally `keyVaultResourceGroupName`: grants **Key Vault Secrets User** to the Function App identity.
+- Role assignment only works if the vault uses **RBAC authorization**. If it uses access policies, leave `assignKeyVaultAccess` false and grant access manually.
+- The deployment fails with a clear error if `assignKeyVaultAccess` is true without `keyVaultName` or the secret URI.
+- On first deploy the reference can show as unresolved until RBAC propagates (several minutes). Restart the Function App.
+- App Service re-resolves versionless references periodically. After rotating the secret, restart the app to apply it immediately.
+
+See [deployment.md](deployment.md#key-vault-reference-and-blob-retention-e09-and-e08).
+
 ---
 
 ## 4. Remove AZURE_CLIENT_* Settings from Azure
@@ -185,7 +198,8 @@ MSAL uses CLIENT_ID + CLIENT_SECRET + TENANT_ID
 
 - [ ] System-assigned Managed Identity enabled on Function App
 - [ ] **Storage Blob Data Contributor** assigned on the data storage account to the Function App identity
-- [ ] (Optional) **Key Vault Secrets User** assigned if using Key Vault references
+- [ ] (Optional) **Key Vault Secrets User** assigned if using Key Vault references (or `assignKeyVaultAccess` in Bicep, RBAC vaults only)
+- [ ] (Optional, E08) Before setting `enableRetention`, check for an existing storage management policy; it is replaced. Retention is deletion, not anonymisation. See [deployment.md](deployment.md#e08-optional-blob-retention)
 - [ ] `AZURE_CLIENT_*` variables removed from Azure Function App settings
 - [ ] `Tenant.Read.All` permission added and admin consent granted on app registration
 - [ ] **Power BI Administrator** role assigned to the service principal

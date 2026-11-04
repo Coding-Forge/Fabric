@@ -1,0 +1,148 @@
+/// Lean activity event table (activity/YYYY/MM/DD/*.json). Event Date is the UTC date of the folder.
+table Activity
+	lineageTag: 7ddd21b5-19fe-4413-b994-26533ae1d0e9
+
+	measure 'Activity Count' = CALCULATE(COUNTROWS('Activity'), 'Activity'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: 3541c0ae-0b3a-4555-a92d-565c6e230764
+
+	measure 'Distinct Users' = CALCULATE(DISTINCTCOUNT('Activity'[User Id]), 'Activity'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: 98b7c70d-9744-4386-874b-f2fdf6874566
+
+	measure 'Distinct Activities' = CALCULATE(DISTINCTCOUNT('Activity'[Activity]), 'Activity'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: 446fe40d-ff0e-4f9b-906a-b2ed4e689b3c
+
+	measure 'Avg Activities per Day' =
+			AVERAGEX(
+				FILTER(VALUES('Calendar'[Date]), [Activity Count] > 0),
+				[Activity Count]
+			)
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: f28c23b8-4a91-4e2b-95ee-46b46a82d26a
+
+	column 'Event Id'
+		dataType: string
+		lineageTag: ff47ab9a-9737-4ec9-8d13-b3300929fc70
+		summarizeBy: none
+		sourceColumn: Event Id
+
+	column 'Creation Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 810536e1-0730-4a12-8eb4-ec5ea4e74024
+		summarizeBy: none
+		sourceColumn: Creation Time
+
+		variation Variation
+			isDefault
+			relationship: 35cebde6-5c88-4555-a27c-8f4f18d2bcb7
+			defaultHierarchy: LocalDateTable_29ef5857-03de-473f-a489-f5f21a2ab639.'Date Hierarchy'
+
+	column 'Event Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 42e8bfac-b7e0-49e2-9d6c-13e6ec32effe
+		summarizeBy: none
+		sourceColumn: Event Date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Activity
+		dataType: string
+		lineageTag: 9382facf-8f7d-458d-b90d-fef26ba8aa7a
+		summarizeBy: none
+		sourceColumn: Activity
+
+	column Operation
+		dataType: string
+		lineageTag: 5bd6992c-489f-481f-866a-ccc5ad0abb81
+		summarizeBy: none
+		sourceColumn: Operation
+
+	column 'User Id'
+		dataType: string
+		lineageTag: 4dd26928-f225-48cc-88f3-7328a27e28f9
+		summarizeBy: none
+		sourceColumn: User Id
+
+	column 'Workspace Id'
+		dataType: string
+		lineageTag: c6507c82-b8c9-4295-8084-4e9c8dbb31a8
+		summarizeBy: none
+		sourceColumn: Workspace Id
+
+	column 'Workspace Name'
+		dataType: string
+		lineageTag: 2e32fcf8-74cf-482e-b421-709d5c482083
+		summarizeBy: none
+		sourceColumn: Workspace Name
+
+	column 'Item Name'
+		dataType: string
+		lineageTag: 9c6e6942-b808-491d-9a22-bacda3ec3cfa
+		summarizeBy: none
+		sourceColumn: Item Name
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: d22b3805-afd0-4979-b041-97dd83148bc6
+		summarizeBy: none
+		sourceColumn: Item Type
+
+	column 'Capacity Id'
+		dataType: string
+		lineageTag: f6cb1008-d5fc-4fb2-98d4-860cf88c2d13
+		summarizeBy: none
+		sourceColumn: Capacity Id
+
+	column 'Is Success'
+		dataType: boolean
+		lineageTag: 4a05c4f3-ddaa-4d82-b7b5-4dc9579539e7
+		summarizeBy: none
+		sourceColumn: Is Success
+
+	column 'Source File'
+		dataType: string
+		lineageTag: 97adc4d0-60ed-4618-855a-81d676dd91af
+		summarizeBy: none
+		sourceColumn: Source File
+
+	column 'Load Error'
+		dataType: string
+		lineageTag: 77731fff-7903-4be4-8a0a-7653282d9250
+		summarizeBy: none
+		sourceColumn: Load Error
+
+	partition Activity = m
+		mode: import
+		source =
+				let
+					Items = ExpandItems(GetFiles("activity")),
+					WithColumns = AddColumns(Items, {
+						{"Event Id", each ToText(JsonField([Item], "Id")), type text},
+						{"Creation Time", each ToUtcDateTime(JsonField([Item], "CreationTime")), type nullable datetime},
+						{"Event Date", each [FileDate], type nullable date},
+						{"Activity", each ToText(JsonFirst([Item], {"Activity", "Operation"})), type text},
+						{"Operation", each ToText(JsonField([Item], "Operation")), type text},
+						{"User Id", each ToText(JsonFirst([Item], {"UserId", "UserKey"})), type text},
+						{"Workspace Id", each ToText(JsonFirst([Item], {"WorkspaceId", "WorkSpaceId"})), type text},
+						{"Workspace Name", each ToText(JsonFirst([Item], {"WorkSpaceName", "WorkspaceName"})), type text},
+						{"Item Name", each ToText(JsonFirst([Item], {"ItemName", "ArtifactName", "ReportName", "DatasetName", "DashboardName"})), type text},
+						{"Item Type", each ToText(JsonFirst([Item], {"ItemType", "ArtifactKind", "ObjectType"})), type text},
+						{"Capacity Id", each ToText(JsonField([Item], "CapacityId")), type text},
+						{"Is Success", each ToLogical(JsonField([Item], "IsSuccess")), type nullable logical},
+						{"Source File", each if [ParseError] <> null then [RelPath] else null, type text},
+						{"Load Error", each [ParseError], type text}
+					}),
+					Result = Table.SelectColumns(WithColumns, {"Event Id", "Creation Time", "Event Date", "Activity", "Operation", "User Id", "Workspace Id", "Workspace Name", "Item Name", "Item Type", "Capacity Id", "Is Success", "Source File", "Load Error"})
+				in
+					Result
+
+	annotation PBI_ResultType = Table
+

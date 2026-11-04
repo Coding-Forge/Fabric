@@ -1,0 +1,47 @@
+relationship rel_CapacityMetrics_Capacities
+	fromColumn: 'Capacity Metrics'.'Capacity Id'
+	toColumn: Capacities.'Capacity Id'
+
+relationship rel_CapacityMetrics_Calendar
+	fromColumn: 'Capacity Metrics'.'Metric Date'
+	toColumn: Calendar.Date
+
+relationship rel_Activity_Calendar
+	fromColumn: Activity.'Event Date'
+	toColumn: Calendar.Date
+
+relationship e4f47af6-d1db-4489-803f-0e737ca1b94e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'Capacity Metrics'.Timepoint
+	toColumn: LocalDateTable_64c2df87-4145-446d-9489-b0ec65615e69.Date
+
+relationship 35cebde6-5c88-4555-a27c-8f4f18d2bcb7
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Activity.'Creation Time'
+	toColumn: LocalDateTable_29ef5857-03de-473f-a489-f5f21a2ab639.Date
+
+relationship 60790472-ada2-4535-93a2-9e1d762605d4
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'Git Connections'.'Last Sync Time'
+	toColumn: LocalDateTable_7042635b-70d6-40ea-bb79-ea68a9467045.Date
+
+relationship 413058b0-73d2-4b96-9840-5a0280483666
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'Git Connections'.'Snapshot Date'
+	toColumn: LocalDateTable_b1631ab4-0221-4ced-90ab-eea5c3630574.Date
+
+relationship 71d69a9a-a3dd-49a0-aa7f-90a270a46ed8
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Tags.'Snapshot Date'
+	toColumn: LocalDateTable_f8f748ca-cf6a-49e5-87ba-f0ec4ede6633.Date
+
+relationship 828c238b-57f0-4f58-9d6d-8b90dcdf0cc5
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'Delegated Settings'.'Snapshot Date'
+	toColumn: LocalDateTable_30125a66-aaa4-4143-bd1f-9f6b1ddded61.Date
+
+relationship 54fb837f-f985-4617-9f20-28591c37637d
+	joinOnDateBehavior: datePartOnly
+	fromColumn: 'Widely Shared Links'.'Snapshot Date'
+	toColumn: LocalDateTable_8476a828-7a7e-439e-be48-2e2b2028246e.Date
+

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "rd_kpis",
+  "position": { "x": 35, "y": 80, "z": 11, "height": 120, "width": 1850 },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "_Measures" } }, "Property": "Total Activities" } }, "queryRef": "_Measures.Total Activities", "nativeQueryRef": "Total Activities" },
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "_Measures" } }, "Property": "Unique Users" } }, "queryRef": "_Measures.Unique Users", "nativeQueryRef": "Unique Users" },
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "_Measures" } }, "Property": "Failure Rate" } }, "queryRef": "_Measures.Failure Rate", "nativeQueryRef": "Failure Rate" },
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "_Measures" } }, "Property": "Distinct Workspaces" } }, "queryRef": "_Measures.Distinct Workspaces", "nativeQueryRef": "Distinct Workspaces" },
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "_Measures" } }, "Property": "First Activity Time (Local)" } }, "queryRef": "_Measures.First Activity Time (Local)", "nativeQueryRef": "First Activity Time (Local)" },
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "_Measures" } }, "Property": "Last Activity Time (Local)" } }, "queryRef": "_Measures.Last Activity Time (Local)", "nativeQueryRef": "Last Activity Time (Local)" }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": { "expr": { "Literal": { "Value": "true" } } },
+            "text": { "expr": { "Literal": { "Value": "'Report / item summary'" } } }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,54 @@
+table 'Lineage Items'
+	lineageTag: 9cc885f2-638b-4ccd-aad7-f2748ee59d04
+
+	measure 'Selected Items' = IF(COUNTROWS('Lineage Workspaces') > 0, COALESCE(COUNTROWS('Lineage Items'), 0))
+		formatString: #,0
+		lineageTag: cbef16ed-45f3-4446-bf10-6b301288b0df
+
+	column 'Workspace Id'
+		dataType: string
+		lineageTag: 29928b85-ce15-4b75-bf15-3fe576476b18
+		summarizeBy: none
+		sourceColumn: Workspace Id
+
+	column 'Item Key'
+		dataType: string
+		isHidden
+		lineageTag: 0656ac15-548a-4b1a-8d9e-ce89e6e7c080
+		summarizeBy: none
+		sourceColumn: Item Key
+
+	column 'Item Id'
+		dataType: string
+		lineageTag: 7c9fb095-dd42-435e-bae2-bc6899c59fd1
+		summarizeBy: none
+		sourceColumn: Item Id
+
+	column Item
+		dataType: string
+		lineageTag: 449a72db-d93c-422f-af77-1d0e2fe36cd8
+		summarizeBy: none
+		sourceColumn: Item
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 687b20f6-d423-402d-86b0-d9e42be81cf9
+		summarizeBy: none
+		sourceColumn: Item Type
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: a5c07bcd-bf5b-4d41-afc9-83467adf8c70
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	partition 'Lineage Items' = m
+		mode: import
+		source =
+				Table.FromRecords(LineageData[Items],
+					type table [#"Workspace Id" = nullable text, #"Item Id" = nullable text, #"Item Key" = nullable text,
+						Item = nullable text, #"Item Type" = nullable text, #"Observed At UTC" = nullable datetime], MissingField.UseNull)
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,35 @@
+/// Disconnected focus selector; the link-weight measure matches either endpoint.
+table 'Lineage Graph Nodes'
+	lineageTag: 8e33b2f6-2b35-4ae4-9647-92270d633803
+
+	column 'Node Key'
+		dataType: string
+		isHidden
+		lineageTag: fa68c5df-31f1-43c9-8f14-256c2db4590f
+		summarizeBy: none
+		sourceColumn: Node Key
+
+	column 'Node Id'
+		dataType: string
+		lineageTag: 7a08d680-3a78-4121-910c-395e7a64cfc9
+		summarizeBy: none
+		sourceColumn: Node Id
+
+	column 'Node Label'
+		dataType: string
+		lineageTag: af5767db-60eb-424b-a248-820f776170a1
+		summarizeBy: none
+		sourceColumn: Node Label
+
+	column 'Node Type'
+		dataType: string
+		lineageTag: aa4662d3-106d-495f-ae8c-552bb5031645
+		summarizeBy: none
+		sourceColumn: Node Type
+
+	partition 'Lineage Graph Nodes' = m
+		mode: import
+		source = LineageGraphData[Nodes]
+
+	annotation PBI_ResultType = Table
+
