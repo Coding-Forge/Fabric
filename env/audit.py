@@ -1,5 +1,4 @@
 import asyncio
-import re
 from datetime import datetime, timedelta
 
 import yaml
@@ -114,6 +113,8 @@ class Audits:
 
     async def run(self):
 
+        self.context.deferred_modules.clear()
+        self.context.collection_coverage_logged.clear()
         self.__setup_clients()
 
         # print(f"service principal: {self.context._ServicePrincipal}")
@@ -128,7 +129,6 @@ class Audits:
         # state file with fresh checkpoints. Only a missing/empty state starts fresh.
         try:
             current_state = await self.fm.read(file_name="state.yaml")
-            print(f"what is the current state {current_state}")
 
             if isinstance(current_state, str):
                 # Local/Lakehouse reads return text (blob returns parsed YAML).
@@ -150,7 +150,6 @@ class Audits:
                 e,
                 exc_info=e,
             )
-            print(f"Error: {e}")
             return False
 
         # The context shares this same dict, so modules can persist extra keys
@@ -204,10 +203,10 @@ class Audits:
                 run_jobs.append(module)
 
         if len(run_jobs) == 0:
-            print("No jobs to run")
+            self.context.logger.info("Run finished: no modules due.")
             return
 
-        print(f"Running jobs: {run_jobs}")
+        self.context.logger.info("Running modules: %s", ", ".join(run_jobs))
 
         try:
             classes = {
@@ -221,69 +220,84 @@ class Audits:
         except KeyError as e:
             self.context.logger.error(f"Error check globals: {e}")
 
-            print(f"Error check globals: {e}")
             return False
 
-        def remove_carriage_returns(string):
-            return re.sub(r"\r", "", string.strip())
+        outcomes: dict[str, str] = {}
 
-        # module name -> True when the module completed successfully
-        outcomes: dict = {}
-
-        async def task(name, work_queue, content):
-            timer = Timer(text=f"Task {name} elapsed time: {{:.1f}}")
+        async def task(work_queue, content):
             while not work_queue.empty():
                 module_name, module = await work_queue.get()
-                self.context.logger.info(
-                    f"Task {remove_carriage_returns(module.__doc__)} is now running"
+                timer = Timer(
+                    text=f"Module {module_name} elapsed time: {{:.1f}}",
+                    logger=self.context.logger.debug,
                 )
-                print(f"Task {remove_carriage_returns(module.__doc__)} is now running")
+                self.context.logger.info("Module %s started", module_name)
                 timer.start()
                 try:
-                    # A module signals failure by returning False or raising
-                    outcomes[module_name] = (await module(content)) is not False
+                    result = await module(content)
+                    if result is not False:
+                        outcomes[module_name] = "succeeded"
+                    else:
+                        outcomes[module_name] = (
+                            "deferred"
+                            if module_name.lower() in content.deferred_modules
+                            else "failed"
+                        )
                 except Exception as e:
-                    outcomes[module_name] = False
-                    self.context.logger.error(
-                        "Module %s failed: %s", module_name, e, exc_info=e
-                    )
-                    print(f"Module {module_name} failed: {e}")
+                    outcomes[module_name] = "failed"
+                    self.context.logger.error("Module %s failed: %s", module_name, e)
+                    self.context.logger.debug("Module exception details", exc_info=True)
                 finally:
                     timer.stop()
 
         gather_tasks = []
-        for module in run_jobs:
+        for _ in classes:
             gather_tasks.append(
-                asyncio.create_task(task(f"{module}", work_queue, content=self.context))
+                asyncio.create_task(task(work_queue, content=self.context))
             )
 
-        with Timer(text="\nTotal elapsed time: {:.1f}"):
+        with Timer(text="Total elapsed time: {:.1f}", logger=self.context.logger.debug):
             results = await asyncio.gather(*gather_tasks, return_exceptions=True)
 
         for result in results:
             if isinstance(result, BaseException):
                 self.context.logger.error(f"Task failed unexpectedly: {result}")
-                print(f"Task failed unexpectedly: {result}")
 
         # Only advance lastRun for modules that succeeded so failed days are retried
         now_str = utc_stamp()
         for job in run_jobs:
-            if outcomes.get(job):
+            outcome = outcomes.setdefault(job, "failed")
+            if outcome == "succeeded":
                 self._module_state(current_state, job.lower())["lastRun"] = now_str
-            else:
-                self.context.logger.warning(
-                    f"Module {job} did not complete; lastRun not advanced"
+            elif outcome == "deferred":
+                self.context.logger.info(
+                    "Module %s deferred; saved progress will resume, lastRun unchanged",
+                    job,
                 )
-                print(f"Module {job} did not complete; lastRun not advanced")
+            else:
+                self.context.logger.error(
+                    "Module %s failed or incomplete; lastRun unchanged", job
+                )
 
         try:
             self.fm.content(self.context)
             await self.fm.save("", "state.yaml", current_state)
         except Exception as e:
             self.context.logger.error("Error saving state.yaml file: %s", e, exc_info=e)
-            print(f"fm Error: {e}")
             return False
-        return all(outcomes.get(job, False) for job in run_jobs)
+        failed = [name for name, result in outcomes.items() if result == "failed"]
+        deferred = [name for name, result in outcomes.items() if result == "deferred"]
+        log = self.context.logger.error if failed else self.context.logger.info
+        log(
+            "Run finished: %d succeeded, %d deferred, %d failed. "
+            "Deferred: %s. Failed: %s.",
+            sum(result == "succeeded" for result in outcomes.values()),
+            len(deferred),
+            len(failed),
+            ", ".join(deferred) or "none",
+            ", ".join(failed) or "none",
+        )
+        return not failed
 
     @staticmethod
     def _default_last_run() -> str:
@@ -305,7 +319,7 @@ class Audits:
         return entry
 
     async def create_state(self):
-        print("Creating state.yaml file")
+        self.context.logger.info("Creating state.yaml file")
         self.fm.content(self.context)
 
         state_now = self._default_last_run()

@@ -515,7 +515,7 @@ class LocalRoundTripTests(unittest.IsolatedAsyncioTestCase):
             await self._run(a, Activity=bad)
             state = yaml.safe_load(Path(d, "state.yaml").read_text())
             self.assertEqual(state["activity"]["lastRun"], old)
-            a.context.logger.warning.assert_called()
+            a.context.logger.error.assert_called()
 
     async def test_failed_state_write_is_logged_not_raised(self):
         async def ok(context):

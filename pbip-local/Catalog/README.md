@@ -114,7 +114,12 @@ direction filters, single-direction relationships, disconnected diagnostics and
 snapshot-query structure. Microsoft Power Query syntax parsing and published
 PBIR schema validation supplement these checks; neither executes M/DAX.
 
-**Power BI Desktop acceptance is still required:** refresh the project, verify the
+**Basic Desktop checks were accepted by the operator on 2026-11-05:** "The PBIP
+reports check out," following the requested refresh and page checks. This does
+not confirm each fixture/edge-case scenario or add the separate static
+notebook/pipeline references to these Scanner-based pages.
+
+**Remaining detailed acceptance checks:** refresh the project, verify the
 Lineage page opens, select a model with a known report, and check its upstream
 source and downstream report. Select the corresponding report to see its model
 upstream. Check returned-empty workspace coverage and zero/rejected-file

@@ -5,12 +5,30 @@ The application was written using Python 3.10.13 and has successfully been teste
 
 # Getting Started
 
-Four additional **opt-in** collectors are available: `FabricItemAccessPermissions`, `FabricItemJobHistory`, `FabricConnections` and `FabricDeploymentPipelineOperations`. Configure explicit item scopes for permissions/jobs and check caller/resource permissions before enabling them. See [settings and API limits](docs/configuration-reference.md#scoped-fabric-collectors) and [scheduling, output and recovery guidance](docs/local-development.md#operating-the-four-fabric-collectors). These outputs are **not automatically integrated into MonitorRaw or existing reports**; offline tests do not establish live API/storage validation.
+**API scope:** Fabric Monitor is **not Admin-API-only**. Catalog uses the Admin
+Scanner APIs, but definitions, job history and several existing collectors use
+non-Admin APIs with separate resource or Microsoft Graph permissions. Review the
+[API scope and authorization boundaries](docs/configuration-reference.md#api-scope-and-authorization-boundaries)
+before customer deployment. Every new or changed non-Admin API use must explicitly
+document its scope, permissions, coverage, side effects and limitations.
+
+Four additional **opt-in** collectors are available: `FabricItemAccessPermissions`, `FabricItemJobHistory`, `FabricConnections` and `FabricDeploymentPipelineOperations`. By default, configure explicit item scopes for permissions/jobs and check caller/resource permissions before enabling them. See [settings and API limits](docs/configuration-reference.md#scoped-fabric-collectors) and [scheduling, output and recovery guidance](docs/local-development.md#operating-the-four-fabric-collectors). [MonitorRaw](pbip-local/MonitorRaw/README.md) can read these outputs without enabling the collectors; offline tests do not establish live API/storage validation.
+
+Permissions also support **opt-in tenant-wide discovery** with
+`FABRIC_ITEM_ACCESS_MODE=tenant`, using only preview Admin APIs. This attempts
+access collection for every active item returned by tenant inventory, not just
+an explicit list; unsupported/denied items remain failed coverage. Scoped mode
+is unchanged by default. See [scope, authorization, quotas and separate JSON
+output](docs/configuration-reference.md#tenant-wide-permission-collection-opt-in).
+MonitorRaw can read tenant output by selecting `ItemPermissionMode=Tenant` in
+Desktop's Manage Parameters; its default stays `Scoped`, with no automatic
+mode fallback or cycle merging. See the [report guide](pbip-local/MonitorRaw/README.md).
 
 `FabricItemDefinitions` is a separate **opt-in** collector for tenant-discovered
 notebooks and Fabric Data Factory pipelines. It preserves definitions and decoded
-pipeline JSON, and infers supported notebook table/file reads and writes without
-executing code. These are potential dependencies, not runtime evidence. See
+pipeline JSON, and infers supported notebook table/file reads and writes plus
+static pipeline calls and Copy source/sink references without executing code.
+These are potential dependencies, not runtime evidence. See
 [enablement, permissions, sensitive output and resumable collection](docs/configuration-reference.md#notebook-and-data-pipeline-definitions).
 
 What you need to do to use this application
@@ -52,6 +70,13 @@ You can grant specific permissions to service principals to use Fabric APIs incl
 <img src="images/admin-portal-settings.png" heigth="500px" width="500px"></img>
 
 ### Service Principal API permissions  
+For app-only Power BI/Fabric access, tenant settings and resource grants are
+distinct from delegated API scopes. The legacy delegated `Tenant.Read.All` entry
+below is **not** an application permission to add to the Monitor SPN, and does not
+grant workspace access. Follow the
+[API scope and authorization guidance](docs/configuration-reference.md#api-scope-and-authorization-boundaries)
+for the selected modules; Microsoft Graph application permissions are separate.
+
 In order for the service principal to leverage all of the functionality of the Fabric Montior application you will will need to grant specific API permissions for the service principal. The following can be granted when editing the Service Principal in Microsoft Entra under the Apps section and API permissions.
 
 #### Graph Permissions  
@@ -272,7 +297,7 @@ you may not have to change the <capacity> but if you do you can find the capacit
 ```
 You can also use the FabricMonitor and provide the name of the Storage account and the container name plus the UTC offset, RangeStart and RangeEnd along with your SAS or Account Key.
 
-A third option is the Power BI Project in [pbip-local/MonitorRaw/](pbip-local/MonitorRaw/README.md). It reads the raw JSON output directly, from a local folder (`LOCAL_OUTPUT_PATH`) or from Blob Storage, and covers capacity metrics, activity, Git connections, tags, delegated settings and widely shared links. It has **not been validated in Power BI Desktop yet**; read its README (validation status and acceptance checklist) first.
+A third option is the Power BI Project in [pbip-local/MonitorRaw/](pbip-local/MonitorRaw/README.md). It reads the raw JSON output directly, from a local folder (`LOCAL_OUTPUT_PATH`) or from Blob Storage, and includes the four optional Fabric collectors. Basic Desktop checks and Scoped/Tenant permission views have been verified; detailed fixture checks and Local/Blob parity remain unconfirmed. Read its README for validation status, historical warnings and the acceptance checklist.
 
 # Build and Test
 Run the unit tests from the repository root:

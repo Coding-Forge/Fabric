@@ -1407,3 +1407,64 @@ class StrictSnapshotTests(CollectorTestCase):
                 manifest = self.manifests("fabricconnections")[0]
                 self.assertIs(manifest["finished"], False)
                 self.assertIs(manifest["complete"], False)
+
+    async def test_clock_rollback_cannot_commit_a_successful_collection(self):
+        ctx = self.context({"value": []})
+        save = ctx.fm.save_snapshot.side_effect
+
+        async def rollback_after_resource(path, name, value):
+            await save(path, name, value)
+            if name == "connections.json":
+                self.advance(-2)
+
+        ctx.fm.save_snapshot.side_effect = rollback_after_resource
+        with self.assertRaisesRegex(RuntimeError, "Manifest UTC precedes"):
+            await FabricConnections(ctx)
+        manifest = self.manifests("fabricconnections")[0]
+        self.assertIs(manifest["finished"], False)
+        self.assertIs(manifest["complete"], False)
+        self.assertTrue(self.resources("fabricconnections")[0]["complete"])
+        self.assertEqual(ctx._safe_get.await_count, 1)
+
+    async def test_final_manifest_checks_all_saved_resources_even_for_failed_runs(self):
+        for complete in (True, False):
+            with self.subTest(complete=complete):
+                self.files.clear()
+                collection = FabricCollection(
+                    self.context(), "fabricitemjobhistory", "offline"
+                )
+                await collection.start()
+                await collection.snapshot(
+                    "first", "offline", {}, [] if complete else None
+                )
+                self.advance(-3)
+                await collection.snapshot("second", "offline", {}, [])
+                self.advance(1)
+                with self.assertRaisesRegex(RuntimeError, "Manifest UTC precedes"):
+                    await collection.finish(complete)
+                manifest = self.manifests("fabricitemjobhistory")[0]
+                self.assertIs(manifest["finished"], False)
+                self.assertIs(manifest["complete"], False)
+
+    async def test_final_manifest_accepts_equal_or_later_saved_resource_time(self):
+        for seconds in (0, 1):
+            with self.subTest(seconds=seconds):
+                self.files.clear()
+                collection = FabricCollection(
+                    self.context(), "fabricitemjobhistory", "offline"
+                )
+                await collection.start()
+                await collection.snapshot("first", "offline", {}, [])
+                self.advance(2)
+                await collection.snapshot("second", "offline", {}, [])
+                self.advance(seconds)
+                self.assertTrue(await collection.finish(True))
+                manifest = self.manifests("fabricitemjobhistory")[0]
+                self.assertTrue(manifest["finished"])
+                self.assertTrue(manifest["complete"])
+                self.assertTrue(
+                    all(
+                        resource["observedAt"] <= manifest["observedAt"]
+                        for resource in self.resources("fabricitemjobhistory")
+                    )
+                )

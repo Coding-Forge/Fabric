@@ -1,11 +1,21 @@
 # Monitor Enhancement Plan (informed by FUAM)
 
 Working document. Update the **Status** column as items are completed.
-Status values: `todo`, `in-progress`, `done`, `skipped`.
+Status values: `todo`, `in-progress`, `blocked`, `deferred`, `done`, `skipped`.
 
 Reference: FUAM = `fabric-toolbox/monitoring/fabric-unified-admin-monitoring`.
 Constraint: the monitor is **not bound to Fabric**. Do not adopt `sempy`, `notebookutils`, `mssparkutils`, or Spark.
 Use plain Python (`aiohttp`/`requests`, `pandas`/`pyarrow`/`deltalake`) against Blob/ADLS.
+
+**API scope requirement:** every enhancement must identify Admin versus non-Admin
+API usage explicitly. Before introducing or changing a non-Admin route, document
+why it is needed, endpoints/methods, supported identities and resource permissions,
+broader powers of required roles, discovery/selection boundaries and absent scope
+controls, enablement/defaults, quotas/network constraints, saved data/sensitivity,
+side effects and coverage/failure semantics. Separate offline tests from live
+acceptance. Keep the customer-facing
+[API scope register](configuration-reference.md#api-scope-and-authorization-boundaries)
+and applicable module guidance consistent; admin discovery is not resource access.
 
 ## A. Bugs to fix
 
@@ -146,3 +156,154 @@ E6 was approved by Code Reviewer (269 tests passing) and is marked done with the
 
 - Analysis was a static read; nothing was executed against either repo.
 - Measure real CU/API cost before and after changes if running on a shared capacity.
+
+## E. Collection and lineage follow-up backlog
+
+These are tracked follow-ups, not enabled features or authorization to expand
+collection scopes, grant access, deploy infrastructure, or execute workloads.
+Implementation requires confirming the scope, permissions, API budget and
+validation approach for each item.
+
+### Feature backlog
+
+| # | Status | Item | Scope and considerations |
+|---|--------|------|--------------------------|
+| E13 | deferred | Automatic tenant-wide job discovery | Previously deferred. Jobs currently require explicit item scopes. Define supported types, filtering, pagination and polling budgets before expanding discovery. |
+| E14 | in-progress | Automatic tenant-wide permission collection | Code complete and offline-tested: opt-in `FABRIC_ITEM_ACCESS_MODE=tenant` with active Admin item discovery, resumable permission collection, explicit unsupported/denied outcomes and existing quota controls. Default explicit scopes remain unchanged; tenant JSON stays separate, with explicit MonitorRaw `ItemPermissionMode=Tenant` input available. Live collection and new report refresh acceptance remain pending; tenant-wide collection is not enabled automatically. |
+| E15 | done | Pipeline activity lineage (agreed static increment) | Added static notebook/child-pipeline calls, supported Copy source/sink references and nested activity traversal to new capture JSON only. No additional API requests, execution, report changes or automatic backfill. Dynamic/unsupported targets remain explicit diagnostics; live exports succeeded and the operator confirmed the seven-reference summary for the collected sample. Runtime lineage and PBIP integration remain outside this increment. |
+| E16 | todo | Actual notebook runtime reads and writes | Current notebook analysis identifies potential dependencies only. Select an authorized execution-evidence source; definition capture must not execute notebooks. |
+| E17 | todo | Lineage relationship change detection | Compare compatible complete observations to identify added/removed relationships. Missing, partial or failed collection must not imply deletion. |
+| E18 | todo | Recursive impact analysis | Traverse upstream/downstream relationships with cycle protection and explicit coverage limits; do not present partial observations as a complete tenant graph. |
+| E19 | todo | Column-level lineage | Determine supported metadata sources and mappings; current lineage does not establish column-level dependencies. |
+| E20 | todo | Complete effective permissions | Expand group membership and reconcile inherited/direct access using supported evidence. Current item access observations are not complete effective-access calculations. |
+
+E14 validation: 603 offline tests passed, including 12 new tenant-mode cases for
+multi-workspace discovery beyond 50 items, pagination/overlap, restarts, bounded
+admission/shared cooldowns, unsupported/denied targets, failed discovery,
+empty results, invalid controls, manifest failure and checkpoint behavior.
+Ruff lint/format, Python 3.10 syntax and whitespace checks passed.
+This does not establish live tenant coverage, API cost or remote persistence.
+Next acceptance gate: deliberately enable tenant mode and validate collected
+scope/outcomes and quota-safe recovery before proceeding to another enhancement.
+The initial collector increment excluded PBIP integration; the subsequent
+approved MonitorRaw extension is described below. See
+[tenant-mode scope and operation](configuration-reference.md#tenant-wide-permission-collection-opt-in).
+
+E14 live sweep (2026-11-05): seven inventory pages discovered 101 active items
+across 29 workspaces; all 101 received attempted access outcomes. The sweep saved
+127 access rows from 48 successful items and recorded 53 failed items: three
+Dataflow HTTP 404 responses (`errorCode=unrecognized`), plus 22 SemanticModels,
+20 Reports, six Apps and two Dashboards without saved HTTP error diagnostics.
+Those 50 failures require further diagnosis; the saved evidence does not
+establish whether the API response shape or collector validation is at fault.
+The bounded permissions-only runner exited normally after this cycle. Evidence
+was committed, progress reset, the request gate was neither pending nor blocked,
+and the success checkpoint remained unchanged as required for an unhealthy cycle.
+Live acceptance remains pending; failed targets have unknown access.
+
+An operator-approved diagnostic pass subsequently read one previously failed
+Report, SemanticModel, App and Dashboard through the same quota gate. All four
+returned HTTP 200 with permission lists, but `itemAccessDetails.type` and
+`additionalPermissions` were null. The current collector rejects both shapes.
+This confirms a collector-validation incompatibility for those four samples,
+not the cause of every historical failure or a resolution of the Dataflow 404s.
+Only sanitized response-shape diagnostics were retained separately; the pass
+did not change permission progress, checkpoints, grants or production code.
+
+Nullable-metadata correction: the operator subsequently approved a narrow
+collector fix, focused tests and four follow-up reads. Scoped and tenant
+collection now preserve explicit null detail types/additional permissions only
+for the five query-typed Power BI types; missing/conflicting types and malformed
+principals or permission lists still fail. The existing scoped MonitorRaw
+validator and nullable detail-type column were kept consistent, without adding
+tenant report integration. All four follow-up reads returned HTTP 200 and passed
+the corrected validator. The 46 permission/report regression tests, Python 3.10
+syntax, Ruff lint/format, whitespace checks and Microsoft Power Query syntax
+parsing passed. Those checks do not execute M/DAX; basic operator Desktop
+acceptance is recorded below.
+The historical 53 failed outcomes were not rewritten and no new tenant sweep
+was started; full recollection and the three Dataflow 404s remain outstanding.
+
+Bounded Dataflow validation: all three failed identities matched the saved
+active-item discovery exactly once, and their routes matched the documented
+Admin access endpoint with `?type=Dataflow`. Three approved retries again returned
+HTTP 404 with sanitized `errorCode=unrecognized`. The targets are in
+Fabric-Engineering (two) and PipelineDemo (one); the inspected saved Scanner
+result did not resolve their names or generation. The operator subsequently
+confirmed that all three exact items still exist and are Dataflow Gen2. This
+establishes an observed access-collection gap for those existing Gen2 items,
+not universal Gen2 non-support or a permissions cause. Microsoft's underlying
+reason remains unconfirmed and may require a support investigation.
+Quota controls remained clear; progress and checkpoints were unchanged.
+No fallback API, permission change, production-code change or new sweep was used.
+
+Approved post-fix tenant sweep completed at 2026-11-05T15:20:51Z: seven inventory
+pages discovered 101 items, all 101 access targets were attempted, 95 succeeded
+and six failed, with 200 access-detail rows saved. Failures comprise the three
+Dataflow HTTP 404s, two Apps and one SemanticModel; the latter three have no
+saved HTTP status in the runner summary and their causes are not established.
+Successful targets increased from 48 in the earlier sweep to 95, but this is
+still partial coverage, not healthy end-to-end acceptance. Final immutable
+evidence confirms `cycleFinished=true`, `cycleHealthy=false`, `complete=false`
+and cursor 101/101. The success checkpoint stayed unchanged; the runner stopped
+normally and the quota gate was clear. No further sweep or diagnostic calls
+were started, and deeper Dataflow investigation remains deferred.
+
+E15 validation: 591 offline tests passed, including parser and capture integration
+regressions; targeted Ruff lint/format and whitespace checks passed. See
+[supported shapes, output and limitations](configuration-reference.md#notebook-and-data-pipeline-definitions).
+After the operator granted the service principal Contributor access to the six
+failing workspaces, the live sweep completed at 2026-11-04T22:33:39Z with all 17
+definitions saved, including all 12 previously failing items, and no HTTP errors.
+The definition checkpoint advanced and progress finished. The operator reviewed
+the summary of nine notebooks, eight pipelines, seven static references and four
+analysis diagnostics and confirmed that it checks out. This records acceptance
+of the presented sample, not exhaustive parser coverage, actual runtime lineage
+or PBIP integration.
+
+### Existing roadmap items retained
+
+| Existing item | Status | Remaining work |
+|---------------|--------|----------------|
+| E9 | todo (certificate credentials) | Add certificate-based authentication; token caching and Key Vault secret-reference wiring already exist. |
+| E8 | deferred (anonymisation) | Define a field-by-field policy before implementing delayed pseudonymisation/anonymisation. Optional retention deletes blobs; it does not anonymise them. |
+| E4 / E6 | deferred | Silver/gold transforms and curated history tables remain intentionally outside the current raw-JSON scope; do not treat them as approved implementation work. |
+
+### Operational and validation follow-ups
+
+| # | Status | Item | Completion evidence |
+|---|--------|------|---------------------|
+| E21 | done | Resolve definition-export HTTP 401 responses | Following the operator's Contributor grants, all 12 previously failing Notebook/DataPipeline exports across six workspaces succeeded in a complete 17-item sweep on 2026-11-04. Saved files and checkpoint advancement verified; no HTTP errors. No private-link routing changes were needed for this test. Admin discovery alone does not grant export access. |
+| E10 / Catalog | in-progress (basic Desktop checks accepted) | Operator confirmed both PBIP reports check out following the requested reopen/refresh and page checks. Detailed fixture/edge-case scenarios in the existing E10 acceptance checklist have not been individually confirmed. |
+| E14 / MonitorRaw | basic Desktop checks verified; detailed scenarios pending | Operator screenshots show Scoped 12/13 and Tenant 95/101 successful targets, six tenant failures and 200 access-detail rows. Tenant permission load errors are zero. Shared `ItemPermissionMode` defaults to `Scoped`; `Tenant` loads only tenant evidence. Empty/broken-link fixtures and Local/Blob parity remain unconfirmed; historical job warnings stay preserved. |
+| E8 / E9 deployment | deferred | Validate retention and Key Vault wiring in Azure | Requires an approved deployment and live verification. Existing Bicep compile checks do not prove deployed behavior. |
+| E22 | in-progress | Commit and push the local runtime fixes | PR preparation approved: preserve local Desktop state, publish Scoped as the shared permission default, exclude unrelated Capacity_Gateways, validate the staged tree and check against remote main before opening the PR. Unresolved collection outcomes remain explicit limitations. |
+
+Desktop validation update (2026-11-05): after confirming both projects opened
+and rendered, the operator reported "The PBIP reports check out" following the
+requested reopen/refresh and page checks. This records operator acceptance of
+basic Desktop behavior, not independent verification of every fixture/edge-case
+scenario. It preceded the E14 MonitorRaw extension and does not validate its
+tenant input. Static notebook/pipeline references remain outside the reports.
+
+MonitorRaw tenant integration: validates paginated discovery/access chains,
+cross-workspace identities, ordered cursors, failures/deferrals and unknown
+totals until inventory completes. Selected cycles and modes are not merged;
+healthy empty tenant discovery clears older grants, and failed targets remain
+unknown access. Existing canonical permission measures and disconnected global
+coverage are preserved. Microsoft syntax parsing passed for the new parameter,
+shared loader and permission/job routing expressions; static tests are not
+native M execution. Subsequent operator screenshots confirm the selected
+Scoped/Tenant views and counts above against existing output, without starting
+Functions. Broader empty/broken-chain fixtures and Local/Blob parity remain part
+of the unconfirmed Desktop checklist.
+
+Job-history diagnostics: read-only inspection of 92 saved runs reproduced the
+three load errors shown in Desktop. Three historical runs (2026-10-20,
+2026-10-22 and 2026-11-04) have resource observation times later than their final
+manifest times. A backwards wall-clock adjustment could explain the inversion,
+but its historical cause is not established. The approved future-run guard
+checks the maximum timestamp of saved resources before committing a final
+manifest; backwards ordering raises and prevents success/checkpoint advancement.
+No timestamp clamping, historical rewrite, report-validation relaxation or live
+API calls were used. All three warnings remain visible as agreed.

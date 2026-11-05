@@ -77,6 +77,75 @@ class AuditRunTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(saved["gateway"]["lastRun"], old)
         self.assertEqual(saved["tenant"]["lastRun"], old)
 
+    async def test_deferred_run_succeeds_without_advancing_its_checkpoint(self):
+        old = _ts(3)
+        state = {"activity": {"lastRun": old}, "apps": {"lastRun": old}}
+        a = self._audit(["Activity", "Apps"], state)
+
+        async def deferred(context):
+            """Verbose coverage text must not be used as a task announcement."""
+            context.deferred_modules.add("activity")
+            return False
+
+        self.assertIs(
+            await self._run(a, Activity=deferred, Apps=_module("Apps", None)), True
+        )
+        saved = self._saved(a)
+        self.assertEqual(saved["activity"]["lastRun"], old)
+        self.assertNotEqual(saved["apps"]["lastRun"], old)
+        a.context.logger.error.assert_not_called()
+        a.context.logger.warning.assert_not_called()
+        a.context.logger.info.assert_any_call(
+            "Run finished: %d succeeded, %d deferred, %d failed. "
+            "Deferred: %s. Failed: %s.",
+            1,
+            1,
+            0,
+            "Activity",
+            "none",
+        )
+        self.assertNotIn(deferred.__doc__, str(a.context.logger.mock_calls))
+
+        # A previous invocation's pause cannot turn a later False into success.
+        self.assertIs(
+            await self._run(
+                a, Activity=_module("Activity", False), Apps=_module("Apps")
+            ),
+            False,
+        )
+        self.assertEqual(self._saved(a)["activity"]["lastRun"], old)
+
+    async def test_failure_after_a_deferral_does_not_hide_other_outcomes(self):
+        old = _ts(3)
+        state = {name: {"lastRun": old} for name in ("activity", "apps", "gateway")}
+        a = self._audit(["Activity", "Apps", "Gateway"], state)
+
+        async def deferred(context):
+            context.deferred_modules.add("activity")
+            return False
+
+        async def failed(context):
+            context.deferred_modules.add("gateway")
+            raise RuntimeError("Progress storage unavailable")
+
+        self.assertIs(
+            await self._run(a, Activity=deferred, Apps=_module("Apps"), Gateway=failed),
+            False,
+        )
+        saved = self._saved(a)
+        self.assertEqual(saved["activity"]["lastRun"], old)
+        self.assertEqual(saved["gateway"]["lastRun"], old)
+        self.assertNotEqual(saved["apps"]["lastRun"], old)
+        a.context.logger.error.assert_any_call(
+            "Run finished: %d succeeded, %d deferred, %d failed. "
+            "Deferred: %s. Failed: %s.",
+            1,
+            1,
+            1,
+            "Activity",
+            "Gateway",
+        )
+
     async def test_government_skips_fabric_collectors_without_authentication(self):
         old = _ts(3)
         fabric_modules = [

@@ -8,12 +8,16 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
-from env.context import Context
+from app import monitor
+from env.audit import Audits
+from env.config import run_monitor
+from env.context import Context, utc_stamp
 from env.modules import FabricItemDefinitions
 from env.utility.file_management import File_Management
 from tests.fabric_helpers import ROOT, WORKSPACE, CollectorTestCase, inventory, item
 from tests.test_context import _FakeResponse, _FakeSession
 from tests.test_notebook_references import notebook
+from tests.test_pipeline_references import activity, dataset, pipeline
 
 MODULE = "fabricitemdefinitions"
 OPERATION = "00000000-0000-0000-0000-000000000099"
@@ -44,6 +48,111 @@ class DefinitionsTests(CollectorTestCase):
         ctx = super().context(*responses)
         ctx._safe_definition_request = AsyncMock(side_effect=ctx._safe_get.side_effect)
         return ctx
+
+    async def test_cooldown_is_nonfatal_in_function_and_shared_entry_points(self):
+        self.files[MODULE + "/request_gate.json"] = {
+            "nextRequestUtc": "2026-01-03T00:00:00.000000Z",
+            "pending": False,
+            "blocked": False,
+        }
+        old = "2025-12-01T00:00:00.000000Z"
+        state = {MODULE: {"lastRun": old}}
+        audit = Audits()
+        audit.context = self.context()
+        audit.context.ApplicationModules = "FabricItemDefinitions"
+        audit.fm = audit.context.fm
+        audit.fm.read = AsyncMock(return_value=state)
+
+        for entry_point in (monitor.main, run_monitor):
+            with (
+                self.subTest(entry_point=entry_point.__name__),
+                patch.object(audit, "_Audits__setup_clients"),
+                patch.object(monitor.config, "build_audit", return_value=audit),
+            ):
+                await entry_point()
+                self.assertEqual(state[MODULE]["lastRun"], old)
+                self.assertIn(MODULE, audit.context.deferred_modules)
+                audit.context._safe_get.assert_not_awaited()
+                audit.context.clients["tenant"].get_headers.assert_not_called()
+                audit.context.logger.error.assert_not_called()
+                audit.context.logger.warning.assert_not_called()
+                audit.context.logger.info.assert_any_call(
+                    "Run finished: %d succeeded, %d deferred, %d failed. "
+                    "Deferred: %s. Failed: %s.",
+                    0,
+                    1,
+                    0,
+                    "FabricItemDefinitions",
+                    "none",
+                )
+                self.assert_finished(MODULE, False)
+
+    async def test_unauthorized_export_still_fails_after_other_modules_save(self):
+        old = "2025-12-01T00:00:00.000000Z"
+        state = {MODULE: {"lastRun": old}, "apps": {"lastRun": old}}
+        audit = Audits()
+        audit.context = self.context(
+            inventory(item()), {"ERROR": "private body", "status": 401}
+        )
+        audit.context.ApplicationModules = "FabricItemDefinitions,Apps"
+        audit.fm = audit.context.fm
+        audit.fm.read = AsyncMock(return_value=state)
+        with (
+            patch.object(audit, "_Audits__setup_clients"),
+            patch("env.audit.Apps", AsyncMock(return_value=True)),
+            patch.object(monitor.config, "build_audit", return_value=audit),
+            self.assertRaisesRegex(RuntimeError, "run failed"),
+        ):
+            await monitor.main()
+        audit.fm.save.assert_awaited()
+        self.assertNotEqual(state["apps"]["lastRun"], old)
+        self.assertEqual(state[MODULE]["lastRun"], old)
+        self.assertNotIn(MODULE, audit.context.deferred_modules)
+        audit.context.logger.error.assert_any_call(
+            "%s definition retrieval incomplete: HTTP %s errorCode=%s",
+            MODULE,
+            401,
+            "unavailable",
+        )
+        audit.context.logger.error.assert_any_call(
+            "Run finished: %d succeeded, %d deferred, %d failed. "
+            "Deferred: %s. Failed: %s.",
+            1,
+            0,
+            1,
+            "none",
+            "FabricItemDefinitions",
+        )
+        self.assertNotIn("private body", str(audit.context.logger.mock_calls))
+
+    async def test_unsafe_request_gates_are_failures_not_expected_pauses(self):
+        for flag in ("pending", "blocked"):
+            with self.subTest(flag=flag):
+                self.files.clear()
+                self.files[MODULE + "/request_gate.json"] = {
+                    "nextRequestUtc": utc_stamp(self.now),
+                    flag: True,
+                }
+                ctx = self.context()
+                self.assertFalse(await FabricItemDefinitions(ctx))
+                self.assertNotIn(MODULE, ctx.deferred_modules)
+                ctx.logger.error.assert_called()
+                ctx._safe_get.assert_not_awaited()
+                ctx.clients["tenant"].get_headers.assert_not_called()
+
+    async def test_pausing_a_sweep_with_prior_failures_remains_a_failed_outcome(self):
+        ctx = self.context(
+            inventory(item(), item(11)),
+            {"ERROR": "denied", "status": 401, "retryAfter": "3600"},
+        )
+        self.assertFalse(await FabricItemDefinitions(ctx))
+        self.assertNotIn(MODULE, ctx.deferred_modules)
+        self.assertIs(self.files[MODULE + "/progress.json"]["healthy"], False)
+        restarted = self.context()
+        self.assertFalse(await FabricItemDefinitions(restarted))
+        self.assertNotIn(MODULE, restarted.deferred_modules)
+        restarted._safe_definition_request.assert_not_awaited()
+        restarted.logger.warning.assert_called()
 
     async def test_real_local_writer_persists_readable_pipeline_json_and_manifest(self):
         content = {"properties": {"activities": []}}
@@ -136,8 +245,90 @@ class DefinitionsTests(CollectorTestCase):
         record = resources[2]["records"][0]
         self.assertEqual(record["decodedParts"]["pipeline-content.json"], raw)
         self.assertNotIn("notebookReferences", record)
+        self.assertIn("pipelineReferences", record)
+        self.assertNotIn("pipelineReferences", resources[1]["records"][0])
         self.assert_finished(MODULE, True)
         self.assertEqual(self.files[MODULE + "/progress.json"], {"finished": True})
+
+    async def test_pipeline_capture_adds_references_without_mutation_or_more_requests(
+        self,
+    ):
+        target = item(kind="DataPipeline")
+        note = item(11)
+        raw = pipeline(
+            activity(
+                "TridentNotebook", notebookId=note["itemId"], workspaceId=WORKSPACE
+            ),
+            activity(
+                "Copy",
+                source={
+                    "datasetSettings": dataset(
+                        "SqlServerTable", schema="dbo", table="input"
+                    )
+                },
+                sink={"datasetSettings": dataset("LakehouseTable", table="output")},
+            ),
+        )
+        response = definition(raw, "DataPipeline")
+        ctx = self.context(inventory(target), response)
+        self.assertTrue(await FabricItemDefinitions(ctx))
+        record = self.resources(MODULE)[-1]["records"][0]
+        self.assertEqual(record["definition"], response["body"]["definition"])
+        self.assertEqual(record["decodedParts"]["pipeline-content.json"], raw)
+        analysis = record["pipelineReferences"]
+        self.assertTrue(analysis["complete"])
+        self.assertEqual(
+            {
+                (r["operation"], r["kind"], r["reference"])
+                for r in analysis["references"]
+            },
+            {
+                ("execute", "notebook", note["itemId"]),
+                ("read", "table", "input"),
+                ("write", "table", "output"),
+            },
+        )
+        ctx._safe_get.assert_awaited_once()
+        ctx._safe_definition_request.assert_awaited_once()
+        self.assert_finished(MODULE, True)
+
+    async def test_partial_static_analysis_does_not_turn_successful_capture_into_failure(
+        self,
+    ):
+        raw = pipeline(
+            activity(
+                "TridentNotebook",
+                notebookId="@pipeline().parameters.notebook",
+                workspaceId=WORKSPACE,
+            )
+        )
+        ctx = self.context(
+            inventory(item(kind="DataPipeline")), definition(raw, "DataPipeline")
+        )
+        self.assertTrue(await FabricItemDefinitions(ctx))
+        resource = self.resources(MODULE)[-1]
+        self.assertTrue(resource["complete"])
+        analysis = resource["records"][0]["pipelineReferences"]
+        self.assertFalse(analysis["complete"])
+        self.assertEqual(analysis["references"], [])
+        self.assertTrue(analysis["diagnostics"])
+        self.assert_finished(MODULE, True)
+
+    async def test_malformed_pipeline_analysis_fails_resource_without_hiding_next_item(
+        self,
+    ):
+        ctx = self.context(
+            inventory(item(kind="DataPipeline"), item(11)),
+            definition({"properties": {"activities": {}}}, "DataPipeline"),
+            definition(notebook()),
+        )
+        self.assertFalse(await FabricItemDefinitions(ctx))
+        resources = self.resources(MODULE)[1:]
+        self.assertEqual(
+            [resource["complete"] for resource in resources], [False, True]
+        )
+        self.assertNotIn("records", resources[0])
+        self.assert_finished(MODULE, False)
 
     async def test_long_running_export_resumes_after_cooldown_without_reposting(self):
         target = item()
@@ -183,7 +374,40 @@ class DefinitionsTests(CollectorTestCase):
         resources = self.resources(MODULE)[1:]
         self.assertEqual([r["complete"] for r in resources], [False, True])
         self.assertNotIn("private body", json.dumps(self.files))
-        self.assert_finished(MODULE, False)
+        manifest = self.assert_finished(MODULE, False)
+        self.assertIn(
+            {
+                "error": "Definition retrieval incomplete",
+                "status": 403,
+                "errorCode": "unavailable",
+            },
+            manifest["errors"],
+        )
+
+    async def test_definition_diagnostics_do_not_retain_untrusted_error_values(self):
+        ctx = self.context(
+            inventory(item()),
+            {
+                "ERROR": "private-response",
+                "status": True,
+                "errorCode": "private-provider-code",
+                "message": "private-body",
+            },
+        )
+        self.assertFalse(await FabricItemDefinitions(ctx))
+        manifest = self.assert_finished(MODULE, False)
+        self.assertIn(
+            {
+                "error": "Definition retrieval incomplete",
+                "status": None,
+                "errorCode": "unrecognized",
+            },
+            manifest["errors"],
+        )
+        persisted = json.dumps(self.files)
+        for value in ("private-response", "private-provider-code", "private-body"):
+            self.assertNotIn(value, persisted)
+            self.assertNotIn(value, str(ctx.logger.mock_calls))
 
     async def test_empty_inventory_is_explicit_success_and_invalid_inventory_is_not(
         self,
