@@ -134,7 +134,7 @@ table 'Item Permissions'
 						{"Principal Id", each [Item][principal][id], type text},
 						{"Principal Display Name", each JsonField([Item][principal], "displayName"), type nullable text},
 						{"Principal User Principal Name", each JsonField(JsonField([Item][principal], "userDetails"), "userPrincipalName"), type nullable text},
-						{"Access Detail Type", each [Item][itemAccessDetails][type], type text},
+						{"Access Detail Type", each [Item][itemAccessDetails][type], type nullable text},
 						{"Permissions", each NormalizeFabricPermissions([Item][itemAccessDetails][permissions]), type text},
 						{"Additional Permissions", each NormalizeFabricPermissions(Coalesce(JsonField([Item][itemAccessDetails], "additionalPermissions"), {})), type text},
 						{"Observed At UTC", each ToUtcDateTime([Json][observedAt]), type datetime},

@@ -45,7 +45,7 @@ async def main(settings: dict | None = None, *, env_file: str | None = None):
     logger.info("Starting Fabric Monitor run (version %s)", get_version())
     if await audit.run() is False:
         raise RuntimeError("Fabric Monitor run failed; see module and storage errors.")
-    logger.info("Fabric Monitor run complete")
+    logger.info("Fabric Monitor invocation finished; see run summary for coverage")
 
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:

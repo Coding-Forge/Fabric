@@ -9,7 +9,7 @@ model Model
 
 annotation PBI_ProTooling = ["DevMode"]
 
-annotation PBI_QueryOrder = ["Capacity Metrics","Capacities","Activity","Git Connections","Tags","Delegated Settings","Widely Shared Links","Connections","Deployment Pipelines","Deployment Operations","Collection Status","Item Permissions","Item Permission Scope","Fabric Job History","Fabric Job Scope","SourceType","LocalFolder","BlobAccountUrl","BlobContainer","BlobRootPath","ToText","ToNumber","ToLogical","ToDate","ToUtcDateTime","Coalesce","JsonField","JsonFirst","GetRowValue","CmMeasure","AddColumns","ListModuleFiles","GetFiles","KeepLatestPerGroup","ExpandItems","GetFabricCollection","FabricConnectionsData","FabricDeploymentData","GetFabricItemCollection","FabricItemPermissionsData","FabricItemJobsData","NormalizeFabricPermissions"]
+annotation PBI_QueryOrder = ["Capacity Metrics","Capacities","Activity","Git Connections","Tags","Delegated Settings","Widely Shared Links","Connections","Deployment Pipelines","Deployment Operations","Collection Status","Item Permissions","Item Permission Scope","Fabric Job History","Fabric Job Scope","SourceType","ItemPermissionMode","LocalFolder","BlobAccountUrl","BlobContainer","BlobRootPath","ToText","ToNumber","ToLogical","ToDate","ToUtcDateTime","Coalesce","JsonField","JsonFirst","GetRowValue","CmMeasure","AddColumns","ListModuleFiles","GetFiles","KeepLatestPerGroup","ExpandItems","GetFabricCollection","FabricConnectionsData","FabricDeploymentData","GetFabricItemCollection","FabricItemPermissionsData","FabricItemJobsData","NormalizeFabricPermissions"]
 
 annotation __PBI_TimeIntelligenceEnabled = 1
 

@@ -1,5 +1,88 @@
 # Changelog
 
+## Fabric manifest timestamp-order guard
+
+- Final manifests now fail before commit if host UTC is earlier than any resource
+  successfully saved in that run, including failed-resource observations.
+  An incomplete initial manifest remains uncommitted and the exception prevents
+  success/checkpoint advancement through the existing audit failure path.
+- Forward or equal timestamps retain existing behavior. No UTC values are
+  clamped, no extra requests or automatic retries are added, and report
+  validation remains unchanged. This prevents new inconsistent commits; it does
+  not repair the three historical job-history timestamp warnings or establish
+  why their timestamps were inverted.
+
+## MonitorRaw tenant-permission input
+
+- Added refresh-time `ItemPermissionMode=Scoped|Tenant`, default `Scoped`, to the
+  existing Item Permissions page. Local and Blob sources load exactly one
+  permission folder; unknown modes fail rather than falling back or merging.
+- Added tenant linked-evidence validation for paginated discovery, cross-workspace
+  inventories beyond 50 items, ordered access cursors, failures/deferrals, unknown
+  totals during discovery and healthy empty tenant replacement.
+- Preserved one-cycle partial/stale selection, successful-grants-only import and
+  disconnected global coverage measures; source mode is visible in diagnostics.
+  No API requests, collector/grant changes, group expansion or Catalog integration.
+  Native Desktop validation is separate from offline wiring and syntax checks.
+
+## Nullable Power BI permission metadata
+
+- Fixed rejection of observed HTTP 200 access responses with null
+  `itemAccessDetails.type` or `additionalPermissions`, limited to the five
+  explicitly query-typed Power BI item types. Scoped and tenant collection retain
+  the original nulls; conflicting types, missing detail types and malformed
+  principals/permission lists still fail.
+- Kept the existing scoped MonitorRaw validator and nullable detail-type column
+  consistent. This adds no API, scope, grants, tenant-report integration or
+  automatic recollection; historical failures and Dataflow 404s remain separate.
+
+## Opt-in tenant-wide permission collection (E14)
+
+- Added `FABRIC_ITEM_ACCESS_MODE=tenant` for paginated active-item discovery and
+  access collection across all items returned by the Admin Items API. The default
+  remains `scoped`, with its existing explicit 1-50 item configuration unchanged.
+- Both routes are preview Admin APIs; no regular resource APIs, workspace role
+  grants, workload execution or Graph expansion are introduced. Unsupported and
+  inaccessible items remain failed coverage rather than successful empties.
+- Tenant discovery/items resume through versioned `tenant_progress.json` and
+  linked immutable manifests. Existing durable quota/Retry-After controls and
+  invocation budgets are shared with scoped collection; only wholly healthy
+  completed cycles advance the module checkpoint.
+- Tenant snapshots use `fabricitemaccesspermissions_tenant/`, separate from
+  scoped PBIP inputs. No settings are enabled, no controls reset, and no PBIP
+  integration or live acceptance is included. See [scope, enablement and recovery](configuration-reference.md#tenant-wide-permission-collection-opt-in).
+
+## Explicit Admin and non-Admin API scope documentation
+
+- Added a customer-facing API scope register distinguishing Admin/Scanner
+  collection, mixed Admin discovery/resource retrieval, regular Fabric/Power BI
+  APIs and Microsoft Graph. Documented resource permissions, collection boundaries,
+  defaults, sensitive output and coverage limits, including existing non-Admin
+  calls in default modules.
+- Called out Contributor's broader powers for definition exports and the current
+  lack of a definition workspace/item allowlist. Group-based grants simplify
+  administration but do not grant tenant-wide export access or filter discovery.
+- Required explicit scope documentation for future non-Admin API changes.
+  Clarified delegated versus app-only authorization, Graph SKU permissions and
+  semantic-model Read/Build requirements. Documentation only: no API, runtime,
+  configuration, permission or deployment changes.
+
+## Static pipeline activity references (E15)
+
+- Added `pipelineReferences` to new `FabricItemDefinitions` pipeline captures,
+  alongside unchanged original definitions and decoded JSON. Parses literal
+  notebook/child-pipeline calls, supported Copy source/sink targets and nested
+  ForEach/Until/IfCondition/Switch activities without additional API requests.
+- References retain JSON Pointer evidence and explicit item/connection/table/path
+  context. Pipeline names remain names; missing workspace IDs are not inferred.
+  Evidence is static and unresolved, never proof of execution or effective access.
+- Dynamic/unsupported targets, queries and file selectors have explicit
+  diagnostics, not guessed data endpoints. Partial analysis is separate from
+  successful capture; malformed containers and traversal limits fail closed.
+- No workloads, settings/grants, report changes or automatic backfill.
+  Definition-export authorization and live acceptance remain separate from
+  offline tests. See [supported shapes and limitations](configuration-reference.md#notebook-and-data-pipeline-definitions).
+
 ## Opt-in notebook and Data Factory definitions
 
 - Added `FabricItemDefinitions`: resumable tenant admin discovery of notebooks

@@ -1,6 +1,6 @@
 # MonitorRaw (Power BI Project)
 
-> **Validation status: this project has NOT been validated by a Power BI Desktop refresh.** It was written and reviewed as text. See [Validation status](#validation-status) before you rely on it.
+> **Validation status: basic Desktop checks and Scoped/Tenant permission views were verified by the operator. Historical job-history load warnings remain; the full scenario checklist is not yet confirmed.** See [Validation status](#validation-status).
 
 ## What it is
 
@@ -10,7 +10,7 @@
 - Report: `MonitorRaw.Report/` in PBIR format, 12 pages.
 - Source: a local folder (the `LOCAL_OUTPUT_PATH` output) or Azure Blob Storage, chosen with the `SourceType` parameter.
 
-The Fabric pages cover `FabricConnections`, `FabricDeploymentPipelineOperations`, `FabricItemAccessPermissions` and `FabricItemJobHistory`. The latest extension adds **Item Permissions** and **Fabric Job History**. Opening the report does not enable collectors or select scopes.
+The Fabric pages cover `FabricConnections`, `FabricDeploymentPipelineOperations`, `FabricItemAccessPermissions` and `FabricItemJobHistory`. **Item Permissions** supports the collector's scoped and tenant evidence through the `ItemPermissionMode` parameter, defaulting to `Scoped`. Opening the report or selecting `Tenant` does not enable collection or call tenant APIs.
 
 **No-output state:** with no corresponding permissions/jobs output, **Not collected** is expected—not healthy empty collection. The report reads files, not live collector settings: this state can mean disabled, unconfigured or never run; it does not establish the current configuration.
 
@@ -33,6 +33,7 @@ Report project-file changes need only this Desktop reopen/reload and refresh, **
 | Parameter | Used when | Meaning |
 |-----------|-----------|---------|
 | `SourceType` | always | `Local` or `Blob`. Default `Local`. |
+| `ItemPermissionMode` | permissions | `Scoped` (default) reads `fabricitemaccesspermissions`; `Tenant` reads `fabricitemaccesspermissions_tenant`. Choose in **Transform data > Manage Parameters**, then apply and refresh. This is a refresh-time source parameter, not a slicer, and never merges the two modes or falls back to another folder. |
 | `LocalFolder` | `Local` | Absolute path of the folder that contains the module folders (`activity`, `capacity_metrics`, `fabricconnections`, ...). Set it to your `LOCAL_OUTPUT_PATH` output root; for example, `C:\path\to\monitor-output`. Do not assume the saved development value is suitable for your machine. |
 | `BlobAccountUrl` | `Blob` | Storage account URL, `https://<storage-account>.blob.core.windows.net/`. |
 | `BlobContainer` | `Blob` | Container name (`STORAGE_ACCOUNT_CONTAINER_NAME`). |
@@ -58,8 +59,8 @@ Dates come from the `<module>/YYYY/MM/DD` folder layout (UTC), **not** from file
 | Connections | `fabricconnections` | Latest healthy committed full inventory; nullable source names preserved. |
 | Deployment Pipelines | `fabricdeploymentpipelineoperations` | Latest committed successful full discovery, including successful empty discovery. |
 | Deployment Operations | `fabricdeploymentpipelineoperations` | All retained committed successful history observations, deduplicated by pipeline/operation identity. |
-| Item Permissions | `fabricitemaccesspermissions` | Successful access observations from one validated selected cycle, including partial cycles; permission lists do not multiply rows. |
-| Item Permission Scope | `fabricitemaccesspermissions` | Known targets in the selected cycle, distinguishing successful zero grants, failure, deferral and not attempted; unresolved identities/counts remain explicit in status. |
+| Item Permissions | `fabricitemaccesspermissions` or `fabricitemaccesspermissions_tenant` | Selected by `ItemPermissionMode`; successful access observations from one validated selected cycle, including partial cycles. Permission lists do not multiply rows. |
+| Item Permission Scope | same selected permission folder | Known targets in that cycle, distinguishing successful zero grants, failure, deferral and not attempted; unresolved identities/counts remain explicit in status. |
 | Fabric Job History | `fabricitemjobhistory` | Latest observation per workspace/item/job instance across all retained runs; no raw failure payloads imported. |
 | Fabric Job Scope | `fabricitemjobhistory` | Latest finished poll's explicit target outcomes, including successful zero observations and failed targets; unvisited targets cannot be inferred. |
 | Collection Status | derived from all four Fabric collectors | Disconnected diagnostic rows, including not-collected, empty-success and failed/incomplete states. |
@@ -108,6 +109,9 @@ fabricdeploymentpipelineoperations/YYYY/MM/DD/runId/
 fabricitemaccesspermissions/YYYY/MM/DD/runId/
   inventory_{workspaceId}.json OR {workspaceId}_{itemId}.json
   manifest.json
+fabricitemaccesspermissions_tenant/YYYY/MM/DD/runId/
+  inventory.json OR {workspaceId}_{itemId}.json
+  manifest.json
 fabricitemjobhistory/YYYY/MM/DD/runId/
   {workspaceId}_{itemId}.json
   manifest.json
@@ -126,9 +130,34 @@ The model validates paths, JSON shapes and record fields, and requires a parsed 
 
 ### Item permissions and Fabric jobs
 
+- **Explicit permission mode.** Only the selected folder is loaded, for Local or
+  Blob sources. Both modes use the existing page and global health measures;
+  status and coverage text identify the mode. Switching the report parameter
+  does not alter collector settings, APIs, grants, gates or checkpoints. Missing
+  tenant files mean **Not collected**, not permission to load scoped evidence.
+- **Tenant evidence and coverage.** Validate finished slice manifests and their
+  complete linked discovery/access history, unique workspace/item identities,
+  discovered counts, ordered access cursors and monotonic cycle health.
+  Cross-mode/cycle links, missing predecessors, conflicting types and invalid
+  progression are rejected; chains are bounded to 10,000 slices. Unlike scoped
+  evidence, tenant cycles are not limited to 50 targets. Expected total remains
+  unknown until discovery completes. Denied/unsupported/not-found outcomes
+  remain failed/unknown access, not empty grants or effective access.
+  A healthy finished discovery returning zero tenant items is selectable even
+  without access requests: it clears older grants and reports successful zero
+  coverage. Failed/incomplete discovery cannot do so.
+
+- **Nullable Power BI access metadata.** For query-typed Report, Dashboard,
+  SemanticModel, App and Dataflow targets, a returned null access-detail type or
+  additional-permissions field is accepted without replacing the source value.
+  `Item Type` still comes from the validated target; `Access Detail Type` can be
+  blank. Missing/conflicting detail types and malformed principal/permission
+  fields remain invalid. This compatibility correction requires a Desktop
+  reopen/refresh to validate; it does not recover failed historical observations.
+
 - **Single selected permission cycle (partial-permission policy).** Follow immutable manifests' `execution.cycleEvidence` links across inventory/access slices and validate the chain, task progression, selected inventory and target coverage. Prefer the newest **finished cycle with at least one successful access observation**, including successful empty observations; the cycle need not be healthy overall. Otherwise use the newest useful **in-progress cycle** with successful access observations from finished slice manifests. Never merge cycles or carry forward grants from other cycles. A finished partially failed cycle can therefore replace an older healthy cycle, while an older useful finished cycle takes precedence over a newer in-progress cycle. Selected-cycle identity/state and observation range remain separate from latest-attempt identity/state/time; older selected evidence carries an explicit **STALE** warning and its scope may differ. A successful final slice alone proves neither chain validity nor completeness. Missing, malformed, cyclic or inconsistent evidence links are not admitted and contribute to global `Load Errors`.
 - **Only successful observations supply grants.** Failed, deferred and known-not-attempted targets have **unknown access**, not “no access”; their returned-access counts are blank. Scope rows distinguish `Collected`, `Collected: zero grants`, `Failed`, `Deferred` and `Not attempted`, with available HTTP/time/run/cycle evidence. When no successful access observation is selectable, grant counts stay blank, not false zero; valid unsuccessful evidence can still supply scope/status. Inventory may identify unvisited targets, but the report does not read configured scope to invent missing identities. Unknown target identities/counts and an unresolved expected total remain explicit in global status.
-- **Zero grants are coverage, not grants.** A successfully collected target with `records=[]` appears in **Item Permission Scope** with zero `Returned Access Details`; it creates no synthetic grant row. A selected cycle containing only successful empty access observations can clear older grants, even if other targets failed; partial coverage must remain visible. Grants are distinct principal/access details with normalized permission lists, not one row per permission string. Group membership is **not expanded**; this is neither fully expanded effective access nor a tenant-wide audit. Linked slices are observations over time, not a simultaneous snapshot.
+- **Zero grants are coverage, not grants.** A successfully collected target with `records=[]` appears in **Item Permission Scope** with zero `Returned Access Details`; it creates no synthetic grant row. A selected cycle containing only successful empty access observations can clear older grants, even if other targets failed; partial coverage must remain visible. Grants are distinct principal/access details with normalized permission lists, not one row per permission string. Group membership is **not expanded**; even tenant discovery does not establish fully expanded effective access or a complete tenant audit. Linked slices are observations over time, not a simultaneous snapshot.
 - **Source-wide coverage is not collection success.** Successful/expected, failed, deferred, known-not-attempted and unknown target counts come from validated cycle evidence in disconnected Collection Status, independently of grant/principal filters. For illustration only, **12/13** successfully read targets is partial coverage even when grant rows are present; it is not a tenant baseline or guaranteed result. `Collection Status[Error Count]` and global `Load Errors` count artifact/evidence integrity problems, not ordinary collection failures. Valid failed outcomes can have zero load errors; inspect outcome/status fields separately. The unresolved Dataflow HTTP 404 with sanitized `errorCode=unrecognized` does not establish that Gen2 is unsupported or fixed. This report change does not alter scope, collectors, gates or checkpoints: an unhealthy collection cycle still does not advance `lastRun`.
 - **Retained job state.** Read successful committed job resources from **all retained runs**, including usable resources in finished partial polls and observations for subsequently deselected targets. Deduplicate by **workspace ID + item ID + job instance ID**, selecting newest `observedAt` (run ID breaks ties). An ongoing job's later status/duration updates one job rather than inflating counts. Old jobs remain after leaving the API's **100 recent completed jobs plus active jobs** window. This is latest observed state, not a status-transition log; polling gaps and deleted source history cannot be recovered.
 - **Explicit job scope and health.** **Fabric Job Scope** shows committed target outcomes from the latest finished poll, including zero observations and failures, separately from retained history. Interrupted polls cannot establish unvisited targets. An incomplete/failed latest poll warns even when older jobs remain visible. Only explicit `Notebook`, `DataPipeline` and `SparkJobDefinition` targets are supported. A zero-job scope row is not an invented job.
@@ -146,7 +175,22 @@ The model validates paths, JSON shapes and record fields, and requires a parsed 
 
 ## Validation status
 
-**The updated project has NOT been validated by a Power BI Desktop open/refresh.** The supplied final Code Reviewer verdict for the partial-permission report was **Approved — cycle 2**, covering the four scoped semantic files, ten report visual JSON files and `tests/test_monitorraw_report.py`. Native Desktop acceptance is still required. E10 remains awaiting Desktop validation.
+**Operator confirmation (2026-11-05): "The PBIP reports check out."** This followed
+the requested reopen/refresh and page checks and records basic Desktop
+acceptance. The detailed fixture/edge-case scenarios below have not been
+individually confirmed. Subsequent operator screenshots verify the permission
+page renders in both modes: Scoped shows 12/13 successful targets; Tenant shows
+95/101 successful targets, six failures and 200 access-detail rows, matching
+saved evidence. Tenant permission diagnostics show zero load errors.
+About shows three historical job-history integrity errors: in three runs,
+resource timestamps exceed final manifest timestamps by about 0.58–1.50 seconds.
+The source files and warnings remain preserved. A future-run collector guard
+rejects such final commits; it does not repair historical evidence.
+Healthy empty tenant cycles, broken-link fixtures and Local/Blob parity remain
+unconfirmed in Desktop.
+The supplied final Code Reviewer verdict for the partial-permission report was
+**Approved — cycle 2**, covering the four scoped semantic files, ten report visual
+JSON files and `tests/test_monitorraw_report.py`.
 
 The final cycle-2 reviewer reported **8 targeted tests and 511 full offline tests passed** under DNS/socket guards, Ruff format/lint and static Python 3.10 syntax checks passed, plus **114 JSON files, 24 tables, 12 pages and 188 valid field references** checked. The requests dependency warning was nonfailing. `tests/test_monitorraw_report.py` covers structure/bindings, disconnected global coverage, missing-versus-zero counts, payload/parent/field mutations and filter protections. These are **not native M/DAX execution, TMDL/Microsoft schema validation, Windows tests, live API/storage validation, or evidence of rendered visuals**; cached schema validation was unavailable. No such native validation is claimed; review approval does not establish that the report opens or refreshes successfully.
 
@@ -167,7 +211,8 @@ Previously documented Desktop-only risks still requiring acceptance:
 
 Run this in Desktop and record the results.
 
-Previously working pages do not establish acceptance of the updated definitions. All checks below remain pending for this reconciliation.
+Basic Desktop checks above do not establish every scenario below. Detailed
+fixture checks remain unconfirmed unless specifically recorded.
 
 - [ ] Open `MonitorRaw.pbip`. The project loads without errors.
 - [ ] **Local mode.** Set `SourceType = Local` and `LocalFolder` to a `LOCAL_OUTPUT_PATH` sample. Refresh. No credential or privacy prompt, or you can resolve it.
@@ -178,6 +223,8 @@ Previously working pages do not establish acceptance of the updated definitions.
 - [ ] **Blob mode.** Set `SourceType = Blob` with `BlobAccountUrl`, `BlobContainer` and `BlobRootPath`. Enter credentials. Refresh. Row counts match Local mode for the same data.
 - [ ] All 12 pages render with no visual errors, including existing pages, new slicers/status cards, scope/grant/job tables and About collection diagnostics. Confirm the same fixtures have matching counts, selected observations, raw status values and errors in Local and Blob modes.
 - [ ] First test permissions/jobs with no collection files: new pages are empty with **Not collected**, blank unknown counts and no healthy-zero claim. Opening/refreshing does not enable collectors or select scopes.
+- [ ] Refresh `ItemPermissionMode=Scoped`, then `Tenant`. Confirm the page/About mode label, source-isolated counts and unchanged job visuals. Missing tenant files must not fall back to scoped grants. Restore the intended parameter afterward.
+- [ ] In a separate fixture root, test tenant multi-workspace discovery beyond 50 items, incomplete discovery with unknown expected total, failed/deferred/unvisited targets, a healthy empty tenant cycle clearing old grants and broken/conflicting evidence links producing load errors rather than grants.
 - [ ] Then use a separate controlled-data root to test a complete healthy multi-slice permission cycle, successful zero-grant targets, duplicate access details/permission lists, and a later healthy cycle clearing prior grants. Scope counts reconcile without fake grant rows or permission-list multiplication.
 - [ ] Test a newer finished partially failed permission cycle: select its successful access observations only, replacing older grants without mixing cycles. Failed/deferred/not-attempted targets remain unknown, not zero access; successful empty targets have scope rows but no fabricated grants.
 - [ ] Test useful in-progress evidence both with and without an older useful finished cycle: prefer the finished cycle when available; otherwise select the newest useful in-progress cycle. Verify selected cycle/state/observation range and latest attempt/cycle/time are distinct, with stale/previous-scope warnings when older evidence is selected.

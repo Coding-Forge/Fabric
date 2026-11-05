@@ -71,7 +71,7 @@ def log_validation_failure(
         observed = "number"
     else:
         observed = "other"
-    logger.warning(
+    logger.error(
         "%s validation failed: record=%s field=%s expected=%s observed=%s",
         label,
         ordinal if ordinal is not None else "-",
@@ -220,6 +220,9 @@ class Context:
         self.clients = {}
         self.fm = File_Management()
         self.current_state = None
+        # False still means incomplete; only explicit, healthy pauses are nonfatal.
+        self.deferred_modules: set[str] = set()
+        self.collection_coverage_logged: set[str] = set()
         self.logging_level = logging.ERROR
         self.logger = logging.getLogger(__name__)
         self.all_workspaces = False

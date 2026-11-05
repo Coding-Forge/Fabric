@@ -280,6 +280,94 @@ class MonitorRawReportTests(unittest.TestCase):
                         document,
                     )
 
+    def test_permission_mode_routes_one_folder_without_changing_measure_identity(self):
+        """Static source-isolation contract; does not execute native M."""
+        definition = ROOT / "MonitorRaw.SemanticModel" / "definition"
+        document = (definition / "expressions.tmdl").read_text(encoding="utf-8")
+        route = re.search(
+            r"expression FabricItemPermissionsData =\s*(.*?)\n\tlineageTag:",
+            document,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(route)
+        self.assertRegex(
+            route[1],
+            r'if ItemPermissionMode = "Scoped" then GetFabricItemCollection\("fabricitemaccesspermissions"\)'
+            r'\s*else if ItemPermissionMode = "Tenant" then GetFabricItemCollection\("fabricitemaccesspermissions_tenant"\)'
+            r'\s*else error Error\.Record\("InvalidItemPermissionMode",',
+        )
+        self.assertNotIn("Table.Combine", route[1])
+        self.assertRegex(
+            document,
+            r'expression ItemPermissionMode\s*=\s*"(?:Scoped|Tenant)"\s+meta\s*'
+            r"\[IsParameterQuery\s*=\s*true,\s*"
+            r'List\s*=\s*\{"Scoped",\s*"Tenant"\},\s*DefaultValue\s*=\s*"Scoped"',
+        )
+        self.assertIn(
+            'Module = if Permissions then "fabricitemaccesspermissions" else module',
+            document,
+        )
+        self.assertIn(
+            'if Tenant then "Tenant" else "Scoped"',
+            document,
+        )
+        query_order = (definition / "model.tmdl").read_text(encoding="utf-8")
+        self.assertIn('"ItemPermissionMode"', query_order)
+        title = json.dumps(self.visual(PERMISSIONS, "ip_text"), ensure_ascii=False)
+        self.assertIn("ItemPermissionMode", title)
+
+    def assert_tenant_permission_admission(self, document):
+        """Require safety guards in the actual M source, not a Python replica."""
+        compact = re.sub(r"\s+", " ", document)
+        walk = compact.split("TenantWalk = ", 1)[1].split("WithChain =", 1)[0]
+        for invariant in (
+            "Record.FieldOrDefault(RunIndex, path, null)",
+            "@TenantWalk(links{0}, seen & {path})",
+            "List.Count(identities) = List.Count(List.Distinct(identities))",
+            "TargetKey(p) = TargetKey(selectedBefore{before})",
+            "not prior[Execution][cycleFinished]",
+            "e[nextItem] = before + (if e[deferred] and e[attempts] = 0 then 0 else 1)",
+            "e[discoveredItems] = List.Count(selected)",
+        ):
+            self.assertIn(invariant, walk)
+        for external_read in ("File.Contents", "Folder.Files", "Web.Contents"):
+            self.assertNotIn(external_read, walk)
+        self.assertIn(
+            "else if Tenant then (if Basis[Execution][inventoryComplete] then Basis[Execution][discoveredItems] else null)",
+            compact,
+        )
+        self.assertIn(
+            "or (Tenant and r[Healthy] and r[Execution][discoveredItems] = 0)",
+            compact,
+        )
+        self.assertIn('if Tenant then "inventory.json"', compact)
+        self.assertIn('if Tenant then "admin/items?state=active"', compact)
+
+    def test_tenant_permission_admission_keeps_coverage_and_chain_guards(self):
+        """Static guards only; fixture execution still needs Power BI Desktop."""
+        document = (
+            ROOT / "MonitorRaw.SemanticModel" / "definition" / "expressions.tmdl"
+        ).read_text(encoding="utf-8")
+        self.assert_tenant_permission_admission(document)
+        mutations = (
+            (
+                "TargetKey(p) = TargetKey(selectedBefore{before})",
+                "true",
+            ),
+            ("not prior[Execution][cycleFinished]", "true"),
+            (
+                "if Basis[Execution][inventoryComplete] then Basis[Execution][discoveredItems] else null",
+                "Basis[Execution][discoveredItems]",
+            ),
+            (
+                "Tenant and r[Healthy] and r[Execution][discoveredItems] = 0",
+                "false",
+            ),
+        )
+        for before, after in mutations:
+            with self.subTest(mutation=before), self.assertRaises(AssertionError):
+                self.assert_tenant_permission_admission(document.replace(before, after))
+
     def test_collection_status_m_table_fields_are_all_nullable(self):
         """Static missing-metadata/type contract; no M engine is executed."""
         document = (

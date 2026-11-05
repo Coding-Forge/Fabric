@@ -4,7 +4,7 @@ import asyncio
 import json
 import math
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
 from logging import Logger
 from urllib.parse import urlsplit
 from uuid import UUID, uuid4
@@ -120,6 +120,7 @@ class FabricCollection:
         self.run_id = uuid4().hex
         self.path = f"{module}/{utc_now():%Y/%m/%d}/{self.run_id}/"
         self.results: list[JsonValue] = []
+        self._latest_resource_observed_at: datetime | None = None
         self.next_request = utc_now()
         self.durable_gate = module == "fabricitemaccesspermissions"
         self.logger = context.logger
@@ -133,13 +134,24 @@ class FabricCollection:
         self.pending = False
         self.errors: list[JsonValue] = []
         self.execution: JsonObject = {}
+        self.resume_later = False
+        self.failed = False
+        self._resource_deferred = False
 
     async def start(self) -> None:
         """Persist an incomplete manifest and load the module's throttle ledger.
 
         :raises RuntimeError: If snapshot storage or the ledger is unusable.
         """
-        self.logger.warning("%s coverage: %s", self.module, self.coverage)
+        if self.module not in self.context.collection_coverage_logged:
+            self.logger.info("%s coverage: %s", self.module, self.coverage)
+            if self.durable_gate:
+                self.logger.info(
+                    "%s requires one scheduler per output root; external API "
+                    "quota use is not coordinated",
+                    self.module,
+                )
+            self.context.collection_coverage_logged.add(self.module)
         ledger = await self.context.fm.read_snapshot(
             f"{self.module}/", "request_gate.json"
         )
@@ -158,12 +170,17 @@ class FabricCollection:
                 self.pending = ledger.get("pending", False)
             except (KeyError, ValueError, TypeError):
                 raise RuntimeError("Fabric request gate ledger is invalid") from None
-        if self.durable_gate:
-            self.logger.warning(
-                "Permission collection requires a single scheduler per output root; "
-                "external collectors sharing the API quota are not coordinated"
-            )
         await self._write_manifest(False, False)
+
+    def record_deferral(self, reason: str) -> None:
+        """Record a safe pause without masking an unsafe durable request gate."""
+        if self.pending or self.blocked:
+            self.failed = True
+            self.logger.error("%s blocked: %s", self.module, reason)
+        else:
+            self.resume_later = True
+            self._resource_deferred = True
+            self.logger.info("%s deferred: %s", self.module, reason)
 
     def _request_delay(self) -> float:
         if self.pending:
@@ -298,6 +315,7 @@ class FabricCollection:
             Request failures include numeric status (or None) and an allowlisted
             errorCode (or fixed safe label), also retained in manifest errors.
         """
+        self._resource_deferred = False
         parsed = urlsplit(url)
         if (
             parsed.scheme != "https"
@@ -323,25 +341,32 @@ class FabricCollection:
             )
         except _RequestDeferred as exc:
             self.errors.append(str(exc))
-            self.logger.warning("%s incomplete: %s", self.module, exc)
+            self.record_deferral(str(exc))
             return {"ERROR": str(exc), "deferred": True}
         except (asyncio.TimeoutError, TimeoutError, aiohttp.ClientError):
+            self.failed = True
             self.errors.append("Fabric transport failure")
-            self.logger.warning("%s Fabric GET transport failure", self.module)
+            self.logger.error("%s Fabric GET transport failure", self.module)
             return {"ERROR": "Fabric transport failure"}
         if not isinstance(response, dict) or "ERROR" in response or "error" in response:
+            self.failed = True
             status = response.get("status") if isinstance(response, dict) else None
             safe_status = _safe_http_status(status)
             error_code = safe_fabric_error_code(response)
+            log = (
+                self.logger.warning
+                if safe_status in http_retry.RETRYABLE_STATUSES
+                else self.logger.error
+            )
             if safe_status is not None:
-                self.logger.warning(
+                log(
                     "%s Fabric request failed: HTTP %d errorCode=%s",
                     self.module,
                     safe_status,
                     error_code,
                 )
             else:
-                self.logger.warning(
+                log(
                     "%s Fabric request failed: HTTP status unavailable errorCode=%s",
                     self.module,
                     error_code,
@@ -477,9 +502,10 @@ class FabricCollection:
         :raises RuntimeError: If storage fails; manifest remains incomplete.
         """
         success = records is not None
+        observed_at = utc_now()
         envelope: JsonObject = {
             "runId": self.run_id,
-            "observedAt": utc_stamp(),
+            "observedAt": utc_stamp(observed_at),
             "coverage": self.coverage,
             "requestPath": endpoint,
             "parent": parent,
@@ -489,8 +515,15 @@ class FabricCollection:
             envelope["records"] = records
         else:
             envelope["error"] = "Resource inaccessible, malformed, or incomplete"
-            self.logger.warning("%s resource incomplete: %s", self.module, name)
+            if self._resource_deferred:
+                self.logger.info("%s resource deferred: %s", self.module, name)
+            else:
+                self.failed = True
+                self.logger.error("%s resource incomplete: %s", self.module, name)
         await self.context.fm.save_snapshot(self.path, f"{name}.json", envelope)
+        self._latest_resource_observed_at = max(
+            self._latest_resource_observed_at or observed_at, observed_at
+        )
         self.results.append(
             {"file": f"{name}.json", "parent": parent, "complete": success}
         )
@@ -501,18 +534,30 @@ class FabricCollection:
 
         :param complete: Whether discovery and every selected resource succeeded.
         :return: The supplied completion state.
-        :raises RuntimeError: If the manifest cannot be persisted.
+        :raises RuntimeError: If storage fails or final UTC precedes a saved resource.
         """
         await self._write_manifest(complete, True)
+        self.context.deferred_modules.discard(self.module)
+        if not complete and self.resume_later and not self.failed:
+            self.context.deferred_modules.add(self.module)
         return complete
 
     async def _write_manifest(self, complete: bool, finished: bool) -> None:
+        observed_at = utc_now()
+        if (
+            finished
+            and self._latest_resource_observed_at is not None
+            and observed_at < self._latest_resource_observed_at
+        ):
+            raise RuntimeError(
+                "Manifest UTC precedes a saved resource; collection not committed"
+            )
         await self.context.fm.save_snapshot(
             self.path,
             "manifest.json",
             {
                 "runId": self.run_id,
-                "observedAt": utc_stamp(),
+                "observedAt": utc_stamp(observed_at),
                 "coverage": self.coverage,
                 "complete": complete,
                 "finished": finished,

@@ -1,4 +1,4 @@
-"""Capture tenant-discovered notebook/pipeline definitions and potential notebook I/O."""
+"""Capture notebook/pipeline definitions and potential static dependencies."""
 
 import asyncio
 import base64
@@ -10,13 +10,14 @@ from uuid import UUID
 
 import aiohttp
 
-from env.context import Context
+from env.context import Context, _safe_http_status, safe_fabric_error_code
 from env.utility.fabric_collection import (
     FABRIC_ROOT,
     FabricCollection,
     _RequestDeferred,
 )
 from env.utility.notebook_references import notebook_references
+from env.utility.pipeline_references import pipeline_references
 
 
 class _Definitions(FabricCollection):
@@ -35,6 +36,7 @@ class _Definitions(FabricCollection):
         return await super()._observe_response(response, attempt)
 
     async def request(self, endpoint, method):
+        self._resource_deferred = False
         try:
             self._request_delay()
             headers = await asyncio.to_thread(
@@ -47,15 +49,42 @@ class _Definitions(FabricCollection):
                 response_gate=self._observe_response,
                 definition_method=method,
             )
-        except _RequestDeferred:
+        except _RequestDeferred as exc:
             self.deferred = True
             self.errors.append("Definition request deferred by durable cooldown")
+            self.record_deferral(str(exc))
             return None
         except (asyncio.TimeoutError, TimeoutError, aiohttp.ClientError):
+            self.failed = True
             self.deferred = True
             self.errors.append("Definition transport failure")
+            self.logger.error("%s definition transport failure", self.module)
             return None
         if not isinstance(result, dict) or "ERROR" in result or self.blocked:
+            self.failed = True
+            if not isinstance(result, dict) or "ERROR" in result:
+                status = _safe_http_status(
+                    result.get("status") if isinstance(result, dict) else None
+                )
+                error_code = safe_fabric_error_code(result)
+                self.errors.append(
+                    {
+                        "error": "Definition retrieval incomplete",
+                        "status": status,
+                        "errorCode": error_code,
+                    }
+                )
+                log = (
+                    self.logger.warning
+                    if status in (429, 503, 504)
+                    else self.logger.error
+                )
+                log(
+                    "%s definition retrieval incomplete: HTTP %s errorCode=%s",
+                    self.module,
+                    status if status is not None else "unavailable",
+                    error_code,
+                )
             if (
                 self.pending
                 or self.blocked
@@ -103,9 +132,13 @@ class _Definitions(FabricCollection):
             else:
                 self.errors.append("Definition operation polling limit exceeded")
                 self.deferred = True
+                self.record_deferral(
+                    "Definition operation still pending; polling limit reached"
+                )
                 return None
         if response is not None and response.get("status") == 202:
             self.deferred = True
+            self.record_deferral("Definition operation still pending")
         if response is None or response.get("status") != 200:
             return None
         body = response.get("body")
@@ -170,6 +203,8 @@ def _decode(body, kind):
     result = {"definition": definition, "decodedParts": decoded}
     if kind == "Notebook":
         result["notebookReferences"] = notebook_references(content)
+    else:
+        result["pipelineReferences"] = pipeline_references(content)
     return result
 
 
@@ -251,6 +286,8 @@ async def main(context: Context | None = None) -> bool:
     Admin inventory is tenant-wide; resource-level read/write permissions are
     still required for exports. Missing/denied/invalid items fail coverage, not
     successful empty observations. Captured code/JSON requires restricted storage.
+    Unsupported static targets are diagnostics on an otherwise successful capture;
+    malformed activity containers still fail the resource.
     """
     if context is None:
         raise RuntimeError("Context is None")
@@ -267,7 +304,8 @@ async def main(context: Context | None = None) -> bool:
         "fabricitemdefinitions",
         "Tenant admin inventory of Notebook/DataPipeline; per-item read/write access "
         "required. Static notebook inference only, not actual run I/O. Pipeline JSON "
-        "is captured without activity parsing. Definitions can contain sensitive values.",
+        "has supported static activity references, not execution evidence. "
+        "Definitions can contain sensitive values.",
         interval=19,
     )
     collection.durable_gate = True
@@ -292,6 +330,12 @@ async def main(context: Context | None = None) -> bool:
                 and progress["nextItem"] == len(progress["items"]),
             }
         )
+        if not progress["healthy"] and collection.resume_later:
+            context.logger.warning(
+                "Definition sweep contains failed observations; a request pause "
+                "does not restore complete coverage"
+            )
+        collection.failed = collection.failed or not progress["healthy"]
         result = await collection.finish(complete)
         if collection.execution["sweepComplete"]:
             await context.fm.save_snapshot(

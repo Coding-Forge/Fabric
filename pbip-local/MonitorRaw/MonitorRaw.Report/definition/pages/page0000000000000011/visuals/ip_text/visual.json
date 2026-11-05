@@ -19,7 +19,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "Item Permissions — read-only observed grants",
+                    "value": "Item Permissions — select Scoped / Tenant with ItemPermissionMode",
                     "textStyle": {
                       "fontWeight": "bold",
                       "fontSize": "18pt"
