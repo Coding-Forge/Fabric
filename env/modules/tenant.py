@@ -3,9 +3,10 @@ import json
 
 import asyncio
 import time
-import requests
 
 from datetime import datetime, timedelta
+
+from env.utility.http import async_request_with_retry
 
 ####### CATALOG PRECONFIGURATION #######
 catalog_types = ["scan","snapshots"]
@@ -36,10 +37,24 @@ async def main(context=None):
 
     url = context.get_fabric_url("v1/admin/tenantsettings")
 
-    response = requests.get(url=url, headers=headers)
+    response = await async_request_with_retry(
+        "GET",
+        url,
+        headers=headers,
+        timeout=120,
+        max_retries=context.http_max_retries,
+        logger=context.logger,
+    )
     if response.status_code == 200:
         result = response.json()
         await context.fm.save(path=lakehouse_dir, file_name="tenant-settings.json", content=result)
+        return True
+    context.logger.error(
+        "Tenant settings request failed: HTTP %s %s",
+        response.status_code,
+        response.text[:500],
+    )
+    return False
 #        dc = await FF.create_directory(file_system_client=FF.fsc, directory_name=lakehouse_dir)
 #        await FF.write_json_to_file(directory_client=dc, file_name="tenant-settings.json", json_data=result)
 
@@ -48,4 +63,3 @@ async def main(context=None):
 
 if __name__ == "__main__":
     asyncio.run(main())
-

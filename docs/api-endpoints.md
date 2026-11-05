@@ -26,6 +26,9 @@ Base URLs (Commercial):
 | ItemJobs | `GET v1/workspaces/{ws}/items/{id}/jobs/instances` | [Fabric REST API reference](https://learn.microsoft.com/en-us/rest/api/fabric/) | `modules/itemjobs.py` |
 | ItemJobs | `POST v1/workspaces/{ws}/items/{id}/getDefinition` (long-running operation) for CopyJob and DataPipeline | [Get item definition](https://learn.microsoft.com/en-us/rest/api/fabric/core/items/get-item-definition) | `modules/itemjobs.py` |
 | ItemJobs | `GET v1/workspaces/{ws}/datapipelines/pipelineruns/{runId}/queryactivityruns` (recurses into child pipelines) | [Fabric REST API reference](https://learn.microsoft.com/en-us/rest/api/fabric/) | `modules/itemjobs.py` |
+| ControlPlane | `GET v1/admin/items` and `GET v1/workspaces/{ws}/{lakehouses|warehouses|eventhouses|kqlDatabases|eventstreams|notebooks|dataPipelines|copyJobs|reflexes|semanticModels|reports|sqlEndpoints|items}/{id}` | [Items - Get Item](https://learn.microsoft.com/en-us/rest/api/fabric/core/items/get-item) | `modules/controlplane.py` |
+| ControlPlane | `GET v1/admin/workspaces/{ws}/users` | [Admin - Workspaces - List Workspace Access Details](https://learn.microsoft.com/en-us/rest/api/fabric/admin/workspaces/list-workspace-access-details) | `modules/controlplane.py` |
+| ControlPlane | `GET v1/admin/workspaces/{ws}/items/{id}/users` | [Admin - Items - List Item Access Details](https://learn.microsoft.com/en-us/rest/api/fabric/admin/items/list-item-access-details) | `modules/controlplane.py` |
 
 ## Power BI REST API
 

@@ -1,25 +1,47 @@
 import asyncio
 import base64
 import json
+import re
 import time
 
 from datetime import datetime, timedelta
-import requests
+
+from env.utility.http import (
+    DEFAULT_MAX_RETRIES,
+    parse_retry_after,
+    request_with_retry,
+)
+from env.utility.workspace_filter import filter_workspace_records, log_workspace_filter_counts
 
 JOB_ITEM_TYPES = {"CopyJob", "DataPipeline", "Notebook", "SynapseNotebook", "Dataflow", "SparkJobDefinition"}
-DEFINITION_ITEM_TYPES = {"CopyJob", "DataPipeline"}
-CONCURRENCY = 5
+DEFINITION_ITEM_TYPES = {"CopyJob", "DataPipeline", "Notebook", "Report", "SemanticModel", "Monitoring", "KQLDatabase"}
+TOPOLOGY_ITEM_TYPES = {"Eventstream"}
+SHORTCUT_ITEM_TYPES = {"Lakehouse"}
+JSON_DEFINITION_PARTS = {
+    "pipeline-content.json", "copyjob-content.json", "definition.pbir", "MonitoringProperties.json",
+    "DatabaseProperties.json",
+}
+# Power Query functions that read from an external source; only the first literal argument is kept.
+M_SOURCE_FUNCTIONS = {
+    "Sql.Database", "Sql.Databases", "Folder.Files", "Folder.Contents", "File.Contents", "Web.Contents",
+    "Web.Page", "AzureStorage.Blobs", "AzureStorage.DataLake", "AzureStorage.DataLakeContents",
+    "AzureStorage.Tables", "Snowflake.Databases", "Odbc.DataSource", "Odbc.Query", "OleDb.DataSource",
+    "Oracle.Database", "PostgreSQL.Database", "MySQL.Database", "SharePoint.Files", "SharePoint.Contents",
+    "SharePoint.Tables", "AzureDataExplorer.Contents", "GoogleBigQuery.Database", "Databricks.Catalogs",
+    "Cosmos.Contents", "AmazonS3.Contents", "Fabric.Warehouse", "Lakehouse.Contents",
+}
+_M_CALL = re.compile(r'\b([A-Z][A-Za-z0-9]*\.[A-Z][A-Za-z0-9]*)\(\s*"((?:[^"]|"")*)"')
+SCAN_LOOKBACK_DAYS = 3
+SCAN_MAX_MISSES = 3
+SCAN_MAX_FILES = 500
+_max_retries = DEFAULT_MAX_RETRIES
+_logger = None
 
 
 def _call(method, url, headers, **kwargs):
-    r = None
-    for _ in range(6):
-        r = requests.request(method, url, headers=headers, timeout=120, **kwargs)
-        if r.status_code == 429:
-            time.sleep(int(r.headers.get("Retry-After", "5")))
-            continue
-        break
-    return r
+    return request_with_retry(
+        method, url, max_retries=_max_retries, logger=_logger, headers=headers, timeout=120, **kwargs
+    )
 
 
 def _find(node, key):
@@ -58,7 +80,10 @@ def _get_definition(item, headers, base):
     if r.status_code == 202:
         location = r.headers.get("Location")
         for _ in range(30):
-            time.sleep(int(r.headers.get("Retry-After", "2")))
+            delay = parse_retry_after(r.headers.get("Retry-After"))
+            time.sleep(
+                min(delay, 3600.0) if delay is not None else 2.0
+            )
             s = _call("GET", location, headers)
             if s.status_code == 200 and s.json().get("status") == "Succeeded":
                 r = _call("GET", location.rstrip("/") + "/result", headers)
@@ -71,11 +96,204 @@ def _get_definition(item, headers, base):
         return None, r
     parts = {}
     for p in r.json().get("definition", {}).get("parts", []):
+        path = p["path"]
+        is_model = path == "definition/expressions.tmdl" or (path.startswith("definition/tables/") and path.endswith(".tmdl"))
+        if not (path.startswith("notebook-content.") or path in JSON_DEFINITION_PARTS or is_model):
+            continue
         try:
-            parts[p["path"]] = json.loads(base64.b64decode(p["payload"]).decode("utf-8-sig"))
+            text = base64.b64decode(p["payload"]).decode("utf-8-sig")
+            if path.startswith("notebook-content."):
+                # Only the dependency metadata is kept; notebook code is never stored.
+                parts["notebook-dependencies"] = _notebook_dependencies(path, text)
+            elif is_model:
+                # Only external source locations are kept; model code and queries are never stored.
+                parts.setdefault("model-sources", []).extend(_model_sources(text))
+            else:
+                parts[path] = json.loads(text)
         except Exception:
             continue
     return parts, None
+
+
+def _strip_query(value):
+    """Drop URL query strings (they can carry SAS tokens or keys) before a location is stored."""
+    return value.split("?", 1)[0] if value.lower().startswith(("http://", "https://")) else value
+
+
+def _model_sources(text):
+    return [(fn, _strip_query(arg.replace('""', '"'))) for fn, arg in _M_CALL.findall(text) if fn in M_SOURCE_FUNCTIONS]
+
+
+def _get_eventstream_topology(item, headers, base):
+    url = f"{base}/v1/workspaces/{item['workspaceId']}/eventstreams/{item['id']}/topology"
+    r = _call("GET", url, headers)
+    return (r.json(), None) if r.status_code == 200 else (None, r)
+
+
+def _notebook_dependencies(path, text):
+    """Notebook-level `dependencies` metadata from a .ipynb or .py (Fabric git format) definition."""
+    if path.endswith(".ipynb"):
+        return (json.loads(text).get("metadata") or {}).get("dependencies") or {}
+    # .py: the first "# META" block after "# METADATA" holds the notebook-level metadata
+    block, started = [], False
+    for line in text.splitlines():
+        if not started:
+            started = line.startswith("# METADATA")
+            continue
+        if line.startswith("# META"):
+            block.append(line[len("# META"):].lstrip(" ") if line != "# META" else "")
+        elif block:
+            break
+    return (json.loads("\n".join(block)) if block else {}).get("dependencies") or {}
+
+
+def _flatten_notebook(parts, names, item_index):
+    lakehouse = (parts.get("notebook-dependencies") or {}).get("lakehouse") or {}
+    default_id = lakehouse.get("default_lakehouse")
+    rows = []
+
+    def row(role, lh_id, workspace_id, name):
+        known = item_index.get(str(lh_id).lower()) or {}
+        return {
+            "Role": role,
+            "ActivityName": None,
+            "EndpointType": "Lakehouse",
+            "ConnectionType": None,
+            "TargetWorkspaceId": workspace_id or known.get("workspaceId"),
+            "TargetItemId": lh_id,
+            "TargetItemName": name or names.get(lh_id) or known.get("name"),
+        }
+
+    if default_id:
+        rows.append(row("AttachedLakehouse", default_id, lakehouse.get("default_lakehouse_workspace_id"),
+                        lakehouse.get("default_lakehouse_name")))
+    for known in lakehouse.get("known_lakehouses") or []:
+        known_id = known.get("id")
+        if known_id and known_id != default_id:
+            rows.append(row("KnownLakehouse", known_id, known.get("workspaceId"), known.get("name")))
+    return rows
+
+
+def _list_shortcuts(item, headers, base):
+    url = f"{base}/v1/workspaces/{item['workspaceId']}/items/{item['id']}/shortcuts"
+    shortcuts = []
+    while url:
+        r = _call("GET", url, headers)
+        if r.status_code != 200:
+            return None, r
+        body = r.json()
+        shortcuts.extend(body.get("value", []))
+        url = body.get("continuationUri")
+    return shortcuts, None
+
+
+def _flatten_shortcuts(shortcuts, names):
+    rows = []
+    for sc in shortcuts:
+        target = sc.get("target") or {}
+        target_type = target.get("type")
+        # The target details sit under a key named after the type (oneLake, adlsGen2, amazonS3, ...)
+        detail = next((v for k, v in target.items() if k != "type" and isinstance(v, dict)), {})
+        location = detail.get("location")
+        sub_path = detail.get("subpath") or detail.get("path")
+        target_id = detail.get("itemId")
+        rows.append({
+            "Role": "ShortcutSource",
+            "ActivityName": None,
+            "EndpointType": target_type,
+            "ConnectionType": target_type,
+            "TargetType": target_type,
+            "TargetLocation": location,
+            "TargetPath": sub_path,
+            "TargetWorkspaceId": detail.get("workspaceId"),
+            "TargetItemId": target_id,
+            "TargetItemName": names.get(target_id),
+            "ConnectionId": detail.get("connectionId"),
+            "ShortcutName": sc.get("name"),
+            "ShortcutPath": sc.get("path"),
+        })
+    return rows
+
+
+def _datasource_location(instance):
+    details = instance.get("connectionDetails") or {}
+    parts = [details.get(k) for k in ("server", "database", "url", "path", "extensionDataSourcePath") if details.get(k)]
+    return " / ".join(parts) or None
+
+
+def _flatten_scanner(scans, names, include_ids, exclude_ids):
+    """One row per (item, data source) from scanner datasourceUsages, scoped by the workspace filter."""
+    rows, seen = [], set()
+    for scan in scans:
+        instances = {str(i.get("datasourceId")).lower(): i for i in scan.get("datasourceInstances") or []}
+        workspaces, _ = filter_workspace_records(
+            scan.get("workspaces") or [], include_ids, exclude_ids, get_workspace_id=lambda w: w.get("id")
+        )
+        for ws in workspaces:
+            for key, value in ws.items():
+                if not isinstance(value, list):
+                    continue
+                for it in value:
+                    if not isinstance(it, dict) or not it.get("id"):
+                        continue
+                    for use in it.get("datasourceUsages") or []:
+                        ds_id = str(use.get("datasourceInstanceId")).lower()
+                        inst = instances.get(ds_id)
+                        if not inst or (it["id"], ds_id) in seen:
+                            continue
+                        seen.add((it["id"], ds_id))
+                        ds_type = inst.get("datasourceType")
+                        rows.append({
+                            "ItemId": it["id"],
+                            "ItemName": it.get("name") or it.get("displayName") or names.get(it["id"]),
+                            "ItemType": it.get("type") or SCANNER_ITEM_TYPES.get(key, key),
+                            "WorkspaceId": ws.get("id"),
+                            "Collector": "Scanner",
+                            "Role": "DataSource",
+                            "ActivityName": None,
+                            "EndpointType": ds_type,
+                            "ConnectionType": ds_type,
+                            "TargetWorkspaceId": None,
+                            "TargetItemId": None,
+                            "TargetItemName": None,
+                            "TargetLocation": _datasource_location(inst),
+                            "DataSourceId": inst.get("datasourceId"),
+                            "GatewayId": inst.get("gatewayId"),
+                        })
+    return rows
+
+
+SCANNER_ITEM_TYPES = {
+    "reports": "Report", "dashboards": "Dashboard", "datasets": "SemanticModel", "dataflows": "Dataflow",
+    "datamarts": "Datamart", "warehouses": "Warehouse", "lakehouses": "Lakehouse",
+}
+
+
+async def _load_scans(context, today):
+    """Scan results saved by the Catalog module (newest day within the lookback that has files)."""
+    for back in range(SCAN_LOOKBACK_DAYS):
+        day = today - timedelta(days=back)
+        path = f"catalog/scans/{day.strftime('%Y')}/{day.strftime('%m')}/{day.strftime('%d')}/"
+        scans, misses = [], 0
+        for index in range(1, SCAN_MAX_FILES + 1):
+            content = None
+            for suffix in ("scanResults.json", "scanResults.fullscan.json"):
+                content = await context.fm.read(path=path, file_name=f"{day.strftime('%Y%m%d')}_{str(index).zfill(5)}.{suffix}")
+                if content:
+                    break
+            if not content:
+                misses += 1
+                if misses >= SCAN_MAX_MISSES:
+                    break
+                continue
+            misses = 0
+            try:
+                scans.append(json.loads(content))
+            except ValueError:
+                context.logger.warning(f"ItemJobs: unreadable scan file {path}{index}")
+        if scans:
+            return scans
+    return []
 
 
 def _endpoint(role, kind, node, names, activity_name=None, **extra):
@@ -168,6 +386,83 @@ def _flatten_copyjob(content, names):
     return rows
 
 
+def _lookup(item_index, item_id):
+    return item_index.get(str(item_id).lower()) or {} if item_id else {}
+
+
+def _flatten_report(parts, names, item_index):
+    ref = (parts.get("definition.pbir") or {}).get("datasetReference") or {}
+    conn = (ref.get("byConnection") or {}).get("connectionString") or ""
+    match = re.search(r"semanticmodelid=([0-9a-fA-F-]{36})", conn)
+    if match:
+        model_id = match.group(1)
+        known = _lookup(item_index, model_id)
+        workspace = re.search(r"/myorg/([^;]+)", conn)
+        return [{
+            "Role": "Source", "ActivityName": None, "EndpointType": "SemanticModel", "ConnectionType": "byConnection",
+            "TargetWorkspaceId": known.get("workspaceId"), "TargetItemId": model_id,
+            "TargetItemName": known.get("name") or names.get(model_id),
+            "TargetLocation": workspace.group(1) if workspace else None,
+        }]
+    path = (ref.get("byPath") or {}).get("path")
+    if path:
+        return [{"Role": "Source", "ActivityName": None, "EndpointType": "SemanticModel", "ConnectionType": "byPath",
+                 "TargetLocation": path}]
+    return []
+
+
+def _flatten_semantic_model(parts, names, item_index):
+    rows, seen = [], set()
+    for function, location in parts.get("model-sources") or []:
+        if (function, location) in seen:
+            continue
+        seen.add((function, location))
+        rows.append({"Role": "DataSource", "ActivityName": None, "EndpointType": function, "ConnectionType": function,
+                     "TargetLocation": location})
+    return rows
+
+
+def _flatten_monitoring(parts, names, item_index):
+    rows = []
+    for setting in (parts.get("MonitoringProperties.json") or {}).get("dataCollectionSettings") or []:
+        for role, key in (("Source", "sources"), ("Destination", "destinations")):
+            for kind, detail in (setting.get(key) or {}).items():
+                rows.append({"Role": role, "ActivityName": None, "EndpointType": kind, "ConnectionType": None,
+                             "TargetLocation": (detail or {}).get("mode")})
+    return rows
+
+
+def _flatten_kqldatabase(parts, names, item_index):
+    parent = (parts.get("DatabaseProperties.json") or {}).get("parentEventhouseItemId")
+    if not parent:
+        return []
+    known = _lookup(item_index, parent)
+    return [{"Role": "ParentEventhouse", "ActivityName": None, "EndpointType": "Eventhouse", "ConnectionType": None,
+             "TargetWorkspaceId": known.get("workspaceId"), "TargetItemId": parent,
+             "TargetItemName": known.get("name") or names.get(parent)}]
+
+
+def _flatten_eventstream(topology, names, item_index):
+    rows = []
+    for role, key in (("Source", "sources"), ("Destination", "destinations")):
+        for node in (topology or {}).get(key) or []:
+            props = node.get("properties") or {}
+            target_id = props.get("itemId")
+            known = _lookup(item_index, target_id)
+            rows.append({
+                "Role": role,
+                "ActivityName": node.get("name"),
+                "EndpointType": node.get("type"),
+                "ConnectionType": node.get("type"),
+                "TargetWorkspaceId": props.get("workspaceId") or known.get("workspaceId"),
+                "TargetItemId": target_id,
+                "TargetItemName": known.get("name") or names.get(target_id),
+                "Table": props.get("tableName"),
+                "ConnectionId": props.get("dataConnectionId"),
+            })
+    return rows
+
+
 def _flatten_pipeline(content, names):
     rows = []
 
@@ -193,7 +488,11 @@ def _flatten_pipeline(content, names):
                         "WriteBehavior": node.get("writeBehavior"),
                     })
             else:
-                rows.append({"Role": "Activity", "ActivityName": act.get("name"), "EndpointType": act.get("type")})
+                row = {"Role": "Activity", "ActivityName": act.get("name"), "EndpointType": act.get("type")}
+                if act.get("type") == "TridentNotebook" and tp.get("notebookId"):
+                    row.update({"TargetWorkspaceId": tp.get("workspaceId"), "TargetItemId": tp["notebookId"],
+                                "TargetItemName": names.get(tp["notebookId"])})
+                rows.append(row)
             for child in ("activities", "ifTrueActivities", "ifFalseActivities", "defaultActivities"):
                 walk(tp.get(child))
             for case in tp.get("cases") or []:
@@ -210,6 +509,9 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
+    global _max_retries, _logger
+    _max_retries = context.http_max_retries
+    _logger = context.logger
     headers = context.clients['tenant'].get_headers()
     base = context.get_fabric_url("").rstrip("/")
     today = datetime.now()
@@ -217,19 +519,34 @@ async def main(context=None):
     items = []
     url = context.get_fabric_url("v1/admin/items")
     while url:
-        for attempt in range(6):
-            response = await context.invokeAPI(url, headers=headers)
-            if "ERROR" not in response:
-                break
-            await asyncio.sleep(10 * (attempt + 1))
-        else:
+        response = await context.invokeAPI(url, headers=headers)
+        if "ERROR" in response:
+            context.logger.error(
+                f"ItemJobs: admin/items listing stopped: HTTP {response.get('status_code')} {response.get('message')}"
+            )
             break
         items.extend(response.get("itemEntities") or [])
         url = response.get("continuationUri")
 
+    all_items = items
+    items, workspace_counts = filter_workspace_records(
+        items,
+        context.include_workspace_ids,
+        context.exclude_workspace_ids,
+        get_workspace_id=lambda item: item.get("workspaceId"),
+    )
     names = {i["id"]: i.get("name") or i.get("displayName") for i in items if i.get("id")}
+    # Unfiltered lookup so attached lakehouses in other workspaces can still be resolved
+    item_index = {
+        str(i["id"]).lower(): {"workspaceId": i.get("workspaceId"), "name": i.get("name") or i.get("displayName")}
+        for i in all_items if i.get("id")
+    }
     targets = [i for i in items if i.get("id") and i.get("workspaceId") and i.get("type") in JOB_ITEM_TYPES]
-    sem = asyncio.Semaphore(CONCURRENCY)
+    lakehouses = [i for i in items if i.get("id") and i.get("workspaceId") and i.get("type") in SHORTCUT_ITEM_TYPES]
+    definition_targets = [i for i in items if i.get("id") and i.get("workspaceId") and i.get("type") in DEFINITION_ITEM_TYPES]
+    topology_targets = [i for i in items if i.get("id") and i.get("workspaceId") and i.get("type") in TOPOLOGY_ITEM_TYPES]
+    log_workspace_filter_counts(context.logger, "ItemJobs", workspace_counts, len(targets))
+    sem = asyncio.Semaphore(context.itemjobs_concurrency)
     errors = {}
 
     def note(item, kind, r):
@@ -276,6 +593,16 @@ async def main(context=None):
             return []
         if item["type"] == "CopyJob":
             flat = _flatten_copyjob(parts.get("copyjob-content.json", {}), names)
+        elif item["type"] == "Notebook":
+            flat = _flatten_notebook(parts, names, item_index)
+        elif item["type"] == "Report":
+            flat = _flatten_report(parts, names, item_index)
+        elif item["type"] == "SemanticModel":
+            flat = _flatten_semantic_model(parts, names, item_index)
+        elif item["type"] == "Monitoring":
+            flat = _flatten_monitoring(parts, names, item_index)
+        elif item["type"] == "KQLDatabase":
+            flat = _flatten_kqldatabase(parts, names, item_index)
         else:
             flat = _flatten_pipeline(parts.get("pipeline-content.json", {}), names)
         return [{
@@ -283,13 +610,64 @@ async def main(context=None):
             "ItemName": names.get(item["id"]),
             "ItemType": item.get("type"),
             "WorkspaceId": item["workspaceId"],
+            "Collector": "Definition",
             **row,
         } for row in flat]
 
+    async def topology_rows(item):
+        async with sem:
+            topology, err = await asyncio.to_thread(_get_eventstream_topology, item, headers, base)
+        if err is not None:
+            note(item, "topology", err)
+            return []
+        return [{
+            "ItemId": item["id"],
+            "ItemName": names.get(item["id"]),
+            "ItemType": item.get("type"),
+            "WorkspaceId": item["workspaceId"],
+            "Collector": "Definition",
+            **row,
+        } for row in _flatten_eventstream(topology, names, item_index)]
+
+    async def shortcut_rows(item):
+        async with sem:
+            shortcuts, err = await asyncio.to_thread(_list_shortcuts, item, headers, base)
+        if err is not None:
+            note(item, "shortcuts", err)
+            return []
+        return [{
+            "ItemId": item["id"],
+            "ItemName": names.get(item["id"]),
+            "ItemType": item.get("type"),
+            "WorkspaceId": item["workspaceId"],
+            "Collector": "Shortcuts",
+            **row,
+        } for row in _flatten_shortcuts(shortcuts, names)]
+
     job_results = await asyncio.gather(*[job_rows(i) for i in targets])
-    def_results = await asyncio.gather(*[definition_rows(i) for i in targets if i["type"] in DEFINITION_ITEM_TYPES])
+    def_results = await asyncio.gather(*[definition_rows(i) for i in definition_targets])
+    topology_results = await asyncio.gather(*[topology_rows(i) for i in topology_targets])
+    shortcut_results = await asyncio.gather(*[shortcut_rows(i) for i in lakehouses])
     jobs = [r for rows in job_results for r in rows]
-    definitions = [r for rows in def_results for r in rows]
+    definitions = [r for rows in def_results + topology_results for r in rows]
+    shortcut_defs = [r for rows in shortcut_results for r in rows]
+
+    scanner_defs = []
+    try:
+        scans = await _load_scans(context, today)
+        scanner_defs = _flatten_scanner(scans, names, context.include_workspace_ids, context.exclude_workspace_ids)
+        if not scans:
+            context.logger.info(
+                "ItemJobs: no catalog scan results found for the last %d days; run the Catalog module "
+                "first to include scanner data sources", SCAN_LOOKBACK_DAYS
+            )
+    except Exception as e:
+        context.logger.warning(f"ItemJobs: could not read scanner data sources: {e}")
+    context.logger.info(
+        "ItemJobs itemdefinitions rows: Definition=%d, Shortcuts=%d, Scanner=%d",
+        len(definitions), len(shortcut_defs), len(scanner_defs),
+    )
+    definitions = definitions + shortcut_defs + scanner_defs
 
     async def activity_rows(job):
         async with sem:

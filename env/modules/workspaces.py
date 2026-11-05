@@ -22,6 +22,9 @@ async def main(context=None):
 
 
         response = await context.invokeAPI(url, headers=headers)
+        if "ERROR" in response:
+            context.logger.error(f"Workspaces call failed: HTTP {response.get('status_code')}")
+            return
         pivotDate = datetime.now()
 
         workspaces = response.get("workspaces")

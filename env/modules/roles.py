@@ -1,12 +1,8 @@
 import asyncio
-import requests
-import json
-
-import random
-import time
-from time import sleep
 
 from datetime import datetime, timedelta
+
+from env.utility.http import async_request_with_retry
 
 
 async def main(context=None):
@@ -25,9 +21,25 @@ async def main(context=None):
     while True:
 
         if continuationToken == None:
-            response = requests.get(context.get_fabric_url("v1/admin/workspaces"), headers=headers)
+            response = await async_request_with_retry(
+                "GET",
+                context.get_fabric_url("v1/admin/workspaces"),
+                headers=headers,
+                timeout=120,
+                max_retries=context.http_max_retries,
+                logger=context.logger,
+            )
         else:
-            response = requests.get(context.get_fabric_url(f"v1/admin/workspaces?continuationToken='{continuationToken}'"),headers=headers)
+            response = await async_request_with_retry(
+                "GET",
+                context.get_fabric_url(
+                    f"v1/admin/workspaces?continuationToken='{continuationToken}'"
+                ),
+                headers=headers,
+                timeout=120,
+                max_retries=context.http_max_retries,
+                logger=context.logger,
+            )
 
         if response.ok:
             results = response.json()
@@ -41,6 +53,11 @@ async def main(context=None):
 
             if continuationToken == None:
                 break
+        else:
+            raise RuntimeError(
+                f"Roles workspace request failed: HTTP {response.status_code} "
+                f"{response.text[:500]}"
+            )
 
     ceiling = len(items)
     cnt = 0
@@ -51,13 +68,22 @@ async def main(context=None):
     all_groups = []
     for i in range(0, ceiling, 5000):
         url = f'{base_url}&$skip={i}'
-        response = requests.get(url, headers=pbi_headers)
+        response = await async_request_with_retry(
+            "GET",
+            url,
+            headers=pbi_headers,
+            timeout=120,
+            max_retries=context.http_max_retries,
+            logger=context.logger,
+        )
         if response.status_code == 200:
             groups = response.json().get('value', [])
             all_groups.extend(groups)
         else:
-            print(f'Error: {response.status_code}')
-            break
+            raise RuntimeError(
+                f"Roles groups request failed: HTTP {response.status_code} "
+                f"{response.text[:500]}"
+            )
 
     print(f'Total groups retrieved: {len(all_groups)}')
     

@@ -20,6 +20,7 @@ MODULES = [
     "Domains",
     "FabricItems",
     "ItemJobs",
+    "ControlPlane",
     "Gateway",
     "Graph",
     "Refreshables",

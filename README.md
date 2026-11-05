@@ -266,6 +266,9 @@ Beyond the base modules, the monitor can collect item lineage, job runs and sour
 | `jobs/` | ItemJobs | Fabric `items/{id}/jobs/instances` |
 | `itemdefinitions/` | ItemJobs | Fabric `items/{id}/getDefinition` (copy jobs and pipelines): source and destination |
 | `jobactivityruns/` | ItemJobs | Fabric `datapipelines/pipelineruns/{runId}/queryactivityruns`, including child pipeline runs: rows and bytes copied |
+| `itemdetails/` | ControlPlane | Every item in scope from `v1/admin/items` (state, capacity, creator, last updated) plus the type-specific Fabric REST properties and description |
+| `controlplane/` | ControlPlane | Consolidated, one row per item endpoint: source/destination, connection type, last run status, owner, workspace and item access (user principal names), and volume (pipeline Copy activities only). Reads the ItemJobs and Catalog outputs, so run Catalog and ItemJobs first. Also carries `UpstreamItems`/`DownstreamItems` (+ counts) from lineage and `LastActivity*`/`ActivityCount`/`ActivityUsers` from the last 7 days of `activity/` (matched on item ID). Copy job destinations to a Lakehouse table get `RowsWritten`/`BytesWritten` (`VolumeSource=DeltaLog`), read from the table's OneLake `_delta_log` |
+| `lineagegraph/` | ControlPlane | One row per upstream -> downstream edge (Scanner `lineage_edges/` + Fabric `lineage/` merged) with each end's state, owner and latest activity (time, operation, user). Run Catalog, FabricItems and Activity first |
 | `graph/` | Graph | Microsoft Graph users and group members (user display names) |
 
 Add `ItemJobs` to `APPLICATION_MODULES` in your `.env` to collect jobs, definitions and volume. The endpoint inventory links each API to its official Microsoft Learn reference: [docs/api-endpoints.md](docs/api-endpoints.md).
@@ -274,7 +277,76 @@ Add `ItemJobs` to `APPLICATION_MODULES` in your `.env` to collect jobs, definiti
 
 ## Consolidating for Splunk
 
-Import [notebooks/audit_events_splunk.ipynb](notebooks/audit_events_splunk.ipynb) into Fabric and attach the Lakehouse that holds the monitor output. It builds the Delta table `audit_events_splunk` (one row per event, enriched with user display name, item name, upstream and downstream lineage, run history, sources, destinations and volume) and writes JSON Lines to `Files/splunk_export/YYYY/MM/DD/`.
+The master table is the Delta table `audit_events_splunk`: one row per audit event, enriched with user display name, item name, upstream and downstream lineage, run history, sources, destinations, volume, and the owner, state, last run and recent activity of the item. It is built by [notebooks/audit_events_splunk.ipynb](notebooks/audit_events_splunk.ipynb), which needs **only the JSON files the monitor modules write to your Lakehouse**. It does not depend on any other table, so you can build the master table in your own tenant from the modules alone. The notebook also writes JSON Lines to `Files/splunk_export/YYYY/MM/DD/`.
+
+### Implementation steps
+
+Follow these in order. Each step says how to confirm it worked.
+
+1. **Prepare the service principal and Fabric.** Complete [Create a Service Principal](#create-a-service-principal) and [Grant Permissions to the Service Principal](#grant-permissions-to-the-service-principal) (Fabric admin API settings, Graph and Power BI permissions). Add the service principal as a member of every workspace you want job, definition and volume data from, because it cannot add itself.
+2. **Create or choose the Lakehouse** that will hold both the raw module output and the master table (for example `fabricauditlh`) in a Fabric workspace you can write to.
+3. **Configure `.env`** (start from `local.settings.example`; all names are in [docs/configuration-reference.md](docs/configuration-reference.md)):
+   ```
+   APPLICATION_MODULES=Activity,Graph,Catalog,FabricItems,ItemJobs,ControlPlane
+   LAKEHOUSE_NAME=<lakehouse name>
+   WORKSPACE_NAME=<workspace name>
+   PATH_IN_LAKEHOUSE=fabricmonitor
+   ON_FABRIC=true          # true when the modules run inside Fabric, false when they run elsewhere and write to OneLake
+   HTTP_MAX_RETRIES=6      # optional, see "Throttling and HTTP retries" below
+   ```
+   Optionally set `INCLUDE_WORKSPACE_IDS` / `EXCLUDE_WORKSPACE_IDS` to limit scope.
+4. **Run the modules in this order.** Later modules read earlier output, so the order matters. Run them once for a full backfill (`python -m app.monitor --base --modules ...`), then on a schedule.
+
+   | Order | Module | Writes | Feeds these master table columns |
+   |---|---|---|---|
+   | 1 | Activity | `activity/` | The events themselves: `event_id`, `event_time`, `operation`, `status`, `user_id`, `client_ip`, workspace, capacity and item columns |
+   | 2 | Graph | `graph/` | `user_display_name` |
+   | 3 | Catalog | `catalog/scans/`, `lineage_edges/` | `item_name`, `upstream_*`, `downstream_*`, `data_sources`, `has_lineage`, `lineage_note` |
+   | 4 | FabricItems | `items/`, `lineage/` | Supplementary lineage |
+   | 5 | ItemJobs | `jobs/`, `itemdefinitions/`, `jobactivityruns/` | `run_count`, `failed_runs`, `last_run_status`, `last_run_time`, `sources`, `destinations`, `rows_copied`, `bytes_written` |
+   | 6 | ControlPlane | `controlplane/`, `lineagegraph/`, `fabric_audit/` | `cp_owner_principal`, `cp_item_state`, `cp_last_run_status`, `cp_last_run_end`, `cp_last_run_failure_reason`, `cp_runs_collected`, `cp_failed_runs`, `cp_last_activity`, `cp_last_activity_time`, `cp_last_activity_user`, `cp_activity_count_7d`, `cp_activity_users` |
+
+   Confirm: in the Lakehouse, open **Files > fabricmonitor** and check that each folder above contains `YYYY/MM/DD` subfolders with `.json` files.
+5. **Import the notebook.** In the Fabric workspace choose **Import > Notebook** and select `notebooks/audit_events_splunk.ipynb`. Attach the Lakehouse from step 2 as the **default Lakehouse**. If `PATH_IN_LAKEHOUSE` is not `fabricmonitor`, change `base_path` in the first cell.
+6. **Run the notebook (first run).** Select **Run all**. The preflight cell lists every source folder as `OK` or `MISSING` and names the module to run for each missing one. It stops only when `activity/` is empty; other missing folders just leave the related columns empty. The notebook then builds `audit_events_splunk`, exports JSON Lines, and prints row counts and data quality checks.
+7. **Verify the table.** Open the Lakehouse **Tables** list, or run in a notebook or the SQL analytics endpoint:
+   ```sql
+   SELECT source, COUNT(*) AS events FROM audit_events_splunk GROUP BY source;
+   SELECT item_name, operation, status, user_display_name, cp_owner_principal, cp_last_run_status,
+          cp_activity_count_7d, lineage_note
+   FROM audit_events_splunk ORDER BY event_time DESC LIMIT 20;
+   ```
+8. **Schedule it.** Create a Data Factory pipeline whose Notebook activity runs the notebook after the module run finishes (see [Orchestrate refreshes](#orchestrate-refreshes)). Run the notebook at least once per 30 days, because the activity API returns at most 30 days.
+
+### How the notebook builds the table
+
+- **Source of truth:** only `Files/<PATH_IN_LAKEHOUSE>/` JSON from the modules. Every source is optional except `activity/`.
+- **Joins:** every enrichment is a left join keyed on the lower-cased item ID, and the notebook fails if the row count changes. `controlplane/` is reduced to one row per item from its newest `YYYY/MM/DD` snapshot, so it cannot multiply rows.
+- **Write:** a MERGE on `event_id`, partitioned by `event_date`. Schema auto-merge is on, so columns added by a newer version of the notebook are added to an existing table.
+- **Adding the new `cp_*` columns to an existing table:** the incremental run only enriches new events. Set `REBUILD = True` in the first cell for one run to fill the new columns for existing rows, then set it back to `False`.
+
+### Throttling and HTTP retries
+
+Every module calls the Power BI, Fabric and Graph APIs through one shared client ([env/utility/http.py](env/utility/http.py)). It retries HTTP 429, any 5xx and network failures, up to `HTTP_MAX_RETRIES` times (default 6). It waits for the server's `Retry-After` header (up to one hour) or uses exponential backoff from 2 to 60 seconds with jitter. Other 4xx responses (400, 401, 403, 404) are never retried. Each retry is logged as `HTTP retry: status=... attempt=n/m wait=...s path=...`.
+
+This is not the same as the run retries in the table. `cp_runs_collected` and `cp_failed_runs` describe how the customer's own jobs ran. The HTTP retries only decide whether a module manages to collect its data.
+
+If a module still fails after its retries, rerun that module, then rerun the notebook. Because the master table merges on `event_id`, reruns do not create duplicates.
+
+### Troubleshooting
+
+| Symptom | Cause and fix |
+|---|---|
+| Preflight raises `No data under Files/fabricmonitor/` | `activity/` is empty. Run the Activity module, and check `PATH_IN_LAKEHOUSE` matches `base_path` in the notebook. |
+| `MISSING controlplane` | Run ControlPlane after Catalog and ItemJobs. Until then the `cp_*` columns are empty. |
+| `lineage_note` is `item not in lineage_edges` | The item was not in a Catalog scan. Run Catalog with `--base`. |
+| `lineage_note` is `no relations in scanner` | The scanner returned no relations for that item. This is expected for some item types. |
+| Job, source or volume columns are empty for some items | The service principal is not a member of that item's workspace. Add it and rerun ItemJobs and ControlPlane. |
+| Many `HTTP retry: status=429` lines | Power BI admin throttling. Wait for the run to finish, run fewer modules at once, or narrow scope with `INCLUDE_WORKSPACE_IDS`. |
+| Notebook fails with `Row count changed after enrichments` | A lookup has duplicate keys. Check the source folder for duplicated item IDs. |
+| New columns are empty for old events | Run once with `REBUILD = True`. |
+
+### Notebook behavior
 
 - The notebook is incremental. If you change the enrichment logic, set `REBUILD = True` in the first cell for one run so existing rows are recomputed.
 - Every join is a left join and the notebook fails if the row count changes.

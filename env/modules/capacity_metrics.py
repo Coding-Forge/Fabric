@@ -44,8 +44,8 @@ async def main(context=None):
    
         response = await context.invokeAPI(url, headers=headers, json=payload)
 
-        if response is None:
-            context.logger.error("ERROR", "Response is None")
+        if response is None or "ERROR" in response:
+            context.logger.error(f"Capacity metrics call failed: {None if response is None else response.get('status_code')}")
             return
 
         content = response

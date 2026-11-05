@@ -1,6 +1,5 @@
 import os
 import json
-import time
 import asyncio
 import argparse
 
@@ -8,6 +7,7 @@ import argparse
 import sys
 
 from datetime import datetime, timedelta
+from env.utility.workspace_filter import filter_workspace_records, log_workspace_filter_counts
 # from env.utility.helps import Bob
 
 ####### CATALOG PRECONFIGURATION #######
@@ -18,8 +18,6 @@ getModifiedWorkspacesParams = "excludePersonalWorkspaces=False&excludeInActiveWo
 FullScanAfterDays = 30
 reset  = True
 
-throttleErrorSleepSeconds = 3700
-scanStatusSleepSeconds = 15
 getInfoOuterBatchCount = 1500
 getInfoInnerBatchCount = 100
 runsInParallel = 16       
@@ -74,33 +72,39 @@ async def main(context=None):
     #GET https://api.powerbi.com/v1.0/myorg/admin/workspaces/modified?modifiedSince={modifiedSince}&excludePersonalWorkspaces={excludePersonalWorkspaces}&excludeInActiveWorkspaces={excludeInActiveWorkspaces}
 
     ## if you do not pass the modifiedsince argument then all workspaces will be returned
-    if allWorkspaces:
-        # getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True&getArtifactUsers=true', data=batchBody, additional_headers={"Content-Type": "application/json"})
-        rest_api = f"admin/workspaces/modified?{getModifiedWorkspacesParams}"
-        # rest_api = f"admin/workspaces"
-        # rest_api = f"admin/workspaces/getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True&getArtifactUsers=true', data=batchBody, additional_headers={'Content-Type': 'application/json'}"
+    if context.include_workspace_ids:
+        workspaces = sorted(context.include_workspace_ids)
     else:
-        rest_api = f"admin/workspaces/modified?modifiedSince={LastRun}T00:00:00.0000000Z&{getModifiedWorkspacesParams}"
+        if allWorkspaces:
+            rest_api = f"admin/workspaces/modified?{getModifiedWorkspacesParams}"
+        else:
+            rest_api = f"admin/workspaces/modified?modifiedSince={LastRun}T00:00:00.0000000Z&{getModifiedWorkspacesParams}"
 
+        print(f"using the following url: {rest_api}")
+        result = await context.invokeAPI(rest_api=rest_api, headers=headers)
+        workspaces = []
 
-    print(f"using the following url: {rest_api}")
+        if result and "error" not in result:
+            workspace_list = result.get("value", result) if isinstance(result, dict) else result
+            for workspace in workspace_list:
+                if isinstance(workspace, dict):
+                    workspaces.append(workspace.get("id"))
+        elif isinstance(result, dict) and "error" in result:
+            context.logger.error(f"Error was thrown: {result}")
+            return
+        else:
+            context.logger.info("No modified workspaces found for the time period searched")
+            return
 
-    result = await context.invokeAPI(rest_api=rest_api, headers=headers)
-
-    workspaces = list()
-
-    if result and "error" not in result:
-        # The API returns {"value": [...]} — unwrap the list
-        workspace_list = result.get("value", result) if isinstance(result, dict) else result
-        for workspace in workspace_list:
-            if isinstance(workspace, dict):
-                workspaces.append(workspace.get("id"))
-    elif "error" in result:
-        # Handle the error case
-        context.logger.error(f"Error was thrown: {result}")
-        return
-    else:
-        context.logger.info("No modified workspaces found for the time period searched")
+    workspaces, workspace_counts = filter_workspace_records(
+        workspaces,
+        context.include_workspace_ids,
+        context.exclude_workspace_ids,
+        get_workspace_id=lambda workspace_id: workspace_id,
+    )
+    if not workspaces:
+        log_workspace_filter_counts(context.logger, "Catalog", workspace_counts, processed=0)
+        context.logger.info("No workspaces selected for catalog scanning")
         return
     # The first thing is to get all the workspaces that have been modified
     # Split into groups of 500
@@ -169,7 +173,7 @@ async def main(context=None):
             result = await context.invokeAPI(rest_api=rest_api, headers=headers, json=body)
         except Exception as e:
             print(f"Error getting lineage: {e} with result: {result}")
-            time.sleep(60*3)
+            await asyncio.sleep(60 * 3)
 
 
         if result is None:
@@ -184,19 +188,28 @@ async def main(context=None):
                 # print(f"Sleeping for {scanStatusSleepSeconds} seconds to prevent overloading the API with requests")
                 # time.sleep(scanStatusSleepSeconds)
                 while(workspaceScanResult.get("status") in ["Running", "NotStarted"]):
+                    await asyncio.sleep(context.scan_status_poll_seconds)
+                    scan_id = workspaceScanResult.get("id")
                     try:
-                        # print(f"Getting scan status for workspace {workspaceScanResult.get('id')}")
-                        rest_api = f"admin/workspaces/scanStatus/{workspaceScanResult.get('id')}"
+                        rest_api = f"admin/workspaces/scanStatus/{scan_id}"
                         result = await context.invokeAPI(rest_api=rest_api, headers=headers)
                     except Exception as e:
-                        context.logger.error(f"Scan status Error: {e} - sleeping for {throttleErrorSleepSeconds} seconds")
-                        await asyncio.sleep(throttleErrorSleepSeconds)
-
+                        context.logger.error(f"Scan status error for scan {scan_id}: {e}")
+                        return "Scan status failed"
 
                     if "ERROR" in result:
-                        context.logger.error(f"Error: {result}")
+                        context.logger.error(
+                            f"Scan status for scan {scan_id} failed: HTTP {result.get('status_code')} {result.get('message')}"
+                        )
+                        return "Scan status failed"
                     else:
                         workspaceScanResult["status"] = result.get("status")
+                        if workspaceScanResult["status"] == "Failed":
+                            context.logger.error(
+                                f"Scan {scan_id} ended Failed for {len(body['workspaces'])} workspaces "
+                                f"(first ids: {body['workspaces'][:5]})"
+                            )
+                            return "Scan failed"
                         try:
                             if workspaceScanResult is not None and  "status" in workspaceScanResult and "Succeeded" in workspaceScanResult["status"]:
                                 id = workspaceScanResult.get("id")
@@ -206,8 +219,11 @@ async def main(context=None):
                                 scanResult = await context.invokeAPI(rest_api=rest_api, headers=headers)
 
                                 # TODO: create a better check on whether scan results were returned or error thrown
-                                if "ERRORs" in scanResult:
-                                    context.logger.error(f"Error: Did not get scan results for workspace {id}")
+                                if "ERROR" in scanResult:
+                                    context.logger.error(
+                                        f"Did not get scan results for scan {id}: HTTP {scanResult.get('status_code')}"
+                                    )
+                                    return "Scan result failed"
                                 else:
                                     today = datetime.now()
                                     path = f"catalog/scans/{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
@@ -235,7 +251,7 @@ async def main(context=None):
                                     except TypeError as e:
                                         context.logger.error(f"Please fix the async to handle the Error: {e} -- is this the issue")
                             else:
-                                context.logger.error(f"Information: Waiting for Scan results.....")
+                                context.logger.info("Waiting for Scan results.....")
                         except Exception as e:
                             print(e)
                             pass
@@ -244,6 +260,7 @@ async def main(context=None):
 
     counter = int()
     batch_number = int()
+    processed_workspaces = 0
     for i in range(0, len(groups), 16):
         batch_number += 1
         print(f"Processing batch number {batch_number} of {len(groups)//16} batches")
@@ -257,10 +274,13 @@ async def main(context=None):
             item_number += 1
             print(f"Processing item number {item_number}")
             output = await get_workspace_info(workspace_groups=item, FullScan=FullScan,fileIndex=counter, headers=headers)
+            processed_workspaces += len(item)
             print(output)
 
         # print("I sleeping")
-        time.sleep(30)  # Pause for 10 minutes
+        await asyncio.sleep(30)
+
+    log_workspace_filter_counts(context.logger, "Catalog", workspace_counts, processed_workspaces)
 
     # while not work_queue.empty():
     #     counter += 1

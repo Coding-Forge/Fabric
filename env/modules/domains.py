@@ -33,6 +33,9 @@ async def main(context=None):
     url = context.get_fabric_url("v1/admin/domains")
 
     response = await context.invokeAPI(url, headers=headers)
+    if "ERROR" in response:
+        context.logger.error(f"Domains call failed: HTTP {response.get('status_code')}")
+        return
 
     domain_workspaces=[]
 
@@ -44,6 +47,9 @@ async def main(context=None):
         domainId = domain['id']
 
         response = await context.invokeAPI(context.get_fabric_url(f"v1/admin/domains/{domainId}/workspaces"), headers=headers)
+        if "ERROR" in response:
+            context.logger.error(f"Domain {domainId} workspaces call failed: HTTP {response.get('status_code')}")
+            continue
 
         values = response.get("value", [])
 

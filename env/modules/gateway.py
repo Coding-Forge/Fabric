@@ -1,7 +1,20 @@
 import asyncio
 import json
-import requests
 from datetime import datetime
+
+from env.utility.http import async_request_with_retry
+
+
+async def _get(context, url, headers):
+    return await async_request_with_retry(
+        "GET",
+        url,
+        headers=headers,
+        timeout=120,
+        max_retries=context.http_max_retries,
+        logger=context.logger,
+    )
+
 
 async def main(context=None):
     """
@@ -19,7 +32,10 @@ async def main(context=None):
 # GET https://api.powerbi.com/v1.0/myorg/gateways
     
     api_url = context.get_powerbi_url('gateways')
-    response = requests.get(url=api_url, headers=headers)
+    response = await _get(context, api_url, headers)
+    if not response.ok:
+        context.logger.error("Gateways request failed: HTTP %s", response.status_code)
+        return False
     results = response.json()
 
     gateways = list()
@@ -35,6 +51,7 @@ async def main(context=None):
     users = list()
     datasources = list()
     datasource_details = list()
+    failures = 0
     status_base = {   
         "datasourceId":"",
         "gatewayId":"",
@@ -52,7 +69,15 @@ async def main(context=None):
 
     r = list()
     for id in gateways:
-        response = requests.get(context.get_powerbi_url(f'gateways/{id}/datasources'), headers=headers)
+        response = await _get(
+            context, context.get_powerbi_url(f'gateways/{id}/datasources'), headers
+        )
+        if not response.ok:
+            failures += 1
+            context.logger.error(
+                "Gateway datasources request failed: HTTP %s", response.status_code
+            )
+            continue
         doc_results = response.json()
         r.append(doc_results['value'])   
 
@@ -68,7 +93,13 @@ async def main(context=None):
 
     for i in range(0,len(gateways)):
         api_users = context.get_powerbi_url(f'gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/users')
-        response = requests.get(api_users, headers=headers)
+        response = await _get(context, api_users, headers)
+        if not response.ok:
+            failures += 1
+            context.logger.error(
+                "Gateway datasource users request failed: HTTP %s", response.status_code
+            )
+            continue
         results = response.json()
 
         if "value" in results:
@@ -80,7 +111,7 @@ async def main(context=None):
     for i in range(0,len(gateways)):
         api_status = context.get_powerbi_url(f'gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/status')
         
-        response = requests.get(api_status, headers=headers)
+        response = await _get(context, api_status, headers)
         if response.ok:
             # response.json() is actually empty when it is a success
             
@@ -89,15 +120,35 @@ async def main(context=None):
             status_base.get("error").get("pbi.error").get("details").append({"message":"success","detail":response.status_code})    
             status.append(status_base)
         else:
-            results = json.loads(response.text)
-            results["datasourceId"] = gateways[i]["id"]
-            results["gatewayId"] = gateways[i]["gatewayId"]
-            results.get("error").get("pbi.error").get("details").append({"message":"cannot connect","detail":response.status_code})    
-            status.append(results)
+            failures += 1
+            status.append(
+                {
+                    "datasourceId": gateways[i]["id"],
+                    "gatewayId": gateways[i]["gatewayId"],
+                    "error": {
+                        "code": "requestFailed",
+                        "pbi.error": {
+                            "details": [
+                                {
+                                    "message": "cannot connect",
+                                    "detail": response.status_code,
+                                }
+                            ]
+                        },
+                    },
+                }
+            )
 
     for i in range(0,len(gateways)):
         api_datasource = context.get_powerbi_url(f'gateways/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}')
-        response = requests.get(api_datasource, headers=headers)
+        response = await _get(context, api_datasource, headers)
+        if not response.ok:
+            failures += 1
+            context.logger.error(
+                "Gateway datasource details request failed: HTTP %s",
+                response.status_code,
+            )
+            continue
         results = response.json()
         results.pop('@odata.context')
         datasource_details.append(results)
@@ -106,6 +157,7 @@ async def main(context=None):
     await context.fm.save(path=path, file_name='users.json', content=json.dumps(users))
     await context.fm.save(path=path, file_name='datasources.json', content=json.dumps(gateways))
     await context.fm.save(path=path, file_name='datasource_details.json', content=json.dumps(datasource_details))
+    return failures == 0
 
 
 if __name__ == "__main__":

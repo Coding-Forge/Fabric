@@ -20,7 +20,7 @@ from env.context import Context
 import re
 
 content = None
-FABRIC_ONLY_MODULES = {"Domains", "FabricItems", "ItemJobs", "Tenant", "Roles", "Workspaces"}
+FABRIC_ONLY_MODULES = {"Domains", "FabricItems", "ItemJobs", "ControlPlane", "Tenant", "Roles", "Workspaces"}
 
 
 # from .monitor import main as Monitor
@@ -263,6 +263,21 @@ class Audits:
 
     def set_all_workspaces(self, get_all_workspaces:bool):
         return self.context.set_all_workspaces(get_all_workspaces)
+
+    def set_include_workspace_ids(self, workspace_ids):
+        self.context.set_include_workspace_ids(workspace_ids)
+
+    def set_exclude_workspace_ids(self, workspace_ids):
+        self.context.set_exclude_workspace_ids(workspace_ids)
+
+    def set_http_max_retries(self, value):
+        self.context.set_http_max_retries(value)
+
+    def set_scan_status_poll_seconds(self, value):
+        self.context.set_scan_status_poll_seconds(value)
+
+    def set_itemjobs_concurrency(self, value):
+        self.context.set_itemjobs_concurrency(value)
 
     def set_WorkspaceName(self, WorkspaceName):
         self.context.set_WorkspaceName(WorkspaceName)

@@ -80,6 +80,11 @@ Used when running inside a Fabric environment.
 | `ALL_WORKSPACES` | `false` | When `true`, retrieves all workspaces regardless of modification date. |
 | `EXCLUDE_PERSONAL_WORKSPACES` | `true` | Excludes personal workspaces from catalog modified-workspace scans. |
 | `EXCLUDE_INACTIVE_WORKSPACES` | `true` | Excludes inactive workspaces from catalog modified-workspace scans. |
+| `INCLUDE_WORKSPACE_IDS` | _(none)_ | Comma-separated workspace GUID allowlist. When set, Catalog scans these workspaces regardless of modification date; Fabric Items and Item Jobs also process only items in these workspaces.|
+| `EXCLUDE_WORKSPACE_IDS` | _(none)_ | Comma-separated workspace GUID denylist. Exclusions take precedence over `INCLUDE_WORKSPACE_IDS`.|
+| `HTTP_MAX_RETRIES` | `6` | Max retries for 429/5xx/network errors across shared REST requests, including `Retry-After` (up to 1 hour) or exponential backoff. 400/401/403/404 are never retried. |
+| `SCAN_STATUS_POLL_SECONDS` | `20` | Seconds between Scanner `scanStatus` polls. |
+| `ITEMJOBS_CONCURRENCY` | `3` | Concurrent per-item calls in the ItemJobs module. |
 | `IMPERSONATED_USER_NAME` | _(none)_ | UPN of a user to impersonate for API calls. |
 | `CAPACITY_METRICS_DATASET_ID` | _(none)_ | Dataset ID for the Capacity Metrics module. |
 

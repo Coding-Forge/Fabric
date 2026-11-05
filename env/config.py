@@ -86,6 +86,11 @@ def build_audit(
     )
 
     audit.set_all_workspaces(_get_bool(settings, "ALL_WORKSPACES", "Base", default=False))
+    _set_if_present(settings, ("INCLUDE_WORKSPACE_IDS", "IncludeWorkspaceIds"), audit.set_include_workspace_ids)
+    _set_if_present(settings, ("EXCLUDE_WORKSPACE_IDS", "ExcludeWorkspaceIds"), audit.set_exclude_workspace_ids)
+    _set_if_present(settings, ("HTTP_MAX_RETRIES", "HttpMaxRetries"), audit.set_http_max_retries)
+    _set_if_present(settings, ("SCAN_STATUS_POLL_SECONDS", "ScanStatusPollSeconds"), audit.set_scan_status_poll_seconds)
+    _set_if_present(settings, ("ITEMJOBS_CONCURRENCY", "ItemJobsConcurrency"), audit.set_itemjobs_concurrency)
     audit.set_on_fabric(_get_bool(settings, "ON_FABRIC", "OnFabric", default=True))
     if _get_value(settings, "EXCLUDE_PERSONAL_WORKSPACES", "ExcludePersonalWorkspaces") is not None:
         audit.exclude_personal_workspaces(

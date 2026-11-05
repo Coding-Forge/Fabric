@@ -23,6 +23,9 @@ async def main(context=None):
         headers = context.clients['pbi'].get_headers()
 
         response = await context.invokeAPI(url, headers=headers)
+        if "ERROR" in response:
+            context.logger.error(f"Capacity call failed: HTTP {response.get('status_code')}")
+            return
         pivotDate = datetime.now()
 
         content = response.get("value")

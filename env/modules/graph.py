@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime
 
-import requests
+from env.utility.http import async_request_with_retry
 
 
 def _split_ids(value) -> set[str]:
@@ -12,11 +12,18 @@ def _split_ids(value) -> set[str]:
     return {item.strip().lower() for item in str(value).split(",") if item.strip()}
 
 
-def _get_all_pages(url: str, headers: dict) -> list[dict]:
+async def _get_all_pages(url: str, headers: dict, context) -> list[dict]:
     results = []
     next_url = url
     while next_url:
-        response = requests.get(next_url, headers=headers)
+        response = await async_request_with_retry(
+            "GET",
+            next_url,
+            headers=headers,
+            timeout=120,
+            max_retries=context.http_max_retries,
+            logger=context.logger,
+        )
         if response.status_code != 200:
             if response.status_code == 403:
                 raise RuntimeError(
@@ -53,7 +60,7 @@ async def main(context=None):
         "$select=id,displayName,userPrincipalName,mail,accountEnabled,userType,assignedLicenses"
         "&$top=999"
     )
-    users = _get_all_pages(users_url, headers)
+    users = await _get_all_pages(users_url, headers, context)
     user_licenses = []
     for user in users:
         user_id = user.get("id")
@@ -72,7 +79,7 @@ async def main(context=None):
         f"{graph_url}/subscribedSkus?"
         "$select=id,capabilityStatus,consumedUnits,prepaidUnits,skuId,skuPartNumber"
     )
-    subscribed_skus = _get_all_pages(subscribed_skus_url, headers)
+    subscribed_skus = await _get_all_pages(subscribed_skus_url, headers, context)
 
     await context.fm.save(path=lakehouse_catalog, file_name="users.json", content=users)
     await context.fm.save(path=lakehouse_catalog, file_name="userlicenses.json", content=user_licenses)
@@ -88,7 +95,7 @@ async def main(context=None):
         "&$select=id,displayName,mail,mailEnabled,securityEnabled,groupTypes"
         "&$top=999"
     )
-    groups = _get_all_pages(groups_url, headers)
+    groups = await _get_all_pages(groups_url, headers, context)
     for group in groups:
         group["isPowerBIAudienceGroup"] = (
             not audience_group_ids or str(group.get("id", "")).lower() in audience_group_ids
@@ -105,7 +112,7 @@ async def main(context=None):
             "$select=id,displayName,userPrincipalName,mail,accountEnabled,userType"
             "&$top=999"
         )
-        members = _get_all_pages(members_url, headers)
+        members = await _get_all_pages(members_url, headers, context)
         for member in members:
             group_members.append(
                 {
@@ -127,4 +134,3 @@ async def main(context=None):
 
 if __name__ == "__main__":
     asyncio.run(main())
-
