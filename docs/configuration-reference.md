@@ -130,7 +130,7 @@ These are parameters of `infra/main.bicep`, not app settings. Both features are 
 | Variable | Default | Description |
 |---|---|---|
 | `DRY_RUN` | `false` | When `true`, prints what would be written to blob instead of writing it. Useful for local testing. |
-| `ALL_WORKSPACES` | `false` | When `true`, retrieves all workspaces regardless of modification date. |
+| `ALL_WORKSPACES` | `false` | Catalog Scanner discovery only: omit the modification-date filter. Personal/inactive filters still apply. Does not limit FabricItems, Workspaces or permission scope. |
 | `EXCLUDE_PERSONAL_WORKSPACES` | `true` | Excludes personal workspaces from modified-workspace catalog scans. |
 | `EXCLUDE_INACTIVE_WORKSPACES` | `true` | Excludes inactive workspaces from modified-workspace catalog scans. |
 | `IMPERSONATED_USER_NAME` | _(none)_ | UPN of a user to impersonate for API calls. |
@@ -141,9 +141,9 @@ These are parameters of `infra/main.bicep`, not app settings. Both features are 
 | `GRAPH_AUDIENCE_GROUP_PREFIXES` | `PowerBI,Power BI` | Comma-separated, case-insensitive group display-name prefixes that mark a group as a Power BI audience group (`isPowerBIAudienceGroup`). |
 | `POWER_BI_AUDIENCE_GROUP_IDS` | _(unset)_ | Optional comma-separated audience group object IDs. Overrides prefix matching; membership includes users in nested groups. |
 | `GRAPH_MAX_GROUPS_FOR_MEMBERS` | `200` | Maximum number of groups whose members are fetched. Audience groups are taken first. If there are more groups, a warning is logged and the member result is partial. An invalid value falls back to 200; a negative value is treated as 0. |
-| `API_MAX_RETRIES` | `3` | Maximum retries for throttled or transient API responses (HTTP 429, 503, 504). |
+| `API_MAX_RETRIES` | `3` | Maximum retries for throttled or transient API responses (HTTP 429, 503, 504); one separate token-renewal retry is allowed for legacy authenticated HTTP 401. |
 | `API_MAX_CONCURRENCY` | `16` | Maximum concurrent API requests. |
-| `API_MAX_RETRY_DELAY` | `120` | Cap, in seconds, on a single retry wait. |
+| `API_MAX_RETRY_DELAY` | `120` | Cap in seconds on exponential fallback when no usable server delay exists. Never shortens a valid `Retry-After`. |
 | `CATALOG_LINEAGE_ENABLED` | `false` | When `1`, `true`, `yes` or `on` (case-insensitive), Catalog also extracts scanner lineage JSON. No extra API calls. |
 
 ### Scanner lineage
@@ -211,13 +211,41 @@ observations directly; no curated Delta tables are required.
 
 ### Throttling and retries
 
-API calls retry on 429, 503 and 504. When the response has a `Retry-After` header, that delay is used, up to `API_MAX_RETRY_DELAY` seconds. If a throttle asks for a longer wait than the cap (this can happen with long scanner throttles), the call is not held; it fails and the module is retried on the next run, because `lastRun` does not advance on failure.
+API calls retry on 429, 503 and 504 up to `API_MAX_RETRIES` times.
+Legacy collectors, including Gateway's status-preserving HTTP transport, honor
+the **full** valid `Retry-After` delay in seconds or HTTP-date form. A server wait
+of 3600 seconds remains 3600 even when `API_MAX_RETRY_DELAY=120` or `0`.
+Missing/unparseable headers use exponential fallback (2, 4, 8, ... seconds),
+capped by `API_MAX_RETRY_DELAY`. Nonretryable failures do not enter that loop.
 
-`Roles` also has its own retry loop, which runs on top of the shared retry. A failing call can therefore take longer than the settings above suggest.
+Within one runtime Context, server cooldowns are shared by legacy requests to the
+same API origin, including cooldowns on the final exhausted attempt. Another
+endpoint on that host cannot bypass the retained wait. Independent API origins
+can continue; waiting does not occupy an HTTP concurrency slot. These legacy
+cooldowns are **in memory**, not durable across host restarts, separate Contexts
+or other processes. They do not coordinate tenant-wide quota with other clients
+or the durable collectors. Long server waits can exceed a hosting timeout;
+review the runtime budget and schedule rather than shortening the server delay.
 
-The four [scoped Fabric collectors](#scoped-fabric-collectors) use durable request gates instead of the legacy retry-delay cap. They preserve server cooldowns without applying `API_MAX_RETRY_DELAY`; item permissions defer retries to later invocations.
+`Roles` delegates to this shared retry budget rather than multiplying attempts
+with another retry loop. FabricItems pages iteratively, so large inventories do
+not exhaust Python recursion; a failed/invalid/repeated page returns failure,
+retaining already written pages without claiming a completed inventory.
 
-If you use `env/.env.example`, you can set these variables there as well. The file is not changed by this documentation update.
+All registered legacy collectors pass a token provider instead of holding a
+single bearer header for the whole run. The provider is resolved off the event
+loop immediately before each attempt, after cooldown/admission. MSAL reuses its
+cache until renewal is needed. A 401 permits one cache-evicting reacquisition and
+retry per logical request; another 401 is returned, and 403 does not trigger
+renewal. Authentication retry does not reset or multiply the throttle budget.
+Static-header callers remain supported but cannot automatically renew a token.
+Service-principal client credentials do not use a refresh token or require secret
+rotation for ordinary access-token expiry.
+
+The four [scoped Fabric collectors](#scoped-fabric-collectors) keep their existing
+durable request gates. They preserve server cooldowns without applying
+`API_MAX_RETRY_DELAY`; item permissions defer retries to later invocations.
+Their ledgers and admission/deferral semantics are unchanged by this legacy fix.
 
 ---
 

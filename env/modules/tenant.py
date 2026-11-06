@@ -14,8 +14,11 @@ async def main(context=None):
     
     # get POWER BI context and settings -- this call must be synchronous
     
-    headers = context.clients['tenant'].get_headers()
-    headers['Content-Type'] = 'application/json'
+    def headers(**kwargs):
+        return {
+            **context.clients['tenant'].get_headers(**kwargs),
+            'Content-Type': 'application/json',
+        }
 
     today = utc_now()
 
@@ -37,4 +40,3 @@ async def main(context=None):
 
 if __name__ == "__main__":
     asyncio.run(main())
-

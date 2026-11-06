@@ -45,6 +45,15 @@ class BaseClientTests(unittest.TestCase):
         self.assertEqual(self.app_cls.call_count, 1)
         self.assertEqual(self.app.acquire_token_for_client.call_count, 5)
 
+    def test_forced_renewal_evicts_tokens_without_recreating_the_application(self):
+        c, _ = _client()
+        c.get_headers()
+        self.app.remove_tokens_for_client.assert_not_called()
+        c.get_headers(force_refresh=True)
+        self.app.remove_tokens_for_client.assert_called_once_with()
+        self.assertEqual(self.app_cls.call_count, 1)
+        self.assertEqual(self.app.acquire_token_for_client.call_count, 2)
+
     def test_get_app_returns_same_instance(self):
         c, _ = _client()
         self.assertIs(c._get_app(), c._get_app())

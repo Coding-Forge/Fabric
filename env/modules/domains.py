@@ -10,7 +10,7 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-    headers = context.clients["tenant"].get_headers()
+    headers = context.clients["tenant"].get_headers
 
     # Use the current run date so a snapshot never lands in a prior day's folder.
     pivotDate = utc_now().replace(hour=0, minute=0, second=0, microsecond=0)

@@ -114,7 +114,7 @@ class RequestGateTests(CollectorTestCase):
                 await ctx.invokeAPI(ROOT + "connections", **kwargs)
         ctx._safe_get.assert_not_awaited()
 
-    async def test_legacy_retry_keeps_cap_and_original_mock_target(self):
+    async def test_legacy_retry_preserves_server_delay_and_original_mock_target(self):
         ctx = self.context()
         ctx._invoke_once = AsyncMock(
             side_effect=[
@@ -122,9 +122,12 @@ class RequestGateTests(CollectorTestCase):
                 {"value": []},
             ]
         )
-        with patch.dict(os.environ, {"API_MAX_RETRY_DELAY": "5"}):
+        with (
+            patch.dict(os.environ, {"API_MAX_RETRY_DELAY": "5"}),
+            patch("env.utility.http_retry.monotonic", side_effect=lambda: self.elapsed),
+        ):
             self.assertEqual(await ctx.invokeAPI("legacy"), {"value": []})
-        self.assertEqual([c.args[0] for c in self.sleep.await_args_list], [5.0])
+        self.assertEqual([c.args[0] for c in self.sleep.await_args_list], [3600.0])
         ctx._safe_get.assert_not_awaited()
         self.assertEqual(ctx._invoke_once.await_count, 2)
 

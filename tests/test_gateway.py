@@ -23,7 +23,7 @@ class _Resp:
 
 
 def _router(routes):
-    async def get(url, headers):
+    async def get(url, headers, *, context):
         r = routes.get(url)
         if r is None:
             raise AssertionError(f"unexpected url {url}")
@@ -123,6 +123,18 @@ class GatewayTests(unittest.IsolatedAsyncioTestCase):
         ctx, _ = await self._run(_happy_routes())
         users = _saved(ctx)["users.json"]
         self.assertEqual(users, [{"emailAddress": "a", "datasourceId": "d1", "gatewayId": "g1"}])
+
+    async def test_authentication_and_throttle_leave_gateway_connectivity_unknown(self):
+        for code in (401, 403, 429):
+            with self.subTest(code=code):
+                ctx, result = await self._run(_happy_routes({
+                    f"{BASE}/g1/datasources/d1/status": _Resp(code, {}),
+                }))
+                self.assertFalse(result)
+                self.assertEqual(
+                    _saved(ctx)["status.json"][0]["error"]["pbi.error"]["details"][0]["detail"],
+                    code,
+                )
 
 
 if __name__ == "__main__":

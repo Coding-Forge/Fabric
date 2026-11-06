@@ -79,7 +79,7 @@ class ActivityTests(unittest.IsolatedAsyncioTestCase):
         ctx = make_context(_state(0), invoke)
         self.assertTrue(await activity.main(ctx))
         self.assertEqual(invoke.await_args_list[1].kwargs["rest_api"], "https://x/y?continuationToken='t'")
-        self.assertEqual(invoke.await_args_list[1].kwargs["headers"]["Content-Type"], "application/json")
+        self.assertEqual(invoke.await_args_list[1].kwargs["headers"]()["Content-Type"], "application/json")
         names = [c.kwargs["file_name"] for c in ctx.fm.save.await_args_list]
         self.assertTrue(names[0].endswith("_00001.json"))
         self.assertTrue(names[1].endswith("_00002.json"))

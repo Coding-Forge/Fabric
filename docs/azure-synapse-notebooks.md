@@ -2,6 +2,11 @@
 
 This solution can be run from Azure Synapse notebooks when the notebook runtime has network access to the Power BI, Microsoft Graph, storage, and optional Synapse Dedicated SQL Pool endpoints for the selected cloud.
 
+This guide runs the **Python API collector** from a notebook runtime. For the
+separate self-contained Fabric analytics notebooks **01-21**, which transform
+existing Lakehouse files without collection credentials or repository uploads,
+use the [analytics notebook walkthrough](../notebooks/notebook-guide.md).
+
 For GCC High, use Azure Synapse in Azure Government and set `CLOUD_ENVIRONMENT=GccHigh`. Fabric REST API modules and OneLake output are intentionally disabled outside `Commercial` until Fabric Gov becomes public preview.
 
 ## Recommended Architecture
@@ -301,4 +306,3 @@ Use Synapse pipelines to schedule notebooks:
 5. Schedule the pipeline trigger.
 
 Keep module schedules in one place. If Synapse is orchestrating execution, prefer one notebook/pipeline schedule per module group instead of relying on long-running notebook sessions.
-

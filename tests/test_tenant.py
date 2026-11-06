@@ -27,8 +27,8 @@ class TenantTests(unittest.IsolatedAsyncioTestCase):
         ctx.invokeAPI.assert_awaited_once()
         kwargs = ctx.invokeAPI.await_args.kwargs
         self.assertEqual(kwargs["rest_api"], URL)
-        self.assertEqual(kwargs["headers"]["Content-Type"], "application/json")
-        self.assertEqual(kwargs["headers"]["Authorization"], "x")
+        self.assertEqual(kwargs["headers"]()["Content-Type"], "application/json")
+        self.assertEqual(kwargs["headers"]()["Authorization"], "x")
         ctx.fm.save.assert_awaited_once()
         save = ctx.fm.save.await_args.kwargs
         self.assertEqual(save["file_name"], "tenant-settings.json")

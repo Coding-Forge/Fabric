@@ -1,5 +1,97 @@
 # Changelog
 
+## Solution and notebook documentation
+
+- Refresh the solution overview to distinguish API collection, the 21-notebook /
+  48-dataset analytics suite and optional downstream consumption.
+- Add a [notebook-by-notebook walkthrough](../notebooks/notebook-guide.md), import/run order, 10/25/48-table
+  validation workflow and troubleshooting guidance, linked to the technical
+  contracts and full collector coverage matrix.
+- Document [Eventhouse versus Event Hubs](analytics-integration.md), optional KQL shortcut access and the
+  proposed separate Delta-to-Event-Hubs-to-Splunk publisher. No publisher,
+  connector, schedule or destination resource is implemented by this update.
+- Clarify collector-versus-analytics notebook setup, Catalog-only
+  `ALL_WORKSPACES` behavior, retry upgrade implications and remaining runtime,
+  privacy and private-network acceptance gates.
+
+## Legacy API cooldowns and long-running authentication
+
+- Honor full `Retry-After` seconds/HTTP dates for legacy API and Gateway requests.
+  `API_MAX_RETRY_DELAY` now caps only fallback exponential backoff, never a valid
+  server cooldown. Share server waits per API origin in one Context, including
+  final exhausted responses, without occupying concurrency slots while waiting.
+- All registered legacy collectors resolve cached/renewable authentication per
+  HTTP attempt after waits; allow one cache-evicting retry on 401, not on 403.
+  Preserve the throttle retry budget and existing durable Fabric request gates.
+- Remove Roles' nested retry loop. FabricItems uses iterative paging, detects
+  repeated/invalid pages and returns failure rather than treating an exhausted
+  throttle as an empty successful inventory. Gateway authentication/throttle
+  failures leave connectivity unknown and fail the collection.
+- Legacy cooldowns remain in-memory and do not coordinate other processes,
+  survive host restarts or guarantee absence of 429s. No tenant API collection,
+  settings changes or deployment is performed by these local fixes.
+
+## Remaining collector-module analytics
+
+- Added self-contained notebooks 12-21 for apps, capacity/performance, directory
+  and licensing, workspace roles, tenant/delegated settings, domains, Git
+  connections, tags, broad sharing and deployment pipeline operations.
+- Added 23 scalar datasets, bringing the suite to 21 notebooks and 48 managed
+  datasets with selected-field paths for all 23 registered collectors. The
+  notebook guide includes a module/source/table coverage matrix and exclusions.
+- Preserve optional/unknown collections, unscaled nullable metrics, unknown UTC
+  for naive timepoints, content-versioned legacy observations and strict
+  immutable deployment-run validation. Exclude identities by name/mail, Git
+  owners/directories in clear text, URLs, credentials and raw payloads.
+- Notebook 06 opts into all 48 tables with `INCLUDE_MODULE_TABLES`; original ten
+  and 25-table/source scopes remain unchanged. Expanded scopes need a new baseline.
+- Existing files only: no API collection, grants, schedules, deployment actions
+  or Eventhouse/Splunk exports. Local validation is not Fabric runtime acceptance.
+
+## Question-driven Fabric estate analytics
+
+- Added notebooks 07-11 for activity events, estate catalog/semantic-model schema,
+  caller-visible connections, gateways and dataset refresh history/refreshables.
+  Each provides curated scalar datasets, charts and explicit collection gaps from
+  existing raw files only; no collectors, APIs, grants or deployments are added.
+- Preserve unknown versus empty schema/counts, historical observation grain,
+  nullable/inverted durations, and legacy versions without invented collection
+  timestamps. Exclude actor UPNs, IPs, credentials, connection paths, expressions
+  and raw error messages; actor pseudonyms are not anonymous.
+- Add optional expanded notebook-06 validation for all 25 tables while preserving
+  original ten-table baselines and core schemas. Missing-source diagnostic markers
+  remain valid metadata with explicit missing coverage, rather than failing hash checks.
+- Physical Lakehouse/Warehouse schema discovery, complete tenant gateway/connection
+  visibility, all-service logging, scheduling and external exports remain outside
+  this existing-evidence increment.
+
+## Persistent Fabric notebook validation
+
+- Added `06_monitor_validation.ipynb` with restart-safe metadata baselines in
+  `Files/monitor_validation`, separate from raw evidence and curated tables.
+- Validate ten table contracts/schemas and observation identities, compare exact
+  retained Delta contents after unchanged-input reruns, and report freshness and
+  coverage separately. Changed inputs are not comparable; unavailable baseline
+  versions are unverified, not successful. Existing baseline files are not overwritten.
+- No collectors, schedules or remote deployments are started. Saved baseline
+  capture is the only new write; comparison never changes data or controls.
+
+## Uploadable Fabric analytics notebooks
+
+- Added five self-contained, output-cleared PySpark notebooks under `notebooks/`
+  for inventory/collection health, separate Scoped/Tenant permission cycles,
+  retained job history, scanner/static lineage and coverage-first visualizations.
+- Reuse existing raw evidence without API collection, definition execution or raw
+  writes. Preview is the default; explicit curated writes use versioned contracts,
+  insert-only Delta MERGEs and ownership/schema/immutable-content guards.
+- Preserve successful empty observations, failed/unknown counts, strict immutable
+  run/permission-chain validation and static-versus-runtime evidence limits.
+  Legacy daily inventory/raw scans remain unverified, without invented timestamps.
+- Added offline collector compatibility tests, generated-cell checks and manual
+  upload/acceptance guidance. Fabric execution, private-only networking and full
+  native Power Query parity remain workspace acceptance steps. Eventhouse/KQL
+  ingestion and Splunk delivery are not implemented or provisioned.
+
 ## Fabric manifest timestamp-order guard
 
 - Final manifests now fail before commit if host UTC is earlier than any resource

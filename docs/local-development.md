@@ -194,7 +194,7 @@ The `APPLICATION_MODULES` setting is a comma-separated list of data collection m
 | `Capacity` | Fabric / Power BI Premium capacities |
 | `Catalog` | Full workspace and item catalog via the scanner (`getInfo`) API |
 | `Domains` | Fabric domains |
-| `FabricItems` | Fabric-specific items (lakehouses, notebooks, pipelines, etc.) |
+| `FabricItems` | Tenant item inventory through the Fabric Admin API; not filtered by `ALL_WORKSPACES` |
 | `Gateway` | On-premises and VNet data gateways |
 | `Graph` | Azure AD users, licences and SKUs via Microsoft Graph; groups and group members only when `GRAPH_EXTRACT_GROUPS` is on (see [configuration-reference.md](configuration-reference.md#microsoft-graph-graph)) |
 | `Refreshables` | Datasets / semantic models that support scheduled refresh |
@@ -204,6 +204,15 @@ The `APPLICATION_MODULES` setting is a comma-separated list of data collection m
 | `Workspaces` | All workspaces in the tenant |
 
 Remove any module name from the list to skip it on each run.
+
+`ALL_WORKSPACES` controls Catalog's modification-date discovery filter, not
+FabricItems or Workspaces inventory and not item-permission scope. For 429 waits
+and long-running token renewal, see
+[shared retry behavior](configuration-reference.md#throttling-and-retries).
+
+The [numbered Fabric analytics notebooks](../notebooks/notebook-guide.md) are a
+separate downstream workflow. They transform existing Lakehouse files; uploading
+or running them does not enable these API modules or start collectors.
 
 The four opt-in collectors `FabricItemAccessPermissions`, `FabricItemJobHistory`, `FabricConnections` and `FabricDeploymentPipelineOperations` require deliberate enablement. Jobs require an explicit JSON item scope; permissions default to an explicit scope but also support [opt-in tenant-wide Admin discovery](configuration-reference.md#tenant-wide-permission-collection-opt-in) with separate JSON output and shared durable cooldowns. See [settings, endpoints and output contract](configuration-reference.md#scoped-fabric-collectors) and [operating guidance](#operating-the-four-fabric-collectors) below.
 

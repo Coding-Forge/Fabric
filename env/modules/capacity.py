@@ -17,7 +17,7 @@ async def main(context=None):
 
     async def get_capacity(url:str, pageCount:int):
 
-        headers = context.clients['pbi'].get_headers()
+        headers = context.clients['pbi'].get_headers
 
         response = await context.invokeAPI(url, headers=headers)
         pivotDate = utc_now()

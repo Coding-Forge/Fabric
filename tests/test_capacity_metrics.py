@@ -654,7 +654,7 @@ class MainTests(unittest.TestCase):
         run_main(ctx)
         for _, kwargs in api.calls:
             self.assertEqual(
-                kwargs["headers"], ctx.clients["pbi"].get_headers.return_value
+                kwargs["headers"], ctx.clients["pbi"].get_headers
             )
         self.assertTrue(all(u == "datasets/ds1/executeQueries" for u, _ in api.calls))
 

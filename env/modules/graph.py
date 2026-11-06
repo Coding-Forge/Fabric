@@ -17,6 +17,7 @@ import os
 from typing import Any
 
 from env.context import utc_now
+from env.utility.http_retry import RequestHeaders
 
 DEFAULT_AUDIENCE_PREFIXES = "PowerBI,Power BI"
 DEFAULT_MAX_GROUPS_FOR_MEMBERS = 200
@@ -71,7 +72,7 @@ def _failed(result: Any) -> bool:
 
 
 async def fetch_all(
-    context, url: str, headers: dict[str, str]
+    context, url: str, headers: RequestHeaders
 ) -> tuple[list[Any] | None, Any]:
     """Fetch every page of a Graph collection by following ``@odata.nextLink``.
 
@@ -116,7 +117,7 @@ def build_user_licenses(users: list[Any]) -> list[dict[str, Any]]:
 async def _group_members(
     context,
     graph_url: str,
-    headers: dict[str, str],
+    headers: RequestHeaders,
     group: dict[str, Any],
     semaphore: asyncio.Semaphore,
 ) -> tuple[dict[str, Any], list[Any] | None]:
@@ -160,8 +161,11 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-    headers = context.clients["graph"].get_headers()
-    headers["Content-Type"] = "application/json"
+    def headers(**kwargs):
+        return {
+            **context.clients["graph"].get_headers(**kwargs),
+            "Content-Type": "application/json",
+        }
 
     today = utc_now()
     lakehouse_catalog = (
@@ -207,7 +211,8 @@ async def main(context=None):
                 {
                     **g,
                     "isPowerBIAudienceGroup": (
-                        str(g.get("id", "")).lower() in audience_ids if audience_ids
+                        str(g.get("id", "")).lower() in audience_ids
+                        if audience_ids
                         else is_audience_group(g.get("displayName"), prefixes)
                     ),
                 }

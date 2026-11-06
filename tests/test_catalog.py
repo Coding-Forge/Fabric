@@ -329,7 +329,7 @@ class CatalogTests(unittest.IsolatedAsyncioTestCase):
 
 
 class CatalogParallelGroupTests(unittest.IsolatedAsyncioTestCase):
-    """E3: parallel scan groups -- partial failure, per-batch headers, no shared-state mixups."""
+    """Parallel scan groups, per-request authentication and independent outputs."""
 
     def setUp(self):
         self.sleep = AsyncMock()
@@ -403,18 +403,20 @@ class CatalogParallelGroupTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(await catalog.main(ctx), False)
         self.assertEqual(state["catalog"]["lastFullScan"], before)
 
-    async def test_headers_refreshed_once_per_batch(self):
+    async def test_headers_reacquired_for_every_request_not_just_batches(self):
         tokens = iter(f"tok{i}" for i in range(100))
         seen = []
         ctx = make_context(self._state(), self._router(1700, headers_seen=seen))
+        ctx._invoke_once = ctx.invokeAPI
+        ctx.invokeAPI = type(ctx).invokeAPI.__get__(ctx)
         ctx.clients["pbi"].get_headers.side_effect = lambda *a, **k: {"Authorization": next(tokens)}
         self.assertTrue(await catalog.main(ctx))
-        # 1 for the modified-workspaces call + 1 per batch (16 groups + 1 group = 2 batches)
-        self.assertEqual(ctx.clients["pbi"].get_headers.call_count, 3)
+        self.assertEqual(ctx.clients["pbi"].get_headers.call_count, 1 + 3 * 17)
         first_batch = {h["Authorization"] for h in seen[:16]}
         second_batch = {h["Authorization"] for h in seen[16:]}
-        self.assertEqual(first_batch, {"tok1"})
-        self.assertEqual(second_batch, {"tok2"})
+        self.assertEqual(len(first_batch), 16)
+        self.assertEqual(len(second_batch), 1)
+        self.assertFalse(first_batch & second_batch)
 
     async def test_token_failure_on_refresh_propagates(self):
         calls = {"n": 0}
@@ -426,9 +428,11 @@ class CatalogParallelGroupTests(unittest.IsolatedAsyncioTestCase):
             return {"Authorization": "t"}
 
         ctx = make_context(self._state(), self._router(100))
+        ctx._invoke_once = ctx.invokeAPI
+        ctx.invokeAPI = type(ctx).invokeAPI.__get__(ctx)
         ctx.clients["pbi"].get_headers.side_effect = get_headers
-        with self.assertRaises(RuntimeError):
-            await catalog.main(ctx)
+        self.assertFalse(await catalog.main(ctx))
+        self.assertNotIn("lastFullScan", ctx.current_state["catalog"])
 
     async def test_each_group_saved_once_with_its_own_result(self):
         n_groups = 40

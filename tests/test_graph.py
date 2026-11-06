@@ -18,6 +18,8 @@ def _ctx(routes, groups=False):
     calls = []
 
     async def invoke(rest_api, headers=None, json=None):
+        if callable(headers):
+            headers = headers()
         calls.append((rest_api, headers))
         for prefix, resp in routes.items():
             if rest_api.startswith(prefix):

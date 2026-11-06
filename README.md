@@ -1,9 +1,20 @@
-This project looks to take advantage of all the work put into the original Power BI Monitor application and port it to Fabric. This project has several components including a means of containerizing the application and for those enthusiasts that like to use Jupyter Notebooks a whole section is devoted to "BUILDING" the application but using notebooks.
+# Fabric Monitor
+
+Fabric Monitor collects selected Power BI, Fabric and Microsoft Graph metadata
+using Python API collectors. It preserves raw JSON in local files, Blob Storage
+or a Fabric Lakehouse, with Power BI reports and a separate Fabric notebook
+analytics layer for exploring that evidence.
+
+| Layer | Purpose | Guide |
+|---|---|---|
+| Collection | Run explicitly enabled modules against authorized APIs and preserve raw observations | [Configuration and API boundaries](docs/configuration-reference.md), [local operation](docs/local-development.md) |
+| Analytics | Transform existing Lakehouse files into curated Delta tables, charts and validation reports without calling the collection APIs again | [Notebook walkthrough](notebooks/notebook-guide.md), [table contracts and coverage](notebooks/README.md) |
+| Consumption | Use Power BI or notebook views; optionally design KQL access or external delivery | [MonitorRaw report](pbip-local/MonitorRaw/README.md), [Eventhouse, Event Hubs and Splunk](docs/analytics-integration.md) |
 
 **NOTE**  
 The application was written using Python 3.10.13 and has successfully been tested up through Python 3.12.2. It is recommended that you install Python 3.12 however you may use Python 3.10.13. 
 
-# Getting Started
+## Getting Started
 
 **API scope:** Fabric Monitor is **not Admin-API-only**. Catalog uses the Admin
 Scanner APIs, but definitions, job history and several existing collectors use
@@ -30,6 +41,40 @@ pipeline JSON, and infers supported notebook table/file reads and writes plus
 static pipeline calls and Copy source/sink references without executing code.
 These are potential dependencies, not runtime evidence. See
 [enablement, permissions, sensitive output and resumable collection](docs/configuration-reference.md#notebook-and-data-pipeline-definitions).
+
+### Fabric analytics notebooks
+
+The **21 numbered notebooks** in `notebooks/` define **48 managed Delta
+datasets**, with selected-field coverage for all **23 registered collectors**.
+Nineteen notebooks transform existing raw evidence; 05 visualizes core results,
+and 06 validates reruns. Missing collection is not treated as an empty successful
+estate, and historical snapshots are not automatically current state.
+
+| Notebooks | Purpose |
+|---|---|
+| 01-04 | Inventory/health, Scoped/Tenant permissions, job history and scanner/static lineage |
+| 05-06 | Core visualizations and persistent rerun validation |
+| 07-11 | Activity events, estate catalog/semantic-model schema, connections, gateways and dataset refresh history |
+| 12-21 | Apps, capacity/performance, directory/licensing, workspace roles, tenant/delegated settings, domains, Git, tags, broad sharing and deployment operations |
+
+Start with the [notebook walkthrough and run order](notebooks/notebook-guide.md).
+Upload the `.ipynb` files, attach your default Lakehouse, preview, then explicitly
+enable insert-only Delta writes. No repository/helper upload or collection
+credentials are required by these analytics notebooks. The example workspace
+and Lakehouse are **FabricMonitor / lh_monitor**.
+
+See the [technical notebook reference](notebooks/README.md) for all output
+tables, safety limits, privacy exclusions and validation scopes (10, 25 or 48
+tables). Local verification is not Fabric runtime or private-network acceptance.
+The initial 01-05 execution was operator-reported successful; acceptance of the
+expanded suite remains separate.
+
+The suite currently has **no Event Hub publisher or Splunk export notebook**.
+Eventhouse/KQL is optional, not a prerequisite for the proposed
+Delta-to-Event-Hubs-to-Splunk path. See
+[integration options and outstanding decisions](docs/analytics-integration.md).
+
+### Collector setup
 
 What you need to do to use this application
 1.	Create a Service Principal
@@ -180,7 +225,11 @@ See [Running the Monitor from Azure Synapse Notebooks](docs/azure-synapse-notebo
 
 ## Enterprise Deployment
 
-For production deployments, use Azure Functions for scheduled data collection, ADLS Gen2 or Blob Storage for raw output, and Synapse for downstream curation/loading.
+Choose hosting, storage and curation for the target cloud and network policy.
+Azure Functions with Blob/ADLS Gen2 and downstream Synapse is one deployment
+option; Fabric Lakehouse storage with the numbered analytics notebooks is another
+analytics path where supported. Neither path removes API authorization or
+private-network acceptance requirements.
 
 See [Enterprise Deployment Best Practices](docs/enterprise-deployment-best-practices.md) for cloud-specific guidance across Commercial, GCC, GCC High, and DoD.
 
@@ -202,7 +251,12 @@ to create a desktop icon.
 
 See [Windows UI Release and Launcher](docs/windows-ui-release.md) for release zip and enterprise packaging guidance.
 
-For Fabric notebooks, keep the repo files available in the notebook environment and call the notebook helper from a setup cell:
+The following helper is for **running API collectors inside a Fabric notebook**.
+It is not needed by the self-contained numbered analytics notebooks, which read
+existing files instead. For collector execution, keep the repository files
+available in the notebook environment and call the helper from a setup cell.
+Resolve credentials from an approved secret store rather than saving secret
+values in notebook source or executed outputs:
 
 ```python
 from env.notebook import run
@@ -281,10 +335,17 @@ Learn how to publish to [Azure Container Instance](https://learn.microsoft.com/e
 Use [Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull?tabs=azure-cli&pivots=azure-portal) with your published container image
 
 
-### Running Notebooks  
-You can also run each module as a Jupyter notebook. This allows you to step through the processes and get a better understanding of the modules. Each notebook will have supporting links to the appropriate Power BI API or Fabric API.  The notebook will also allow you to experiment with the process and modify it to your needs. There is an `environment.yml` file that you can use with the *Anaconda* or *miniconda* package management. This file will create the appropriate virtual environment and will install all the necessary jupyter packages.
+### Running notebooks
 
-> Notebooks can be found in the notebook folder and each notebook will be named after a module that it mimics.
+For curated Fabric analytics, use **01-21** and follow the
+[notebook guide](notebooks/notebook-guide.md). These are generated, uploadable
+artifacts; do not edit their embedded implementation or use the legacy
+`environment.yml` as their Fabric runtime configuration.
+
+The older `activity.ipynb`, `catalog.ipynb`, `Deconstruct.ipynb` and `nbk.ipynb`
+are experiments, not prerequisites or replacements for the numbered suite.
+For running the Python collector from a notebook runtime, use the helper above
+or the [Synapse collector guide](docs/azure-synapse-notebooks.md).
 
 
 ### Reports  

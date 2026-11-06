@@ -135,7 +135,11 @@ class InvokeApiErrorTests(unittest.IsolatedAsyncioTestCase):
 
     def setUp(self):
         # retryable statuses (429/503/504) back off via asyncio.sleep; keep tests instant
-        self.sleep = AsyncMock()
+        self.clock = 0.0
+        self.sleep = AsyncMock(side_effect=self.advance)
+        clock = patch("env.utility.http_retry.monotonic", side_effect=lambda: self.clock)
+        clock.start()
+        self.addCleanup(clock.stop)
         p = patch.object(ctx_mod.asyncio, "sleep", self.sleep)
         p.start()
         self.addCleanup(p.stop)
@@ -144,6 +148,9 @@ class InvokeApiErrorTests(unittest.IsolatedAsyncioTestCase):
         self.addCleanup(env.stop)
         for k in ("API_MAX_RETRIES", "API_MAX_CONCURRENCY", "API_MAX_RETRY_DELAY"):
             os.environ.pop(k, None)
+
+    def advance(self, delay):
+        self.clock += delay
 
     async def _invoke(self, response, *args, **kwargs):
         session = _FakeSession(response)

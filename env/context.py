@@ -7,6 +7,7 @@ import re
 import socket
 import sys
 from collections.abc import Awaitable, Callable, Coroutine
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from typing import Any
 from urllib.parse import urljoin
@@ -232,6 +233,7 @@ class Context:
         self.capacity_metrics_dataset_id = None
         self.impersonatedUserName = None
         self._api_semaphore: asyncio.Semaphore | None = None
+        self._api_cooldowns = http_retry.RetryCooldowns()
 
     def __set_log_level(self, level):
         """
@@ -519,10 +521,27 @@ class Context:
             )
             raise ValueError(f"Invalid datetime value {date_time!r}: {ve}") from ve
 
+    @asynccontextmanager
+    async def legacy_api_slot(self, url):
+        """Wait outside concurrency slots; recheck cooldown after queued admission."""
+        if self._api_semaphore is None:
+            self._api_semaphore = asyncio.Semaphore(http_retry.max_concurrency())
+        while True:
+            await self._api_cooldowns.wait(url)
+            await self._api_semaphore.acquire()
+            if self._api_cooldowns.remaining(url) > 0:
+                self._api_semaphore.release()
+                continue
+            try:
+                yield
+            finally:
+                self._api_semaphore.release()
+            return
+
     async def invokeAPI(
         self,
         rest_api: str,
-        headers: dict[str, str] | None = None,
+        headers: http_retry.RequestHeaders | None = None,
         json: dict[str, Any] | None = None,
         request_gate: Callable[[], Awaitable[None]] | None = None,
         response_gate: Callable[[dict[str, Any], int], Awaitable[bool]] | None = None,
@@ -536,15 +555,17 @@ class Context:
         retries are exhausted the last error dict is returned.
 
         :param rest_api: Relative (Power BI root) or absolute URL.
-        :param headers: Request headers.
+        :param headers: Static headers or a synchronous provider called before
+            every attempt, after cooldown. Providers accept force_refresh=True
+            for one cache-bypassing retry after HTTP 401.
         :param json: Optional JSON body; when set the request is a POST.
         :param request_gate: Optional asynchronous gate called before every HTTP
             attempt, including retries. Enables safe response handling, GET-only
             unless definition_method selects the restricted export transport.
         :param response_gate: Optional gated-response observer, called even on the
             final attempt. It must reserve any cooldown before returning; False
-            defers retries to a later collection. Without it legacy retry timing
-            is unchanged.
+            defers retries to a later collection. Legacy requests instead share
+            full server cooldowns per origin within this Context.
         :param definition_method: GET/POST for the allowlisted, retrieval-only
             definition/LRO transport. Requires a request gate and no JSON body.
         :return: The decoded JSON, or an error dict (see ``_error_result``).
@@ -566,22 +587,36 @@ class Context:
 
         retries = http_retry.max_retries()
         attempt = 0
+        auth_retried = False
+        force_refresh = False
+        url = self.get_powerbi_url(rest_api)
         while True:
-            # The slot is released while sleeping so other requests can proceed
-            async with self._api_semaphore:
+            slot = (
+                self._api_semaphore
+                if request_gate is not None
+                else self.legacy_api_slot(url)
+            )
+            async with slot:
                 if request_gate is not None:
                     if json is not None:
                         raise ValueError("Gated requests must be GET requests")
                     await request_gate()
+                request_headers = await http_retry.resolve_headers(
+                    headers, force_refresh=force_refresh
+                )
+                force_refresh = False
+                if request_gate is None and self._api_cooldowns.remaining(url) > 0:
+                    continue
+                if request_gate is not None:
                     if definition_method is None:
-                        result = await self._safe_get(rest_api, headers)
+                        result = await self._safe_get(rest_api, request_headers)
                     else:
                         result = await self._safe_definition_request(
-                            rest_api, headers, definition_method
+                            rest_api, request_headers, definition_method
                         )
                 else:
                     result = await self._invoke_once(
-                        rest_api, headers=headers, json=json
+                        rest_api, headers=request_headers, json=json
                     )
 
             status = (
@@ -589,11 +624,24 @@ class Context:
                 if isinstance(result, dict) and "ERROR" in result
                 else None
             )
-            if request_gate is not None:
-                status = _safe_http_status(status)
+            status = _safe_http_status(status)
+            server_delay = None
+            if request_gate is None and status in http_retry.RETRYABLE_STATUSES:
+                server_delay = http_retry.parse_retry_after(result.get("retryAfter"))
+                if server_delay is not None:
+                    self._api_cooldowns.reserve(url, server_delay)
             retry_allowed = True
             if response_gate is not None:
                 retry_allowed = await response_gate(result, attempt)
+            if (
+                status == 401
+                and callable(headers)
+                and not auth_retried
+                and retry_allowed
+            ):
+                auth_retried, force_refresh = True, True
+                self.logger.warning("HTTP 401; reacquiring authentication once")
+                continue
             if (
                 status not in http_retry.RETRYABLE_STATUSES
                 or attempt >= retries
@@ -601,8 +649,7 @@ class Context:
             ):
                 return result
 
-            # A response gate owns the uncapped cooldown; the next request gate
-            # waits or explicitly defers. Do not apply the legacy 120-second cap.
+            # Durable gates own their cooldown; legacy server waits happen at admission.
             delay = (
                 0.0
                 if response_gate is not None
@@ -620,7 +667,8 @@ class Context:
                 self.logger.warning(
                     f"HTTP {status} from {rest_api[:120]}; retrying in {delay:.0f}s ({attempt + 1}/{retries})"
                 )
-            await asyncio.sleep(delay)
+            if server_delay is None:
+                await asyncio.sleep(delay)
             attempt += 1
 
     async def _safe_get(

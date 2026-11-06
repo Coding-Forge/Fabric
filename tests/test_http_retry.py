@@ -114,23 +114,26 @@ class RetryDelayTests(_EnvIsolated, unittest.TestCase):
         self.assertEqual(http_retry.retry_delay(1, "garbage"), 4.0)
 
     def test_default_cap(self):
-        self.assertEqual(http_retry.retry_delay(0, "99999"), 120.0)
+        self.assertEqual(http_retry.retry_delay(0, "99999"), 99999.0)
         self.assertEqual(http_retry.retry_delay(10), 120.0)
 
     def test_env_cap(self):
         os.environ["API_MAX_RETRY_DELAY"] = "5"
-        self.assertEqual(http_retry.retry_delay(0, "60"), 5.0)
+        self.assertEqual(http_retry.retry_delay(0, "60"), 60.0)
         self.assertEqual(http_retry.retry_delay(4), 5.0)
         self.assertEqual(http_retry.retry_delay(0, "3"), 3.0)
 
-    def test_cap_zero_means_no_wait(self):
+    def test_cap_zero_only_disables_fallback_wait(self):
         os.environ["API_MAX_RETRY_DELAY"] = "0"
-        self.assertEqual(http_retry.retry_delay(2, "30"), 0.0)
+        self.assertEqual(http_retry.retry_delay(2, "30"), 30.0)
+        self.assertEqual(http_retry.retry_delay(2), 0.0)
 
-    def test_http_date_is_capped(self):
+    def test_http_date_is_not_shortened_by_fallback_cap(self):
         os.environ["API_MAX_RETRY_DELAY"] = "10"
         when = datetime.now(timezone.utc) + timedelta(hours=1)
-        self.assertEqual(http_retry.retry_delay(0, format_datetime(when, usegmt=True)), 10.0)
+        delay = http_retry.retry_delay(0, format_datetime(when, usegmt=True))
+        self.assertGreater(delay, 3590)
+        self.assertLessEqual(delay, 3600)
 
 
 def _err(status, retry_after=None):
@@ -140,12 +143,19 @@ def _err(status, retry_after=None):
 class InvokeApiRetryTests(_EnvIsolated, unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self._isolate_env()
-        self.sleep = AsyncMock()
+        self.clock = 0.0
+        self.sleep = AsyncMock(side_effect=self.advance)
+        clock = patch.object(http_retry, "monotonic", side_effect=lambda: self.clock)
+        clock.start()
+        self.addCleanup(clock.stop)
         p = patch.object(ctx_mod.asyncio, "sleep", self.sleep)
         p.start()
         self.addCleanup(p.stop)
         self.ctx = Context()
         self.ctx.logger = MagicMock()
+
+    def advance(self, delay):
+        self.clock += delay
 
     def _once(self, *results):
         m = AsyncMock(side_effect=list(results))
@@ -234,11 +244,112 @@ class InvokeApiRetryTests(_EnvIsolated, unittest.IsolatedAsyncioTestCase):
         self.assertEqual(await self.ctx.invokeAPI("x"), {"ERROR": "boom"})
         self.assertEqual(once.await_count, 1)
 
-    async def test_delay_is_capped_by_api_max_retry_delay(self):
+    async def test_only_fallback_delay_is_capped_by_api_max_retry_delay(self):
         os.environ["API_MAX_RETRY_DELAY"] = "5"
         self._once(_err(429, "3600"), _err(503), _err(503), {"ok": 1})
         await self.ctx.invokeAPI("x")
-        self.assertEqual(self._slept(), [5.0, 4.0, 5.0])
+        self.assertEqual(self._slept(), [3600.0, 4.0, 5.0])
+
+    async def test_final_throttle_also_pauses_later_requests_to_same_origin(self):
+        os.environ["API_MAX_RETRIES"] = "0"
+        self._once(_err(429, "3600"), {"ok": "graph"}, {"ok": "fabric"})
+        await self.ctx.invokeAPI("https://api.fabric.microsoft.com/v1/admin/items")
+        await self.ctx.invokeAPI("https://graph.microsoft.com/v1.0/users")
+        self.sleep.assert_not_awaited()
+        await self.ctx.invokeAPI("https://api.fabric.microsoft.com/v1/admin/workspaces")
+        self.assertEqual(self._slept(), [3600.0])
+
+    async def test_headers_are_resolved_after_waits_and_refreshed_once_on_401(self):
+        stamps = []
+        def provider(**kwargs):
+            stamps.append((self.clock, kwargs))
+            return {"Authorization": f"synthetic-{len(stamps)}", "extra": "kept"}
+        once = self._once(_err(429, "3600"), _err(401), {"ok": 1})
+        self.assertEqual(await self.ctx.invokeAPI("x", headers=provider), {"ok": 1})
+        self.assertEqual(stamps, [(0, {}), (3600, {}), (3600, {"force_refresh": True})])
+        self.assertEqual(
+            [call.kwargs["headers"]["Authorization"] for call in once.await_args_list],
+            ["synthetic-1", "synthetic-2", "synthetic-3"],
+        )
+
+    async def test_repeated_401_is_bounded_and_403_does_not_refresh(self):
+        for status, expected in ((401, 2), (403, 1)):
+            provider = MagicMock(return_value={"Authorization": "synthetic"})
+            once = self._once(*[_err(status)] * 4)
+            self.assertEqual((await self.ctx.invokeAPI("x", headers=provider))["status"], status)
+            self.assertEqual(once.await_count, expected)
+            self.assertEqual(provider.call_count, expected)
+
+    async def test_token_failure_and_cancellation_stop_without_sending(self):
+        provider = MagicMock(side_effect=RuntimeError("Synthetic acquisition failure"))
+        once = self._once({"ok": "not sent"})
+        with self.assertRaises(RuntimeError):
+            await self.ctx.invokeAPI("x", headers=provider)
+        once.assert_not_awaited()
+        self.ctx._api_cooldowns.reserve(self.ctx.get_powerbi_url("x"), 3600)
+        self.sleep.side_effect = asyncio.CancelledError
+        with self.assertRaises(asyncio.CancelledError):
+            await self.ctx.invokeAPI("x", headers=provider)
+        self.assertEqual(provider.call_count, 1)
+        once.assert_not_awaited()
+
+    async def test_shorter_later_response_does_not_shorten_existing_cooldown(self):
+        url = self.ctx.get_powerbi_url("x")
+        self.ctx._api_cooldowns.reserve(url, 3600)
+        self.ctx._api_cooldowns.reserve(url, 1)
+        once = self._once({"ok": 1})
+        await self.ctx.invokeAPI("x")
+        self.assertEqual(self._slept(), [3600])
+        once.assert_awaited_once()
+
+    async def test_401_retry_does_not_reset_or_multiply_throttle_budget(self):
+        os.environ["API_MAX_RETRIES"] = "1"
+        provider = MagicMock(return_value={"Authorization": "synthetic"})
+        once = self._once(_err(401), _err(429), _err(429), {"ok": "never"})
+        self.assertEqual((await self.ctx.invokeAPI("x", headers=provider))["status"], 429)
+        self.assertEqual(once.await_count, 3)
+        self.assertEqual(self._slept(), [2])
+
+    async def test_origin_wait_does_not_occupy_slot_or_delay_other_origins(self):
+        os.environ["API_MAX_CONCURRENCY"] = "1"
+        waiting, release = asyncio.Event(), asyncio.Event()
+        async def sleep(delay):
+            waiting.set()
+            await release.wait()
+            self.advance(delay)
+        self.sleep.side_effect = sleep
+        url = "https://api.fabric.microsoft.com/v1/admin/items"
+        self.ctx._api_cooldowns.reserve(url, 3600)
+        once = self._once({"ok": "graph"}, {"ok": "fabric"})
+        blocked = asyncio.create_task(self.ctx.invokeAPI(url))
+        try:
+            await waiting.wait()
+            result = await self.ctx.invokeAPI("https://graph.microsoft.com/v1.0/users")
+            self.assertEqual(result, {"ok": "graph"})
+            self.assertEqual(once.await_count, 1)
+        finally:
+            release.set()
+            await blocked
+
+    async def test_cooldown_learned_during_authentication_is_checked_before_http(self):
+        url = self.ctx.get_powerbi_url("x")
+        headers = MagicMock(return_value={"Authorization": "synthetic"})
+        first = True
+        async def resolve(provider, **kwargs):
+            nonlocal first
+            if first:
+                first = False
+                self.ctx._api_cooldowns.reserve(url, 3600)
+            return provider()
+        dispatch_times = []
+        async def once(*args, **kwargs):
+            dispatch_times.append(self.clock)
+            return {"ok": 1}
+        self.ctx._invoke_once = once
+        with patch.object(http_retry, "resolve_headers", side_effect=resolve):
+            self.assertEqual(await self.ctx.invokeAPI("x", headers=headers), {"ok": 1})
+        self.assertEqual(dispatch_times, [3600])
+        self.assertEqual(headers.call_count, 2)
 
     async def test_other_exceptions_propagate_without_retry(self):
         once = AsyncMock(side_effect=RuntimeError("net"))
