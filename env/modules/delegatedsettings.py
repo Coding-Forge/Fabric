@@ -23,7 +23,7 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-    headers = context.clients["pbi"].get_headers()
+    headers = context.clients["pbi"].get_headers
     today = utc_now()
     date_path = f"{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
 

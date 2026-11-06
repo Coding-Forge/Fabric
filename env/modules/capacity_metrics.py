@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 from env.context import utc_now
+from env.utility.http_retry import RequestHeaders
 
 STATE_KEY = "capacitymetrics"
 DEFAULT_DAYS_BACK = 3
@@ -224,7 +225,7 @@ def compute_days(
 
 
 async def _execute_query(
-    context: Any, dataset_id: str, headers: dict[str, str], query: str
+    context: Any, dataset_id: str, headers: RequestHeaders, query: str
 ) -> list[dict[str, Any]]:
     """Run one DAX query through executeQueries and return its rows.
 
@@ -261,7 +262,7 @@ async def _execute_query(
 
 
 async def detect_version(
-    context: Any, dataset_id: str, headers: dict[str, str]
+    context: Any, dataset_id: str, headers: RequestHeaders
 ) -> MetricsVersion:
     """Pick the newest measure set whose probe measure exists in the model.
 
@@ -288,7 +289,7 @@ async def detect_version(
 
 
 async def get_capacities(
-    context: Any, dataset_id: str, headers: dict[str, str]
+    context: Any, dataset_id: str, headers: RequestHeaders
 ) -> list[dict[str, Any]]:
     """Read capacities from the model's Capacities table.
 
@@ -324,7 +325,7 @@ async def main(context=None):
         )
         return True
 
-    headers = context.clients["pbi"].get_headers()
+    headers = context.clients["pbi"].get_headers
     run_date = utc_now()
     path = (
         f"capacity_metrics/{run_date.strftime('%Y')}/{run_date.strftime('%m')}/"

@@ -140,7 +140,7 @@ class _SimpleModuleTests(_ModuleBase):
         urls = [c.args[0] for c in ctx.invokeAPI.await_args_list]
         self.assertEqual(urls, [self.url, f"{self.url}?continuationToken=a%2Fb"])
         for c in ctx.invokeAPI.await_args_list:
-            self.assertEqual(c.kwargs["headers"], ctx.clients["pbi"].get_headers.return_value)
+            self.assertEqual(c.kwargs["headers"], ctx.clients["pbi"].get_headers)
         ctx.fm.save.assert_awaited_once_with(
             f"{self.folder}/{DATE_PATH}", self.filename, [{"id": 1}, {"id": 2}])
 

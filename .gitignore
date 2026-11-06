@@ -7,6 +7,27 @@ config.json
 *.log
 *.map
 *.ipynb
+!notebooks/01_monitor_inventory_health.ipynb
+!notebooks/02_monitor_permissions.ipynb
+!notebooks/03_monitor_job_history.ipynb
+!notebooks/04_monitor_lineage.ipynb
+!notebooks/05_monitor_visualizations.ipynb
+!notebooks/06_monitor_validation.ipynb
+!notebooks/07_monitor_activity_events.ipynb
+!notebooks/08_monitor_estate_catalog_schema.ipynb
+!notebooks/09_monitor_connections.ipynb
+!notebooks/10_monitor_gateways.ipynb
+!notebooks/11_monitor_refresh_history.ipynb
+!notebooks/12_monitor_apps.ipynb
+!notebooks/13_monitor_capacity_performance.ipynb
+!notebooks/14_monitor_directory_licensing.ipynb
+!notebooks/15_monitor_workspace_roles.ipynb
+!notebooks/16_monitor_tenant_settings.ipynb
+!notebooks/17_monitor_domains.ipynb
+!notebooks/18_monitor_git_connections.ipynb
+!notebooks/19_monitor_tags.ipynb
+!notebooks/20_monitor_broad_sharing.ipynb
+!notebooks/21_monitor_deployment_pipelines.ipynb
 
 
 **/__pycache__/

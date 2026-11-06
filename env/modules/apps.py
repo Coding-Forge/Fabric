@@ -21,7 +21,7 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-    headers = context.clients['pbi'].get_headers()
+    headers = context.clients['pbi'].get_headers
     lakehouse_catalog = "catalog/"
     today = utc_now()
 
@@ -81,5 +81,4 @@ async def main(context=None):
     
 if __name__ == "__main__":
     asyncio.run(main() )
-
 

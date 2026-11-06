@@ -3,34 +3,24 @@ from urllib.parse import quote
 
 from env.context import utc_now
 
-MAX_ATTEMPTS = 3
-DEFAULT_RETRY_SECONDS = 30
 WORKSPACES_URL = "https://api.fabric.microsoft.com/v1/admin/workspaces"
 
 
 async def _get_with_retry(context, rest_api, headers):
-    """Call ``context.invokeAPI`` and retry transient failures a bounded number of times.
+    """Delegate all retry timing/budgets to the shared transport.
 
     :param context: The application context.
     :param rest_api: Relative or absolute API URL.
     :param headers: Request headers.
     :return: The decoded JSON response.
-    :raises RuntimeError: If the request still fails after ``MAX_ATTEMPTS`` attempts.
+    :raises RuntimeError: If the shared transport returns a failure.
     """
-    result = None
-    for attempt in range(1, MAX_ATTEMPTS + 1):
-        result = await context.invokeAPI(rest_api=rest_api, headers=headers)
-        if isinstance(result, dict) and "ERROR" not in result:
-            return result
-
-        status = result.get("status") if isinstance(result, dict) else None
-        context.logger.error(f"Roles request failed (attempt {attempt}/{MAX_ATTEMPTS}): {rest_api} -> {status}")
-        if attempt < MAX_ATTEMPTS:
-            retry_after = result.get("retryAfter") if isinstance(result, dict) else None
-            delay = int(retry_after) if retry_after and str(retry_after).isdigit() else DEFAULT_RETRY_SECONDS
-            await asyncio.sleep(delay)
-
-    raise RuntimeError(f"Roles request failed after {MAX_ATTEMPTS} attempts: {rest_api}: {result}")
+    result = await context.invokeAPI(rest_api=rest_api, headers=headers)
+    if isinstance(result, dict) and "ERROR" not in result and "error" not in result:
+        return result
+    status = result.get("status") if isinstance(result, dict) else None
+    context.logger.error("Roles request failed after shared retries: HTTP %s", status)
+    raise RuntimeError("Roles request failed after shared retries")
 
 
 async def main(context=None):
@@ -41,8 +31,8 @@ async def main(context=None):
         raise RuntimeError("Context is None")
 
 
-    headers = context.clients["tenant"].get_headers()
-    powerbi_headers = context.clients["pbi"].get_headers()
+    headers = context.clients["tenant"].get_headers
+    powerbi_headers = context.clients["pbi"].get_headers
 
 
     items = set()

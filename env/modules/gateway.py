@@ -24,7 +24,7 @@ STATUS_TEMPLATE = {
 }
 
 
-async def _get(url, headers):
+async def _get(url, headers, *, context):
     """Run a blocking ``requests.get`` in a worker thread so the event loop is not blocked.
 
     Throttled (429) and transient (503/504) responses are retried, waiting for
@@ -32,15 +32,44 @@ async def _get(url, headers):
 
     :param url: Absolute URL to request.
     :param headers: Request headers.
+    :param context: Runtime owning the shared legacy concurrency/cooldown state.
     :return: The last ``requests.Response``.
     """
     retries = http_retry.max_retries()
     attempt = 0
+    auth_retried = False
+    force_refresh = False
     while True:
-        response = await asyncio.to_thread(requests.get, url, headers=headers, timeout=REQUEST_TIMEOUT_SECONDS)
+        async with context.legacy_api_slot(url):
+            request_headers = await http_retry.resolve_headers(
+                headers, force_refresh=force_refresh
+            )
+            force_refresh = False
+            if context._api_cooldowns.remaining(url) > 0:
+                continue
+            response = await asyncio.to_thread(
+                requests.get, url, headers=request_headers, timeout=REQUEST_TIMEOUT_SECONDS
+            )
+        if response.status_code == 401 and callable(headers) and not auth_retried:
+            response.close()
+            auth_retried, force_refresh = True, True
+            context.logger.warning("Gateway HTTP 401; reacquiring authentication once")
+            continue
+        server_delay = None
+        if response.status_code in http_retry.RETRYABLE_STATUSES:
+            server_delay = http_retry.parse_retry_after(response.headers.get("Retry-After"))
+            if server_delay is not None:
+                context._api_cooldowns.reserve(url, server_delay)
         if response.status_code not in http_retry.RETRYABLE_STATUSES or attempt >= retries:
             return response
-        await asyncio.sleep(http_retry.retry_delay(attempt, response.headers.get("Retry-After")))
+        delay = http_retry.retry_delay(attempt, response.headers.get("Retry-After"))
+        context.logger.warning(
+            "Gateway HTTP %d; retrying in %.0fs (%d/%d)",
+            response.status_code, delay, attempt + 1, retries,
+        )
+        response.close()
+        if server_delay is None:
+            await asyncio.sleep(delay)
         attempt += 1
 
 
@@ -52,15 +81,18 @@ async def main(context=None):
     if not context:
         raise RuntimeError("Context is None")
 
-    headers = context.clients['pbi'].get_headers()
-    headers['content-type'] = 'application/json'
-    headers['pragma'] = 'no-cache'
+    def headers(**kwargs):
+        return {
+            **context.clients['pbi'].get_headers(**kwargs),
+            'content-type': 'application/json',
+            'pragma': 'no-cache',
+        }
 
 
 # GET https://api.powerbi.com/v1.0/myorg/gateways
 
     api_url = context.get_powerbi_url("gateways")
-    response = await _get(api_url, headers)
+    response = await _get(api_url, headers, context=context)
     if response.status_code != 200:
         context.logger.error(f"Gateways request failed: HTTP {response.status_code}")
         return False
@@ -83,7 +115,7 @@ async def main(context=None):
 
     r = list()
     for id in gateways:
-        response = await _get(f'{api_url}/{id}/datasources', headers)
+        response = await _get(f'{api_url}/{id}/datasources', headers, context=context)
         if response.status_code != 200:
             failures += 1
             context.logger.error(f"Datasources request failed for gateway {id}: HTTP {response.status_code}")
@@ -101,7 +133,7 @@ async def main(context=None):
 
     for i in range(0,len(gateways)):
         api_users = f'{api_url}/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/users'
-        response = await _get(api_users, headers)
+        response = await _get(api_users, headers, context=context)
         if response.status_code != 200:
             failures += 1
             context.logger.error(f"Users request failed for datasource {gateways[i]['id']}: HTTP {response.status_code}")
@@ -117,7 +149,7 @@ async def main(context=None):
     for i in range(0,len(gateways)):
         api_status = f'{api_url}/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}/status'
 
-        response = await _get(api_status, headers)
+        response = await _get(api_status, headers, context=context)
         if response.ok:
             # response.json() is actually empty when it is a success
             # copy the template so every entry is independent
@@ -127,8 +159,8 @@ async def main(context=None):
             entry["error"]["pbi.error"]["details"].append({"message":"success","detail":response.status_code})
             status.append(entry)
         else:
-            if response.status_code in (503, 504):
-                # Gateway unreachable after retries: the status is unknown, so count it
+            if response.status_code in (401, 403, 429, 503, 504):
+                # Authentication/throttling/unavailability leaves connectivity unknown.
                 failures += 1
             try:
                 results = json.loads(response.text)
@@ -145,7 +177,7 @@ async def main(context=None):
 
     for i in range(0,len(gateways)):
         api_datasource = f'{api_url}/{gateways[i]["gatewayId"]}/datasources/{gateways[i]["id"]}'
-        response = await _get(api_datasource, headers)
+        response = await _get(api_datasource, headers, context=context)
         if response.status_code != 200:
             failures += 1
             context.logger.error(f"Datasource detail request failed for {gateways[i]['id']}: HTTP {response.status_code}")

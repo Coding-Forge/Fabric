@@ -3,6 +3,8 @@
 from typing import Any
 from urllib.parse import quote
 
+from env.utility.http_retry import RequestHeaders
+
 # Statuses returned by preview/admin endpoints that are not available to the caller
 _UNAVAILABLE_STATUSES = (403, 404)
 
@@ -10,7 +12,7 @@ _UNAVAILABLE_STATUSES = (403, 404)
 async def fetch_all_pages(
     context: Any,
     url: str,
-    headers: dict[str, str],
+    headers: RequestHeaders,
     list_key: str,
     label: str,
 ) -> list[Any] | None:

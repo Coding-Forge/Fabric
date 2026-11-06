@@ -46,6 +46,32 @@ Read [changelog.md](changelog.md) for every entry newer than your version. Look 
 
 The `VERSION` file ships with Function App deploys. Neither `azure.yaml` nor `.funcignore` excludes it.
 
+### Legacy retry and token-renewal changes
+
+When deploying the legacy backoff/authentication changes, let the active run end
+and restart/redeploy the collector runtime to load the new code. Do not clear
+collector state or request-gate ledgers to force an early retry.
+`API_MAX_RETRY_DELAY` caps fallback backoff only: a valid longer `Retry-After`
+is honored in full, so review hosting timeouts and schedules. Legacy cooldowns
+are per-Context/in-memory and do not survive restart or coordinate other workers;
+newer Fabric durable gates retain their own controls. See
+[retry/authentication behavior](configuration-reference.md#throttling-and-retries).
+
+### Numbered Fabric analytics notebooks
+
+Import updated generated `.ipynb` artifacts from `notebooks/` and review their
+parameter cells; a local Python upgrade does not update already imported Fabric
+notebooks. Keep executed outputs and secrets out of source control. Follow the
+[notebook walkthrough](../notebooks/notebook-guide.md) and
+[shared table contract](../notebooks/README.md#shared-contract-and-reruns).
+
+Existing managed tables must pass ownership/schema/content checks. Do not
+overwrite them or weaken those checks during an upgrade; choose a separate
+supported prefix for an intentional incompatible contract. Notebook 06 preserves
+the original 10-table and opt-in 25-table scopes and can opt into all 48. A new
+scope requires a new baseline name after its writers have published; do not
+overwrite a prior baseline or vacuum its retained Delta versions during comparison.
+
 ### Container caveat
 
 The container images (`containers/Dockerfile` and `containers/Dockerfile2`) copy only `app/`. They do not copy `VERSION` or `env/`. The missing `env/` is a pre-existing gap. Until it is fixed, a container reports the version as `unknown`.

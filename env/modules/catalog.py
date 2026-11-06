@@ -56,7 +56,7 @@ async def main(context: Context | None = None) -> bool:
         "on",
     )
 
-    headers = context.clients['pbi'].get_headers()
+    headers = context.clients['pbi'].get_headers
 
     getModifiedWorkspacesParams = f"excludePersonalWorkspaces={context.exclude_personal_workspaces}&excludeInActiveWorkspaces={context.exclude_inactive_workspaces}"     # context.CatalogGetModifiedParameters
     getInfoDetails = context.CatalogGetInfoParameters
@@ -280,9 +280,6 @@ async def main(context: Context | None = None) -> bool:
         print(f"Processing batch number {batch_number} of {-(-len(groups)//16)} batches")
 
         batch = groups[i:i+16]
-
-        # Refresh the token per batch (MSAL caches it) so long runs do not hit 401
-        headers = context.clients['pbi'].get_headers()
 
         # Run up to 16 scans concurrently; each polls scanStatus with sleeps
         first_index = counter + 1

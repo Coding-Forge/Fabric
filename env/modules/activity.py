@@ -66,14 +66,15 @@ async def main(context=None):
 
         continuationUri = result.get("continuationUri")
         if continuationUri and "continuationToken" in continuationUri:
-            head = dict(headers)
-            head['Content-Type'] = 'application/json'
-
-            return await activity_events(url=continuationUri, headers=head, pivotDate=pivotDate, pageIndex=pageIndex + 1)
+            return await activity_events(url=continuationUri, headers=headers, pivotDate=pivotDate, pageIndex=pageIndex + 1)
 
         return True
 
-    headers = context.clients['pbi'].get_headers()
+    def headers(**kwargs):
+        return {
+            **context.clients['pbi'].get_headers(**kwargs),
+            'Content-Type': 'application/json',
+        }
 
     async def get_activity(pivotDate=pivotDate) -> bool:
         while (pivotDate<utc_now()):

@@ -20,7 +20,7 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-    headers = context.clients["pbi"].get_headers()
+    headers = context.clients["pbi"].get_headers
     url = "https://api.fabric.microsoft.com/v1/admin/workspaces/discoverGitConnections"
 
     connections = await fetch_all_pages(

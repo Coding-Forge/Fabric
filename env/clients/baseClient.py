@@ -48,16 +48,19 @@ class Client:
                 self._app_key = key
             return self._app
 
-    def get_headers(self, graph=False, tenant=False):
+    def get_headers(self, graph=False, tenant=False, *, force_refresh=False):
         """Return request headers carrying a bearer token for ``self.scope``.
 
         :param graph: Unused; kept for backwards compatibility.
         :param tenant: Unused; kept for backwards compatibility.
+        :param force_refresh: Evict this client's cached tokens after a rejected token.
         :return: A dict with the ``Authorization`` header.
         :raises RuntimeError: If credentials are missing or token acquisition fails.
         """
 
         app = self._get_app()
+        if force_refresh:
+            app.remove_tokens_for_client()
 
         # This needs to stay as a list
         scopes = [self.scope]

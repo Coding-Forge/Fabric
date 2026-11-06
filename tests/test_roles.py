@@ -51,10 +51,10 @@ class RolesTests(unittest.IsolatedAsyncioTestCase):
         ctx = make_context(invoke=invoke)
         await roles.main(ctx)
         self.assertEqual(
-            invoke.await_args_list[0].kwargs["headers"], ctx.clients["tenant"].get_headers.return_value
+            invoke.await_args_list[0].kwargs["headers"], ctx.clients["tenant"].get_headers
         )
         self.assertEqual(
-            invoke.await_args_list[1].kwargs["headers"], ctx.clients["pbi"].get_headers.return_value
+            invoke.await_args_list[1].kwargs["headers"], ctx.clients["pbi"].get_headers
         )
 
     async def test_group_pages_use_skip_steps_of_5000(self):
@@ -75,36 +75,23 @@ class RolesTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(group_urls[1].endswith("$skip=5000"))
         self.assertEqual(len(ctx.fm.save.await_args.kwargs["content"]), 2)
 
-    async def test_retry_after_header_is_honoured(self):
-        invoke = AsyncMock(side_effect=[_err(429, "7"), {"workspaces": []}, {"value": []}])
-        ctx = make_context(invoke=invoke)
-        await roles.main(ctx)
-        self.sleep.assert_awaited_once_with(7)
-
-    async def test_non_numeric_or_missing_retry_after_uses_default(self):
-        invoke = AsyncMock(side_effect=[_err(429, "Wed, 21 Oct"), _err(500, None),
-                                        {"workspaces": []}, {"value": []}])
-        ctx = make_context(invoke=invoke)
-        await roles.main(ctx)
-        self.assertEqual([c.args[0] for c in self.sleep.await_args_list],
-                         [roles.DEFAULT_RETRY_SECONDS, roles.DEFAULT_RETRY_SECONDS])
-
-    async def test_gives_up_after_max_attempts_and_raises(self):
-        invoke = AsyncMock(return_value=_err(500))
-        ctx = make_context(invoke=invoke)
-        with self.assertRaises(RuntimeError):
-            await roles.main(ctx)
-        self.assertEqual(invoke.await_count, roles.MAX_ATTEMPTS)
-        # no sleep after the final attempt
-        self.assertEqual(self.sleep.await_count, roles.MAX_ATTEMPTS - 1)
-        ctx.fm.save.assert_not_awaited()
+    async def test_transport_failures_are_not_retried_by_a_second_loop(self):
+        for status in (401, 403, 429, 500, 503):
+            with self.subTest(status=status):
+                invoke = AsyncMock(return_value=_err(status, "3600"))
+                ctx = make_context(invoke=invoke)
+                with self.assertRaises(RuntimeError):
+                    await roles.main(ctx)
+                self.assertEqual(invoke.await_count, 1)
+                self.sleep.assert_not_awaited()
+                ctx.fm.save.assert_not_awaited()
 
     async def test_none_result_is_treated_as_failure(self):
         invoke = AsyncMock(return_value=None)
         ctx = make_context(invoke=invoke)
         with self.assertRaises(RuntimeError):
             await roles.main(ctx)
-        self.assertEqual(invoke.await_count, roles.MAX_ATTEMPTS)
+        self.assertEqual(invoke.await_count, 1)
 
     async def test_failure_on_second_page_aborts_without_saving(self):
         seq = [{"workspaces": [{"id": "a"}], "continuationToken": "t"}] + [_err(500)] * 3

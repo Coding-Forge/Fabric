@@ -277,7 +277,7 @@ or PBIP integration.
 | E10 / Catalog | in-progress (basic Desktop checks accepted) | Operator confirmed both PBIP reports check out following the requested reopen/refresh and page checks. Detailed fixture/edge-case scenarios in the existing E10 acceptance checklist have not been individually confirmed. |
 | E14 / MonitorRaw | basic Desktop checks verified; detailed scenarios pending | Operator screenshots show Scoped 12/13 and Tenant 95/101 successful targets, six tenant failures and 200 access-detail rows. Tenant permission load errors are zero. Shared `ItemPermissionMode` defaults to `Scoped`; `Tenant` loads only tenant evidence. Empty/broken-link fixtures and Local/Blob parity remain unconfirmed; historical job warnings stay preserved. |
 | E8 / E9 deployment | deferred | Validate retention and Key Vault wiring in Azure | Requires an approved deployment and live verification. Existing Bicep compile checks do not prove deployed behavior. |
-| E22 | in-progress | Commit and push the local runtime fixes | PR preparation approved: preserve local Desktop state, publish Scoped as the shared permission default, exclude unrelated Capacity_Gateways, validate the staged tree and check against remote main before opening the PR. Unresolved collection outcomes remain explicit limitations. |
+| E22 | done | Commit and push the local runtime fixes | PR #3 merged into main at `c47eabc`; remote main verified to contain feature commit `4e01b3e`. The staged code passed 611 offline tests. Shared Scoped default published; local Tenant selection, Desktop-only changes and unrelated Capacity_Gateways preserved outside the PR. Known collection outcomes and historical warnings remain explicit limitations. |
 
 Desktop validation update (2026-11-05): after confirming both projects opened
 and rendered, the operator reported "The PBIP reports check out" following the
@@ -307,3 +307,52 @@ checks the maximum timestamp of saved resources before committing a final
 manifest; backwards ordering raises and prevents success/checkpoint advancement.
 No timestamp clamping, historical rewrite, report-validation relaxation or live
 API calls were used. All three warnings remain visible as agreed.
+
+## F. Fabric notebook analytics and optional customer integration
+
+This feature reuses collected Monitor data in multiple Fabric notebooks, supports
+notebook visualizations and can eventually provide customer-consumable data for
+Splunk. The user subsequently authorized local notebook implementation for manual
+upload. Twenty-one self-contained notebooks and shared contracts are now available;
+see [upload, contracts and acceptance](../notebooks/README.md). Local validation
+does not establish Fabric execution or private-only networking. KQL/Eventhouse is
+optional, not a required dependency for every consumer. No cloud execution,
+infrastructure deployment or additional collection API scope was authorized.
+The [notebook walkthrough](../notebooks/notebook-guide.md) explains every notebook
+and the run order; [integration options](analytics-integration.md) distinguish
+KQL access from the proposed, unimplemented Event Hubs/Splunk publisher.
+
+| # | Status | Item | Scope and considerations |
+|---|--------|------|--------------------------|
+| E23 | implemented locally | Define shared analytics data contracts | Versioned provenance, UTC text, immutable observation/content keys, explicit historical grain and scalar Delta schemas; separate permission modes/cycles, missing versus zero and scanner/static evidence. Full native Power Query parity remains an acceptance check. |
+| E24 | implemented locally; expanded Fabric acceptance pending | Build multiple Fabric transformation notebooks | Nineteen transformation notebooks: original inventory/permissions/jobs/lineage plus 07-21 domain analytics, covering selected fields from all 23 registered collectors in 48 datasets. Existing files only, preview-first, explicit coverage gaps and insert-only scalar Delta tables. Initial 01-05 execution reported successful; expanded notebooks and full parity remain unverified. E28 is still a deployment gate. |
+| E25 | implemented locally; expanded Fabric acceptance pending | Add visualizations inside Fabric notebooks | Read-only 05 provides cross-cutting charts/lineage; 07-21 add domain charts and bounded metadata views. Notebook 06 preserves ten/25-table scopes and opts into all 48 with persistent baselines. New chart/runtime execution and completeness/parity checks remain workspace acceptance steps. |
+| E26 | todo (optional) | Support KQL access or ingestion in Fabric Eventhouse | Evaluate Lakehouse Eventhouse endpoints/OneLake shortcuts for read access before choosing a native ingestion copy. Agree datasets, schemas, freshness, retention, authorization and cost boundaries. Depends on E24; provisioning and live integration require separate approval. |
+| E27 | todo | Make analytics data consumable by customer Splunk | A separate Delta-to-Event-Hubs publisher notebook is proposed, not implemented. Confirm destination, table/field allowlist, execution mode, initial history, persistent checkpoints, at-least-once duplicate handling and the customer's supported Splunk connector/private connectivity. KQL/Eventhouse is optional; E26 is not a prerequisite. Depends on E24. |
+| E28 | todo | Validate private-network architecture before selecting storage | Assume public network access may be denied and confirm the customer's policy. Validate collector-to-storage and notebook-to-storage paths, private endpoints, endpoint approval, DNS, runtime/hosting-plan support and independent data permissions. Evaluate Blob/ADLS versus OneLake/Fabric inbound Private Link separately. Include collector API/authentication egress and eventual Eventhouse/Splunk paths; do not rely on enabling public access or a shortcut as a workaround. |
+
+Dependency order: E23 establishes the local transformation contract; E28 must pass
+before accepting deployment into a private-only environment. The local notebooks
+can be built/tested without cloud execution. E25, E26 and E27 can follow
+independently once the transformed data
+contract/output is available. Visualization is not a prerequisite for KQL or
+Splunk delivery.
+
+Private-network design references: [Functions outbound VNet support varies by
+hosting plan](https://learn.microsoft.com/en-us/azure/azure-functions/functions-networking-options);
+[Fabric managed private endpoints](https://learn.microsoft.com/en-us/fabric/security/security-managed-private-endpoints-overview)
+support notebook access to approved private sources, subject to workload,
+capacity and region prerequisites. The documented OneLake shortcut limitation
+means these endpoints cannot simply be reused by shortcuts to private Blob/ADLS.
+[Fabric inbound Private Link](https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview)
+protects entry into Fabric/OneLake; it is not the same as private outbound access
+from a notebook to Azure Storage. Recheck supported paths during design and
+validate actual connectivity and authorization with public access disabled
+before accepting the selected architecture.
+
+Keep raw evidence available for audit and make curated outputs distinguishable
+from raw observations. Agree customer/tenant boundaries, principal and
+definition-field minimization, access controls and retention before exposing
+data outside the collection boundary. Do not silently relax current coverage,
+privacy, API authorization or quota safeguards. Existing E4/E6 transforms remain
+deferred until this feature's design explicitly reconciles that earlier scope.

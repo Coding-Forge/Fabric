@@ -11,7 +11,7 @@ async def main(context=None):
         raise RuntimeError("Context is None")
 
 
-    headers = context.clients["tenant"].get_headers()
+    headers = context.clients["tenant"].get_headers
 
     url = context.get_fabric_url("v1/admin/workspaces")
 

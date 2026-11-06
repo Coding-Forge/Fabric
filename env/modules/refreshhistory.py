@@ -12,7 +12,7 @@ async def main(context=None):
     
     # get POWER BI context and settings -- this call must be synchronous
     
-    headers = context.clients['pbi'].get_headers()
+    headers = context.clients['pbi'].get_headers
     #headers['Content-Type'] = 'application/json'
 
     today = utc_now()
@@ -67,4 +67,3 @@ async def main(context=None):
 
 if __name__ == "__main__":
     asyncio.run(main())
-
