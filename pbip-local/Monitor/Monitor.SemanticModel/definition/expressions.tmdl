@@ -1,0 +1,7 @@
+expression 'DirectLake - Fabric Estate' =
+		let
+		    Source = AzureStorage.DataLake("https://onelake.dfs.fabric.microsoft.com/1f681810-ec02-411f-ac4b-9b5544272273/f1d6b7d9-f02b-4a44-9828-8dd5da8d6822", [HierarchicalNavigation = true])
+		in
+		    Source
+	lineageTag: aea18438-8773-4794-a4c3-f915bdfe9ca9
+

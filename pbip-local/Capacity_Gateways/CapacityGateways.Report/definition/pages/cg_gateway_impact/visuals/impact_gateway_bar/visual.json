@@ -1,0 +1,85 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "impact_gateway_bar",
+  "position": {
+    "x": 1260,
+    "y": 470,
+    "z": 3020,
+    "height": 300,
+    "width": 560,
+    "tabOrder": 3020
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasourceInstances"
+                    }
+                  },
+                  "Property": "GatewayId"
+                }
+              },
+              "queryRef": "CatalogDatasourceInstances.GatewayId",
+              "nativeQueryRef": "GatewayId",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "CatalogDatasourceInstances"
+                        }
+                      },
+                      "Property": "DatasourceId"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(CatalogDatasourceInstances.DatasourceId)",
+              "nativeQueryRef": "Count of DatasourceId"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Datasource instances by gateway'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

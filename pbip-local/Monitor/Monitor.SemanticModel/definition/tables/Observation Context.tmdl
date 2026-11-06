@@ -1,0 +1,210 @@
+table 'Observation Context'
+	isHidden
+	lineageTag: 67a88f6a-9d0c-5611-8d6c-102e0e1a8904
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 3d941442-56d9-41f8-ab1e-8a7e7ca4beb3
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column Dataset
+		dataType: string
+		lineageTag: 543efc7e-8d58-443d-a9e5-d207a204271b
+		summarizeBy: none
+		sourceColumn: dataset
+
+	column 'Source Key'
+		dataType: string
+		isHidden
+		lineageTag: 775a8b57-02f2-4b46-ae5d-bc0c486da60c
+		summarizeBy: none
+		sourceColumn: source_key
+
+	column 'Workspace Key'
+		dataType: string
+		isHidden
+		lineageTag: 0cb74623-65fb-4ea7-83f0-ad12b8139b86
+		summarizeBy: none
+		sourceColumn: workspace_key
+
+	column 'Item Key'
+		dataType: string
+		isHidden
+		lineageTag: b84ab496-7ba3-48a5-a9be-ce906bf8cc60
+		summarizeBy: none
+		sourceColumn: item_key
+
+	column 'Capacity Key'
+		dataType: string
+		isHidden
+		lineageTag: 2e599da3-9f20-4652-9cd9-027368c2239b
+		summarizeBy: none
+		sourceColumn: capacity_key
+
+	column 'Gateway Key'
+		dataType: string
+		isHidden
+		lineageTag: 4c7c4bef-7de2-4a3d-af30-989ea1a09251
+		summarizeBy: none
+		sourceColumn: gateway_key
+
+	column 'Connection Key'
+		dataType: string
+		isHidden
+		lineageTag: 11a29c55-9e8f-4313-80cf-a4c01503426a
+		summarizeBy: none
+		sourceColumn: connection_key
+
+	column 'Principal Key'
+		dataType: string
+		isHidden
+		lineageTag: ba831794-5160-4f6a-ac8f-97cac552340c
+		summarizeBy: none
+		sourceColumn: principal_key
+
+	column 'Group Key'
+		dataType: string
+		isHidden
+		lineageTag: b0306b5e-7b18-4305-84eb-ad966af1bb4a
+		summarizeBy: none
+		sourceColumn: group_key
+
+	column 'SKU Key'
+		dataType: string
+		isHidden
+		lineageTag: 524e0f16-0cad-438b-ba6a-bb5a6e8b6445
+		summarizeBy: none
+		sourceColumn: sku_key
+
+	column 'Domain Key'
+		dataType: string
+		isHidden
+		lineageTag: 0a823420-5003-4f16-b397-e444a2737d0d
+		summarizeBy: none
+		sourceColumn: domain_key
+
+	column 'Pipeline Key'
+		dataType: string
+		isHidden
+		lineageTag: 1f351173-1c0c-4b24-8a61-823d26340c36
+		summarizeBy: none
+		sourceColumn: pipeline_key
+
+	column 'Datasource Key'
+		dataType: string
+		isHidden
+		lineageTag: 9f1612f5-efb1-4a75-ac10-321919cdfb3e
+		summarizeBy: none
+		sourceColumn: datasource_key
+
+	column 'Setting Key'
+		dataType: string
+		isHidden
+		lineageTag: bb6e58c2-f49c-46b3-9d27-68603cda97df
+		summarizeBy: none
+		sourceColumn: setting_key
+
+	column 'App Key'
+		dataType: string
+		isHidden
+		lineageTag: b870d789-781c-485b-9d4d-f8d008b705c5
+		summarizeBy: none
+		sourceColumn: app_key
+
+	column 'Tag Key'
+		dataType: string
+		isHidden
+		lineageTag: 2e5a8df5-bf78-4621-a943-b5ad004cb1e1
+		summarizeBy: none
+		sourceColumn: tag_key
+
+	column 'Related Workspace Key'
+		dataType: string
+		isHidden
+		lineageTag: e1dbe062-c0f0-41eb-b7a4-ee2e032f3e44
+		summarizeBy: none
+		sourceColumn: related_workspace_key
+
+	column 'Related Item Key'
+		dataType: string
+		isHidden
+		lineageTag: 4ed03e25-90d0-4c90-9215-a207727011cb
+		summarizeBy: none
+		sourceColumn: related_item_key
+
+	column 'Observed Date Key'
+		dataType: int64
+		isHidden
+		lineageTag: 6e0a6241-5186-4704-a065-a0a605606433
+		summarizeBy: none
+		sourceColumn: observed_date_key
+
+	column 'Source Date Key'
+		dataType: int64
+		isHidden
+		lineageTag: 580900b7-7a55-4cc2-9a84-619098b7d279
+		summarizeBy: none
+		sourceColumn: source_date_key
+
+	column 'Event Date Key'
+		dataType: int64
+		isHidden
+		lineageTag: c5ce186c-c93a-4fea-a95e-83d095af46f0
+		summarizeBy: none
+		sourceColumn: event_date_key
+
+	column 'Metric Date Key'
+		dataType: int64
+		isHidden
+		lineageTag: aa71ecd2-4078-482b-bc44-eb775c536d56
+		summarizeBy: none
+		sourceColumn: metric_date_key
+
+	column 'Observed At'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: c6ad47ca-6d46-459a-a082-3831b30ac0fd
+		summarizeBy: none
+		sourceColumn: observed_at
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: f3873ca9-dfe4-465c-9299-8ddb8525cae0
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column Module
+		dataType: string
+		lineageTag: f799811c-e097-479b-a348-eb069a290613
+		summarizeBy: none
+		sourceColumn: module
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 3c90a6e4-07b1-4210-b740-4af5fc6d4e8e
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 2e0b5a66-58a8-402f-a5b8-b079a42052ad
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column Mode
+		dataType: string
+		lineageTag: 55c251ec-6208-4a2c-a450-6183e50b73eb
+		summarizeBy: none
+		sourceColumn: mode
+
+	partition 'Observation Context' = entity
+		mode: directLake
+		source
+			entityName: monitor_report_context
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

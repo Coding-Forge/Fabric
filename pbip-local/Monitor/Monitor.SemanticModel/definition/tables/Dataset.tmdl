@@ -1,0 +1,67 @@
+table Dataset
+	lineageTag: 86d21610-ba24-5d57-8342-a155a4b8a911
+
+	column Dataset
+		dataType: string
+		lineageTag: 5deb1b33-2ddb-4284-b342-59a204d48d4c
+		summarizeBy: none
+		sourceColumn: dataset
+
+	column Label
+		dataType: string
+		lineageTag: f38f4436-728f-47bb-949d-fa4b7f038804
+		summarizeBy: none
+		sourceColumn: label
+
+	column Domain
+		dataType: string
+		lineageTag: e4b3fcbe-1d64-4e1e-9953-edb4b0befe5e
+		summarizeBy: none
+		sourceColumn: domain
+
+	column 'Profiled Rows'
+		dataType: int64
+		lineageTag: 774377d4-a03a-441f-a557-6d17c357e32b
+		summarizeBy: none
+		sourceColumn: profiled_rows
+
+	column 'Delta Version'
+		dataType: int64
+		lineageTag: a791ad9a-6941-4f6c-8cf9-2d4ad0a936ea
+		summarizeBy: none
+		sourceColumn: delta_version
+
+	column Availability
+		dataType: string
+		lineageTag: 8d0ad8bb-e34e-4ce5-aad1-b1e78ec03a52
+		summarizeBy: none
+		sourceColumn: availability
+
+	column 'Latest Exact Observation'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 9925e26a-39da-4077-b7dd-3c2367e2b3ad
+		summarizeBy: none
+		sourceColumn: latest_exact_observation
+
+	column 'Latest Source Date'
+		dataType: dateTime
+		formatString: yyyy-MM-dd
+		lineageTag: 15d7741e-8bb4-4e89-98b2-f8fa205ea096
+		summarizeBy: none
+		sourceColumn: latest_source_date
+
+	column 'Profiled At'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: e6d46d32-589f-4937-92a8-481bda417d43
+		summarizeBy: none
+		sourceColumn: profiled_at
+
+	partition Dataset = entity
+		mode: directLake
+		source
+			entityName: monitor_report_dataset
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

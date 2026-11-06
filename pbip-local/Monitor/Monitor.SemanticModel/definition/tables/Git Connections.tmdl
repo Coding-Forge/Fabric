@@ -1,0 +1,152 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Git Connections'
+	lineageTag: 36cd30e7-4787-582e-adba-817f53e2b200
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 25c62fc7-cdac-4413-86b2-f1f311ffaee5
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 66fffb81-d758-4316-b9f1-de41e526f739
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: ec14f7b7-0dad-4d3e-9ec5-e9a0bd0843df
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 63ea6dc8-c979-4318-9f80-af1463cb4036
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 662507ba-b07f-4a5f-b524-022ff885ced8
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: fb3cdcfa-2850-4771-ba4a-fabb22f7cba4
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: ed6f0189-02d5-47bf-b691-a303acfc7a36
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 77530046-d935-434a-a872-410bac5f8a8d
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 9819a72f-7d7b-4ee1-8dfc-bfe1faf5f2f4
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: d21c1abf-51e2-4c87-ad5f-145dc973cdf0
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: c2f1d2bb-6d13-4955-9537-7792d07fab5e
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: b602c33b-dc87-48cc-a2e6-2ad7f2a36bf5
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Provider Type'
+		dataType: string
+		lineageTag: 9a8add89-0531-4ff7-9bf3-9ea3e6efbf2d
+		summarizeBy: none
+		sourceColumn: provider_type
+
+	column 'Owner Key'
+		dataType: string
+		isHidden
+		lineageTag: ac2bb9b3-7ed8-48a6-96ba-751ee1d509ad
+		summarizeBy: none
+		sourceColumn: owner_key
+
+	column 'Organization Name'
+		dataType: string
+		lineageTag: 93f482c2-0858-40c8-b2d3-9bc1ed384db0
+		summarizeBy: none
+		sourceColumn: organization_name
+
+	column 'Project Name'
+		dataType: string
+		lineageTag: 63f8a10e-b8e4-402d-86ec-0720b11d8e5a
+		summarizeBy: none
+		sourceColumn: project_name
+
+	column 'Repository Name'
+		dataType: string
+		lineageTag: 0ff639fa-f9ce-44d3-9b55-2712d4efaa95
+		summarizeBy: none
+		sourceColumn: repository_name
+
+	column 'Branch Name'
+		dataType: string
+		lineageTag: 51eabe1a-f9a0-4234-b34c-d2dc9eb07ea4
+		summarizeBy: none
+		sourceColumn: branch_name
+
+	column 'Directory Key'
+		dataType: string
+		isHidden
+		lineageTag: 6e3c42c4-d3f9-4cc8-be2e-7b16220bcad1
+		summarizeBy: none
+		sourceColumn: directory_key
+
+	column 'Connection State'
+		dataType: string
+		lineageTag: d326160b-3525-4f3c-8b2c-c9b05237bb4b
+		summarizeBy: none
+		sourceColumn: connection_state
+
+	column 'Last Sync UTC'
+		dataType: string
+		lineageTag: 20c7b5f9-33e9-4dda-bd9c-ee46164ac18a
+		summarizeBy: none
+		sourceColumn: last_sync_utc
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: fff1af1d-d52f-4d5e-abe7-197e6c378e53
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Git Connections' = entity
+		mode: directLake
+		source
+			entityName: monitor_workspace_git_connections
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

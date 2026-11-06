@@ -1,0 +1,73 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "landing_get_started",
+  "position": {
+    "x": 85,
+    "y": 360,
+    "z": 200,
+    "height": 300,
+    "width": 520,
+    "tabOrder": 200
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "1. Refresh the semantic model",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "2. Use the button slicers to pick Region, Capacity State, and Gateway Type",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "3. Start in Command Center",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "4. Drill into Capacity Overview, Gateway Watchtower, and Datasource Runway",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "5. Use Stewardship Trail to convert findings into actions",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

@@ -1,0 +1,132 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "stewardship_datasets",
+  "position": {
+    "x": 640,
+    "y": 295,
+    "z": 2010,
+    "height": 360,
+    "width": 590,
+    "tabOrder": 2010
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasets"
+                    }
+                  },
+                  "Property": "WorkspaceName"
+                }
+              },
+              "queryRef": "CatalogDatasets.WorkspaceName",
+              "nativeQueryRef": "WorkspaceName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasets"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "CatalogDatasets.DatasetName",
+              "nativeQueryRef": "DatasetName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasets"
+                    }
+                  },
+                  "Property": "ConfiguredBy"
+                }
+              },
+              "queryRef": "CatalogDatasets.ConfiguredBy",
+              "nativeQueryRef": "ConfiguredBy"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasets"
+                    }
+                  },
+                  "Property": "TargetStorageMode"
+                }
+              },
+              "queryRef": "CatalogDatasets.TargetStorageMode",
+              "nativeQueryRef": "TargetStorageMode"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasets"
+                    }
+                  },
+                  "Property": "IsRefreshable"
+                }
+              },
+              "queryRef": "CatalogDatasets.IsRefreshable",
+              "nativeQueryRef": "IsRefreshable"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9.0D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Dataset stewardship queue'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

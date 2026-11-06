@@ -1,0 +1,114 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Directory Users'
+	lineageTag: d6e3a285-6aee-524c-9d7c-2cc53737ba02
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 5b7375b8-a33a-40b4-a003-d12198a7566e
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: bd155b5d-91fd-4431-9fa4-506f50b98428
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 5541513f-d818-45c9-883a-7a118e086b40
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: f8f61b0e-6e65-480b-84e4-38595c9dea25
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: a14caf42-3383-4693-90b0-c8d1652f968a
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 5cab2b1b-06e5-4acc-b515-1ca5ff68aa97
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 0471f64b-ff59-4677-a8f9-165515e4e716
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: ede6e5ef-a19d-4d32-9000-293d73d47b7a
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 6b108da5-26c4-4ab0-9de6-496c5a6fec35
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 0f6072a2-e548-41ef-b040-87427cdd13e3
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 9c8b6734-1654-476d-8de9-6407c06baba2
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Principal ID'
+		dataType: string
+		lineageTag: 4d25aa55-0a27-4269-b6ad-f6693f0c586a
+		summarizeBy: none
+		sourceColumn: principal_id
+
+	column 'Account Enabled'
+		dataType: boolean
+		lineageTag: 4bd1ab98-3812-40e4-bb00-337d2d898ed2
+		summarizeBy: none
+		sourceColumn: account_enabled
+
+	column 'User Type'
+		dataType: string
+		lineageTag: 801ba2ff-7fb5-4479-8f25-e013f5f1b872
+		summarizeBy: none
+		sourceColumn: user_type
+
+	column 'Assigned License Count'
+		dataType: int64
+		lineageTag: c29e161a-e244-47e0-af2f-5c3162f9bdff
+		summarizeBy: none
+		sourceColumn: assigned_license_count
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 2e8ca587-8adc-4cd5-b2c3-e6c4c158dbeb
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Directory Users' = entity
+		mode: directLake
+		source
+			entityName: monitor_directory_users
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

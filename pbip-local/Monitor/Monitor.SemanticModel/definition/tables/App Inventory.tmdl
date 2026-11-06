@@ -1,0 +1,114 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'App Inventory'
+	lineageTag: 8a75fe84-9f61-5933-9d99-35c9cfd20231
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 70136bd9-5bea-4198-81bf-93d9c8234ad2
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 7d9d07d8-ac7d-43d3-b655-356d2d312ee6
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 44f73021-5dd2-4aa6-aa0f-90ffa1b89b21
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 0f83e0fb-017a-416f-81b5-b1fb97b16dd1
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: c7d8aab2-a37c-4d34-ab00-fd903d913939
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 170f82e5-461c-4153-ae3b-c8845fbc22ca
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: a293e439-d725-4188-9f0e-eb37a7c67c8c
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: fef47816-aa17-4bec-aa53-70fc768c1fd7
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 505a4270-a3da-4ac3-b2e1-e646b32d3622
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 46348a4e-daf5-4bec-a34e-f88058ae8d13
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 88bda65f-8e88-40c7-bd19-2bb722a67bc4
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'App ID'
+		dataType: string
+		lineageTag: a9b4d77b-9ede-435d-a7e8-7cb733eb1881
+		summarizeBy: none
+		sourceColumn: app_id
+
+	column 'App Name'
+		dataType: string
+		lineageTag: 7a2ea35f-fe39-43ff-8a05-02ee2b1de13a
+		summarizeBy: none
+		sourceColumn: app_name
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: 7c6040d4-2214-4545-8120-adca1bf7f647
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Last Update UTC'
+		dataType: string
+		lineageTag: b01a8b15-f6c0-4bf4-a479-cc200584efc5
+		summarizeBy: none
+		sourceColumn: last_update_utc
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 300dc989-bea2-4c3d-9ece-72c3ff927ebe
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'App Inventory' = entity
+		mode: directLake
+		source
+			entityName: monitor_apps
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

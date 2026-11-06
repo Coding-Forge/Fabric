@@ -1,0 +1,37 @@
+// Run in DAX query view after creating/connecting a private remote model.
+// Initial profile totals are dated evidence; reprofile before expecting them again.
+EVALUATE
+ROW (
+    "Lookup/context mismatches - must be zero", [Unmapped Observations],
+    "Datasets", [Dataset Count],
+    "Datasets with observations", [Datasets With Rows],
+    "Datasets with no rows", [Datasets Without Rows],
+    "Retained observations", [Retained Observations],
+    "Workspaces observed", [Workspaces Observed],
+    "Items observed", [Items Observed],
+    "Successful empty scoped job polls", [Successful Empty Job Polls]
+)
+
+EVALUATE
+CALCULATETABLE (
+    ROW (
+        "Selected mode", SELECTEDVALUE ( 'Permission Mode'[Mode] ),
+        "Grant observations", [Scoped Grant Observations],
+        "Failed polls", [Permission Polls - Failed],
+        "Deferred polls", [Permission Polls - Deferred],
+        "Completed healthy cycles", [Completed Healthy Cycles]
+    ),
+    TREATAS ( { "Scoped" }, 'Permission Mode'[Mode] )
+)
+
+EVALUATE
+CALCULATETABLE (
+    ROW (
+        "Selected mode", SELECTEDVALUE ( 'Permission Mode'[Mode] ),
+        "Grant observations", [Scoped Grant Observations],
+        "Failed polls", [Permission Polls - Failed],
+        "Deferred polls", [Permission Polls - Deferred],
+        "Completed healthy cycles", [Completed Healthy Cycles]
+    ),
+    TREATAS ( { "Tenant" }, 'Permission Mode'[Mode] )
+)

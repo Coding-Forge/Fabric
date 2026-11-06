@@ -1,0 +1,108 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Workspace Role Coverage'
+	lineageTag: 955529e9-2ba7-54ed-a14f-bcf7adecc41c
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 51f1cef1-c71d-416f-8117-f73a6e6b0e1b
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 2890704f-90a2-4cdd-9473-f13b74d44568
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: fe4d0c9e-9254-436f-9188-43866f1eebb4
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 9b1b1ef1-87c0-40be-a5a1-78a2c3e9e90a
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 2a8e9f16-9ec2-4828-8449-e99762fc7480
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: e723886c-9f81-460d-9dc2-398be60d8d97
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 31df0ddd-3084-43c5-a4de-2d385fe473ed
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 99ee417f-e210-47b0-b91e-8016504fbb91
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: d5a1a7d4-ffaf-4a32-9b35-a7073896d4fa
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 39377d3b-9fba-4958-ab70-a0de63e8ebbd
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 4b4377e9-f76e-4d9c-a371-fb898b5c5792
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: 3348215a-4e40-421f-846e-a8bd65e095ef
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Roles Returned'
+		dataType: boolean
+		lineageTag: 1cb46eb0-a167-46d1-82bb-4c6169c32350
+		summarizeBy: none
+		sourceColumn: roles_returned
+
+	column 'Assignment Count'
+		dataType: int64
+		lineageTag: 2b720696-94d8-4fac-8aae-f37068ad6eb7
+		summarizeBy: none
+		sourceColumn: assignment_count
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: f77e4480-37c9-47ff-92ee-d6e747f84289
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Workspace Role Coverage' = entity
+		mode: directLake
+		source
+			entityName: monitor_workspace_role_scopes
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

@@ -1,0 +1,114 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Item Inventory'
+	lineageTag: 96b6e936-5c0b-5635-92d7-b96df243665d
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 4b293741-7e59-4dab-a587-ac0b5002ccb1
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 137f8c2a-a072-4279-b99f-135c8ddf4e0f
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: a78c746a-a6bb-4e83-9511-aa3cf6128323
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 14744e99-ed46-486a-8cbc-176b92578c3d
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 9f8a4b58-ed4b-457a-91d6-5d5b561a6651
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: d2b6191f-50dc-420c-956e-bcb94c237097
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: df99be3b-fed4-4b46-a50e-79547b728e6a
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 28e10782-5a3a-4dab-bec0-d1933b83256f
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 6d0b5595-b34f-4870-8d0e-ec6db6d60c88
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: a56be28b-0575-4cb8-97c7-a1a5fae2d5f8
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: fd468645-0ef3-46a9-a3b2-8991ced75594
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: 2a82215f-e294-48dc-aef3-64b18a0c626d
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Item ID'
+		dataType: string
+		lineageTag: 4f05dc48-7502-4e77-9073-aeacdd81a6f8
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 68b9562b-e3d7-4995-98f8-82c3765dd8f1
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Item Name'
+		dataType: string
+		lineageTag: e864e8c8-0f74-4f86-953a-92679c75d63c
+		summarizeBy: none
+		sourceColumn: item_name
+
+	column 'Inventory Source'
+		dataType: string
+		lineageTag: 85c1ca21-8082-4089-801d-45630946a67e
+		summarizeBy: none
+		sourceColumn: inventory_source
+
+	partition 'Item Inventory' = entity
+		mode: directLake
+		source
+			entityName: monitor_inventory
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

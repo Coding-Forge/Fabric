@@ -1,0 +1,82 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "stewardship_questions",
+  "position": {
+    "x": 40,
+    "y": 295,
+    "z": 2000,
+    "height": 360,
+    "width": 560,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Use this page for analyst review prompts:",
+                    "textStyle": {
+                      "fontSize": "20pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "• Are active workspaces mapped to the right capacity?",
+                    "textStyle": {
+                      "fontSize": "20pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "• Are datasets refreshable, and who configured them?",
+                    "textStyle": {
+                      "fontSize": "20pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "• Are gateways absent, healthy, or simply not collected yet?",
+                    "textStyle": {
+                      "fontSize": "20pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "• Are datasource dependencies concentrated in one workspace or source?",
+                    "textStyle": {
+                      "fontSize": "20pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "• Which ownership conversation should happen next?",
+                    "textStyle": {
+                      "fontSize": "20pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

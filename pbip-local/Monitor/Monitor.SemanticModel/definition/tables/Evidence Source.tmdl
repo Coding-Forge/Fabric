@@ -1,0 +1,37 @@
+table 'Evidence Source'
+	lineageTag: c78921d9-b8de-5f8e-a30c-d23723b43b78
+
+	column 'Source Key'
+		dataType: string
+		isHidden
+		lineageTag: f6145f67-9a39-4bdf-90aa-306c10924153
+		summarizeBy: none
+		sourceColumn: source_key
+
+	column Module
+		dataType: string
+		lineageTag: 6d6a327a-9696-4463-a004-1b49c658f40d
+		summarizeBy: none
+		sourceColumn: module
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 1f4a01af-9a11-49a1-9d23-89838a55c466
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 04716fb6-9144-4c37-b619-c05d38cf3016
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	partition 'Evidence Source' = entity
+		mode: directLake
+		source
+			entityName: monitor_report_source
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

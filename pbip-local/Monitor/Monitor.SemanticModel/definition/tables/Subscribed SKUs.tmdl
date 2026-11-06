@@ -1,0 +1,132 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Subscribed SKUs'
+	lineageTag: 4da18963-a0f9-5517-9134-8fb7f9ad54e4
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: a223cdea-b6bd-4b19-a052-cafbbbbe6a0f
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 79b66bd3-a2bc-4061-82da-9bc413e73669
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: b5638b8f-406c-4217-b753-94d2790303b9
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 44599e2e-e859-4777-99f4-70aabe4d7f7c
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 06ab7298-4c05-4ba7-b7d2-adda4243a59d
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 986e0645-945d-4793-bfae-af80b50d706a
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 8dcef9a7-d9d4-4362-99d7-b2825506c8bf
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: fa6dac53-27b1-4ff7-bdf2-4066dc4cc7d1
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 1829c028-4fd9-4a3b-addc-7dbdeadec8cc
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: fbaff60b-66d0-4441-98c5-53d925ce1be4
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 3280f28e-ce0c-4e13-a051-fbf6b2f013fc
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'SKU ID'
+		dataType: string
+		lineageTag: 0047766c-2003-4e47-bf23-3cc4d6f0320f
+		summarizeBy: none
+		sourceColumn: sku_id
+
+	column 'SKU Part Number'
+		dataType: string
+		lineageTag: 71e92f78-681a-4025-8645-980595fbd087
+		summarizeBy: none
+		sourceColumn: sku_part_number
+
+	column 'Capability Status'
+		dataType: string
+		lineageTag: f7c07b9f-8aeb-4468-bebd-fd3f725cb649
+		summarizeBy: none
+		sourceColumn: capability_status
+
+	column 'Consumed Units'
+		dataType: int64
+		lineageTag: 4f156122-ca4e-4a1b-b621-9878b0d16e1c
+		summarizeBy: none
+		sourceColumn: consumed_units
+
+	column 'Enabled Units'
+		dataType: int64
+		lineageTag: c1b290b6-4913-4f51-a278-78f62b95c32b
+		summarizeBy: none
+		sourceColumn: enabled_units
+
+	column 'Suspended Units'
+		dataType: int64
+		lineageTag: e0cd307e-3b7e-42ca-b5c6-4990196466d3
+		summarizeBy: none
+		sourceColumn: suspended_units
+
+	column 'Warning Units'
+		dataType: int64
+		lineageTag: 34a5ea55-00a5-42af-97dd-612bae14204d
+		summarizeBy: none
+		sourceColumn: warning_units
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 08bedf4d-2c95-43fc-9908-ea52b1b64e47
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Subscribed SKUs' = entity
+		mode: directLake
+		source
+			entityName: monitor_subscribed_skus
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

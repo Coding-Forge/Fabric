@@ -1,0 +1,85 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "impact_source_type_bar",
+  "position": {
+    "x": 650,
+    "y": 470,
+    "z": 3010,
+    "height": 300,
+    "width": 560,
+    "tabOrder": 3010
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasourceInstances"
+                    }
+                  },
+                  "Property": "DatasourceType"
+                }
+              },
+              "queryRef": "CatalogDatasourceInstances.DatasourceType",
+              "nativeQueryRef": "DatasourceType",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "CatalogDatasourceInstances"
+                        }
+                      },
+                      "Property": "DatasourceId"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(CatalogDatasourceInstances.DatasourceId)",
+              "nativeQueryRef": "Count of DatasourceId"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Datasource instances by type'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

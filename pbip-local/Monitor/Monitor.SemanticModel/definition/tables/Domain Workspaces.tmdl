@@ -1,0 +1,108 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Domain Workspaces'
+	lineageTag: a17f76c8-2218-5f88-b605-d481d738177b
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 24277d31-ba8f-4c4a-82b3-a88e650715de
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 29b181f4-3728-4e95-a2a4-71c8fb396a32
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 50d4ff96-f7b7-4f34-bc7f-7ad0b123467d
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: ed47208f-4f18-4aea-9275-5fd6290dfa5c
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 0b335bd9-36cc-4631-89ae-e228a9a4d8b4
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: bdc67492-aa15-42c5-8773-574e12594644
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 8f411bfd-08d1-473b-b651-d7ed118596fc
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 51c95c17-381c-4cb9-a9ee-689e8de36b68
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 6d4c579b-8718-4a08-bbd9-f4623e069d69
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: a74b733e-3165-4fe4-91a5-853a9679a599
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 1d066394-bcca-42d2-8948-407126c122c5
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Domain ID'
+		dataType: string
+		lineageTag: cd396533-abd5-48ea-ab3f-0f7b23f3a00b
+		summarizeBy: none
+		sourceColumn: domain_id
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: 2f692c74-993a-4fd4-8d9f-3d6307796d9e
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Workspace Name'
+		dataType: string
+		lineageTag: f1dc2bda-4e7b-4c4b-9ce6-2b332892bed8
+		summarizeBy: none
+		sourceColumn: workspace_name
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 76780541-ea2c-4b6e-8803-9c03e062853a
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Domain Workspaces' = entity
+		mode: directLake
+		source
+			entityName: monitor_domain_workspaces
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

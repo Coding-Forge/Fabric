@@ -1,0 +1,114 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Permission Cycles'
+	lineageTag: 348709fb-a736-52fe-b988-23c67fce9cfb
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: d9ceefad-7a6e-49c5-831f-1780526e1d9a
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: f7ec74aa-cdc2-46f0-93ab-089c33bb3ec0
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: c3bfbd56-32f1-4470-8bbe-8157cfc6f432
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 7044bd78-cf85-42ab-92b6-99f830850e69
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 842f5873-afab-4854-8e74-8eee1ec64b70
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 48d42322-6800-42f5-9b1d-a00586e9a182
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 8fd589bb-2f68-4aea-b6b4-8f01273ebfe0
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 39dbf394-6f05-43d0-8d3e-51dfbeb4ceb5
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 16dd378e-3fce-40a8-a4f9-549877b863f8
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 24f6f990-1093-4514-b547-6f6519b837fe
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: cb119cde-b8e6-4c6a-8a73-80989600084f
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Chain Valid'
+		dataType: boolean
+		lineageTag: db991439-b8a5-4d8d-9b86-7f0b56d9e856
+		summarizeBy: none
+		sourceColumn: chain_valid
+
+	column 'Cycle Finished'
+		dataType: boolean
+		lineageTag: e309e337-093a-4e4e-beaa-1fed1d36f3c5
+		summarizeBy: none
+		sourceColumn: cycle_finished
+
+	column 'Cycle Healthy'
+		dataType: boolean
+		lineageTag: 697c3a06-2a9a-447b-8d5a-0d65f5067284
+		summarizeBy: none
+		sourceColumn: cycle_healthy
+
+	column 'Slice Count'
+		dataType: int64
+		lineageTag: e9a7a0f2-28a0-48f3-abe3-3bacd3fcb8ad
+		summarizeBy: none
+		sourceColumn: slice_count
+
+	column 'Selected Items'
+		dataType: int64
+		lineageTag: f00935c3-813e-455d-bfb7-8d62acc4c727
+		summarizeBy: none
+		sourceColumn: selected_items
+
+	partition 'Permission Cycles' = entity
+		mode: directLake
+		source
+			entityName: monitor_permission_cycles
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

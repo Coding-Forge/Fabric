@@ -1,0 +1,47 @@
+table 'License SKU'
+	lineageTag: 5f1961ae-82d8-588a-bf89-fb274e5732dc
+
+	column 'Entity Key'
+		dataType: string
+		isHidden
+		lineageTag: 84bb59c1-edc9-459a-80ba-81631d5f2226
+		summarizeBy: none
+		sourceColumn: entity_key
+
+	column 'Entity ID'
+		dataType: string
+		lineageTag: cd2bf7ee-88a4-457f-b330-4803d344448d
+		summarizeBy: none
+		sourceColumn: entity_id
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: 712f3487-6b5e-4966-b5ae-c2e0c6b338c6
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column Label
+		dataType: string
+		lineageTag: b7109531-e9ea-46be-992a-ca892bef3d21
+		summarizeBy: none
+		sourceColumn: label
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: d20dd8f5-3f0e-406f-b1bd-3bbdfb0a6f37
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Label Basis'
+		dataType: string
+		lineageTag: b26fd890-9681-4927-922f-c73b9c21224a
+		summarizeBy: none
+		sourceColumn: label_basis
+
+	partition 'License SKU' = entity
+		mode: directLake
+		source
+			entityName: monitor_report_sku
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

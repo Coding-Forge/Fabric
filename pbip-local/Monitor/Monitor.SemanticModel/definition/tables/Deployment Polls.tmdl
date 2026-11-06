@@ -1,0 +1,108 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Deployment Polls'
+	lineageTag: 92143d7b-7dcf-5fe8-bb26-fd0de6abf9b8
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 9763ef67-5377-4e4c-a6cd-ccc74a97edaa
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 87a732e0-04c0-48e2-b0b2-8fa2a4c795f7
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 19a689cc-a310-4c5c-b492-a15b6f3cfc45
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 468b17da-5972-4399-9fd7-3cdf05c8fe3e
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: ff1838b3-5e39-432a-b224-d76ad8cb18eb
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 1f551f18-f3b4-4277-b008-6fe5fb39e14e
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: fa13a8e9-9942-4bd4-bcb5-f3210cd25384
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 612bb97a-d44b-47fe-a315-4fcf843017c3
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 699284e1-5b0b-49bd-a1f6-f9409f154935
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 55cb2051-818e-4311-a248-66d3ef25b0e8
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: de931d81-b8ed-402e-b802-6d12c36ffb3a
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Pipeline ID'
+		dataType: string
+		lineageTag: 317a3059-13b1-4f8a-a3aa-39fd90b84027
+		summarizeBy: none
+		sourceColumn: pipeline_id
+
+	column 'Record Count'
+		dataType: int64
+		lineageTag: f710fde6-0d8a-46b7-80e9-d0f8c00ab8fe
+		summarizeBy: none
+		sourceColumn: record_count
+
+	column 'Resource Outcome'
+		dataType: string
+		lineageTag: 9622144d-1bdc-4151-8d1f-26bd5362d502
+		summarizeBy: none
+		sourceColumn: resource_outcome
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 983da58c-e7a3-463c-90dc-cf4c46188ab8
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Deployment Polls' = entity
+		mode: directLake
+		source
+			entityName: monitor_deployment_operation_resources
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

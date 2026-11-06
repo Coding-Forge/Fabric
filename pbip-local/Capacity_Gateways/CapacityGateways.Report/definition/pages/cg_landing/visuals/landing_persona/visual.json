@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "landing_persona",
+  "position": {
+    "x": 100,
+    "y": 785,
+    "z": 230,
+    "height": 150,
+    "width": 1650,
+    "tabOrder": 230
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Analyst persona: curious, playful, very accurate. Think of this as a map: capacities are operating zones, gateways are connection points, datasources are trails, and workspaces are business areas that depend on reliable paths.",
+                    "textStyle": {
+                      "fontSize": "22pt",
+                      "fontWeight": "bold"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

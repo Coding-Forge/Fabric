@@ -1,0 +1,47 @@
+table Principal
+	lineageTag: 5a000216-be6e-571c-960a-b93e68e00453
+
+	column 'Entity Key'
+		dataType: string
+		isHidden
+		lineageTag: 38d13657-a658-471f-92cf-a16c301175a4
+		summarizeBy: none
+		sourceColumn: entity_key
+
+	column 'Entity ID'
+		dataType: string
+		lineageTag: e68a4b2e-2a3d-4d77-b8cc-4d8faa6ff3a6
+		summarizeBy: none
+		sourceColumn: entity_id
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: a148ec32-87ac-498b-a6a3-6560fa19b43b
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column Label
+		dataType: string
+		lineageTag: 59c9ba3e-74e4-41ec-9d8e-012d60d1dae3
+		summarizeBy: none
+		sourceColumn: label
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: ab549c70-c6d7-43df-8a4f-0ef477576dc8
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Label Basis'
+		dataType: string
+		lineageTag: a820a154-76c9-4d2d-932f-4e0e5652c3c5
+		summarizeBy: none
+		sourceColumn: label_basis
+
+	partition Principal = entity
+		mode: directLake
+		source
+			entityName: monitor_report_principal
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

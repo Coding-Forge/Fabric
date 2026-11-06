@@ -1,0 +1,114 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Organization Sharing'
+	lineageTag: 122eca19-ddb1-519f-bfb3-e247b871c357
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: fea5f987-3352-4756-b638-56e5a6498661
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 5fb0b1d7-cc82-43ef-94d2-f0a830c0f2f5
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: c81936de-f63d-443d-9505-20873efae5e0
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: a1f29d73-218d-4f2f-9cd0-7042fea243d8
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: ebf06ef2-63c1-45ac-92c6-95171236a3a4
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: ebe2aee9-c459-4343-90e4-593b4c16599c
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 35e142cd-4aaa-4d86-986f-427a479734ec
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 3e1fbd78-98f0-4d04-a007-3991ca6566e3
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 365690e4-0c5d-4047-9a90-323d19cddfc8
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 39e7fbd7-acbe-491c-b473-3b36ce94810a
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: cd5529e5-6e8f-4270-8f5f-89b3645f6026
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Artifact ID'
+		dataType: string
+		lineageTag: 7c51f0e7-f170-4bfb-b39d-2bb531409e90
+		summarizeBy: none
+		sourceColumn: artifact_id
+
+	column 'Artifact Type'
+		dataType: string
+		lineageTag: 0f65b837-ce8e-4543-a49e-9df49b20c390
+		summarizeBy: none
+		sourceColumn: artifact_type
+
+	column 'Access Right'
+		dataType: string
+		lineageTag: faf72c71-ab76-4c8c-a52e-3f95aac44310
+		summarizeBy: none
+		sourceColumn: access_right
+
+	column 'Share Type'
+		dataType: string
+		lineageTag: c574e8ee-beac-44ca-b9e6-87426a9c68b6
+		summarizeBy: none
+		sourceColumn: share_type
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 25bd8b09-76b0-4fb4-a60c-17297c27292a
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Organization Sharing' = entity
+		mode: directLake
+		source
+			entityName: monitor_organization_shares
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

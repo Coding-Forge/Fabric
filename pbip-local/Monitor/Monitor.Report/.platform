@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "Monitor"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "67c33710-9bfb-423b-aa79-4ed92e9a11c8"
+  }
+}

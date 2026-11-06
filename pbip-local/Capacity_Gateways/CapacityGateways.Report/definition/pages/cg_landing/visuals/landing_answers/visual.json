@@ -1,0 +1,82 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "landing_answers",
+  "position": {
+    "x": 690,
+    "y": 360,
+    "z": 210,
+    "height": 300,
+    "width": 560,
+    "tabOrder": 210
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "This report answers:",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "• Which capacities are active and where?",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "• Which workspaces are tied to capacity?",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "• Do we have gateway metadata yet?",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "• Which datasources and gateway users exist?",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  },
+                  {
+                    "value": "\n"
+                  },
+                  {
+                    "value": "• Where should BI analysts investigate refresh, dependency, or stewardship gaps?",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

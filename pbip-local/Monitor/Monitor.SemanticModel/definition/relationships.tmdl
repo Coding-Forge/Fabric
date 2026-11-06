@@ -1,0 +1,292 @@
+relationship c03bd7a4-f197-5e48-9fb2-663b20ec618e
+	fromColumn: 'Collection Health'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship d0002156-c16f-55c5-b3f9-db680ae6f694
+	fromColumn: 'Item Inventory'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship b7592d12-e52c-52cd-889e-bdbc45430a8b
+	fromColumn: 'Permission Cycles'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 0a6a5138-2c4b-5a49-9d46-832f1c4bc34d
+	fromColumn: 'Permission Polls'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship fdbe4f4f-0872-5bf8-9b54-39822386cb4f
+	fromColumn: 'Permission Grants'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship e32adffc-6aa4-5c0a-9a9a-3d7bfe2ef0b5
+	fromColumn: 'Job Polls'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship c0b4c3dd-65aa-57dc-82e5-70740cda4441
+	fromColumn: 'Job History'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 91e03d59-47ee-535e-95cb-771c788bb82d
+	fromColumn: 'Lineage Coverage'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship b4a0445e-ed17-53dc-85da-74e7056828fc
+	fromColumn: 'Lineage Edges'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship aae8af9d-dd42-5413-8c2d-87d3269ddf21
+	fromColumn: 'Lineage Diagnostics'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship caf1da7c-4fb0-545f-96bd-a201e8363285
+	fromColumn: 'Domain Coverage'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 6c321716-dfd2-5a54-986b-fc4cbc24c362
+	fromColumn: 'Activity Events'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship b421774a-001e-5c01-ad44-e3fb12306142
+	fromColumn: 'Workspace Catalog'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 43f00e14-4ccc-5df8-a81f-50451101227f
+	fromColumn: 'Item Catalog'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship a5fe6d06-78f5-5c12-bf28-773abfbe04c7
+	fromColumn: 'Semantic Model Catalog'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship de9a4534-a97d-5914-b0f8-943bc17fba30
+	fromColumn: 'Model Tables'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 2d83c3aa-fe64-520b-884d-8a564d42d476
+	fromColumn: 'Model Columns'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship d10deaab-8383-57c9-b8b6-69addd5ff7ba
+	fromColumn: 'Model Measures'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 16cd2cc1-3b9b-5210-b12c-5baa8a278333
+	fromColumn: 'Model Relationships'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 5bdf5f54-20c1-5297-88f1-64b651dec5c9
+	fromColumn: 'Connection Inventory'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 68ea3914-9d1c-5cd2-a4ac-027728cd82ab
+	fromColumn: 'Gateway Inventory'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship d9aba462-713c-5f2c-9bdd-19f9cacf16c2
+	fromColumn: 'Gateway Datasources'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 1ac1bd8d-4a56-527a-a285-76237eb24478
+	fromColumn: 'Gateway Status'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 8fe6bece-6af2-57a7-9ed0-8f6e84961831
+	fromColumn: 'Refresh History'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 69a4b7ab-91b4-5042-bdb2-0e8ba0aac1bc
+	fromColumn: Refreshables.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 2250b674-d9ef-569f-9004-505b20c24a21
+	fromColumn: 'App Inventory'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 1550189b-ef07-5c09-873d-2e1037d95ed0
+	fromColumn: 'Capacity Inventory'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship b8de5a51-684a-5e27-b2d8-ec3e7c412ada
+	fromColumn: 'Capacity Metrics'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 0081d7fa-35bf-5510-9937-d8bbb68b9588
+	fromColumn: 'Directory Users'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 2b64f0bc-e07d-51f2-aa6f-4446f2de9345
+	fromColumn: 'Directory Groups'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 50f4d8ac-a7a2-58ac-b572-75a7a3cd4a3f
+	fromColumn: 'Group Memberships'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 46421753-7802-59b5-8f95-d2fc8ded1900
+	fromColumn: 'User Licenses'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 5ca7596d-e514-58fe-8acc-ba9ea97efdb0
+	fromColumn: 'Subscribed SKUs'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 927fb55f-24d2-5834-abdb-0e35ca19c21f
+	fromColumn: 'Workspace Role Coverage'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship ee8a1fc9-3274-5149-83ff-108aa717e6ed
+	fromColumn: 'Workspace Role Assignments'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship fdef08ce-124f-53be-a057-2859a50e8888
+	fromColumn: 'Tenant Settings'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship aff2177d-469c-5ac7-9343-04ec4fde50e5
+	fromColumn: 'Delegated Setting Scopes'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship ff21d079-32a3-54c4-bad9-f1ef55fedd66
+	fromColumn: 'Delegated Overrides'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 9e881b17-ad40-56be-a707-936473f80a64
+	fromColumn: 'Setting Group Rules'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 39c4743a-8a4e-55e8-9bb5-ebdb254e23f4
+	fromColumn: 'Domain Inventory'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 6f1f3dec-0936-5ca6-8fbc-605522ddaec5
+	fromColumn: 'Domain Workspaces'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 693b6918-f67a-5a9b-b93d-8c62d692807e
+	fromColumn: 'Git Connections'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship bf203b08-9344-5c28-96b4-bd6406d78848
+	fromColumn: 'Tag Inventory'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 942868ff-8387-544d-b377-174247e09295
+	fromColumn: 'Organization Sharing'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship bbbefa5a-494e-5be0-8596-3613d99561e5
+	fromColumn: 'Public Sharing'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 0b8fa1fc-904d-5c0b-b8ab-8a7ea427e3dd
+	fromColumn: 'Deployment Pipelines'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship c9e1eb5d-2fa6-51bb-aab8-d24cacb477d0
+	fromColumn: 'Deployment Polls'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship f63b7f73-859e-5eca-aa0a-2cea50c80aa5
+	fromColumn: 'Deployment Operations'.'Observation ID'
+	toColumn: 'Observation Context'.'Observation ID'
+
+relationship 3526a65c-9420-5be7-adf9-dfc1d64009ec
+	fromColumn: 'Observation Context'.'Workspace Key'
+	toColumn: Workspace.'Entity Key'
+
+relationship 14fb9b7a-2426-58b1-80a9-3f0772438ea1
+	fromColumn: 'Observation Context'.'Item Key'
+	toColumn: Item.'Entity Key'
+
+relationship 6e03bec4-53b2-5c84-adbd-e8a0277b9320
+	fromColumn: 'Observation Context'.'Capacity Key'
+	toColumn: Capacity.'Entity Key'
+
+relationship 2b8e58bd-856b-51ec-aeb1-9eb8a1fc25b2
+	fromColumn: 'Observation Context'.'Gateway Key'
+	toColumn: Gateway.'Entity Key'
+
+relationship 0a0109bd-1391-5f32-b180-e668bd08597e
+	fromColumn: 'Observation Context'.'Connection Key'
+	toColumn: Connection.'Entity Key'
+
+relationship 510b4d6d-1cb0-517a-9e3a-6b198e443262
+	fromColumn: 'Observation Context'.'Principal Key'
+	toColumn: Principal.'Entity Key'
+
+relationship 92d4faa1-2fae-522f-ac57-33915618b367
+	fromColumn: 'Observation Context'.'Group Key'
+	toColumn: 'Directory Group'.'Entity Key'
+
+relationship d4b78df4-be76-55df-93c0-f39f3f817b27
+	fromColumn: 'Observation Context'.'SKU Key'
+	toColumn: 'License SKU'.'Entity Key'
+
+relationship 36718901-e5be-5035-8b57-c1e2d8176c95
+	fromColumn: 'Observation Context'.'Domain Key'
+	toColumn: Domain.'Entity Key'
+
+relationship fd7f43c3-e585-55dc-ab26-30f74f7032fb
+	fromColumn: 'Observation Context'.'Pipeline Key'
+	toColumn: 'Deployment Pipeline'.'Entity Key'
+
+relationship 429cb2b3-55f9-57d1-9a1c-b67c83790f3e
+	fromColumn: 'Observation Context'.'Datasource Key'
+	toColumn: Datasource.'Entity Key'
+
+relationship f5a82f18-4b9a-54bd-970a-6cc4b70c39bd
+	fromColumn: 'Observation Context'.'Setting Key'
+	toColumn: Setting.'Entity Key'
+
+relationship 9382be0a-1659-508d-aff8-cfaf5e9cd858
+	fromColumn: 'Observation Context'.'App Key'
+	toColumn: Application.'Entity Key'
+
+relationship ce7e79c9-20b3-5556-a897-d6ca93b124e9
+	fromColumn: 'Observation Context'.'Tag Key'
+	toColumn: Tag.'Entity Key'
+
+relationship d0ed3bd6-4c89-56af-9813-f3cd2c4489d5
+	fromColumn: 'Observation Context'.'Related Workspace Key'
+	toColumn: 'Related Workspace'.'Entity Key'
+
+relationship 8c474216-31b0-5c43-a8ef-7ac607e08573
+	fromColumn: 'Observation Context'.'Related Item Key'
+	toColumn: 'Related Item'.'Entity Key'
+
+relationship 90ff1d2c-87a5-5ed5-a9d3-f69917244e4c
+	fromColumn: 'Observation Context'.'Source Key'
+	toColumn: 'Evidence Source'.'Source Key'
+
+relationship 87dd3de1-8d16-51b6-bde6-f864c76fbd6a
+	fromColumn: 'Observation Context'.Dataset
+	toColumn: Dataset.Dataset
+
+relationship afc611b7-69b8-567a-b890-874d63879375
+	fromColumn: 'Observation Context'.'Observed Date Key'
+	toColumn: 'Collection Date'.'Date Key'
+
+relationship 69aa9755-f9c5-527f-bba1-bedfcf9bdb53
+	fromColumn: 'Observation Context'.'Source Date Key'
+	toColumn: 'Source Folder Date'.'Date Key'
+
+relationship 77e2d6aa-80d3-5d6f-9368-97de0f628633
+	fromColumn: 'Observation Context'.'Event Date Key'
+	toColumn: 'Event Date'.'Date Key'
+
+relationship ac6b9fae-fe2d-5734-a322-36f8264273fa
+	fromColumn: 'Observation Context'.'Metric Date Key'
+	toColumn: 'Metric Query Date'.'Date Key'
+
+relationship 22becb05-89c4-5665-aca0-3fd70f58037d
+	fromColumn: 'Permission Cycles'.Mode
+	toColumn: 'Permission Mode'.Mode
+
+relationship 2f5986c0-d69a-5943-99e1-40d852cb1fa3
+	fromColumn: 'Permission Polls'.Mode
+	toColumn: 'Permission Mode'.Mode
+
+relationship f4f5c881-eefd-5ff4-9395-966552a33868
+	fromColumn: 'Permission Grants'.Mode
+	toColumn: 'Permission Mode'.Mode
+

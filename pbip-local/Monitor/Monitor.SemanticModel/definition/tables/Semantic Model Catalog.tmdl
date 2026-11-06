@@ -1,0 +1,132 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Semantic Model Catalog'
+	lineageTag: 7780a9eb-d126-55b9-a5ac-91e9c743c618
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 166bd310-b3e0-486a-8e9c-959153ad4062
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: f6fe76a4-8164-4181-a514-37e2aa0953c0
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 2a1adecb-a871-4fdd-881b-a60e4ee6e4b4
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: ec7cda8b-a5ab-4557-9360-d79d7721624c
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 65fd755b-4f68-4664-a9f3-2c89478cad4f
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 94e5b31a-befa-46ef-8fe0-9d0b33ebbf9a
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 6450860a-9af4-4fe5-bfb4-b14d3c990484
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: d7afb451-af15-409b-877a-71b5d6789ae3
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 1ae6e446-fe3e-4214-93d5-8e46eb3d3320
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 2a3af098-03ef-4e9f-8840-57835ae6cf03
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: f07828cc-669f-4eec-9201-a7f1151e5a38
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: c6bdfcd0-c966-4a34-8e2c-02cf971a6af9
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Item ID'
+		dataType: string
+		lineageTag: eb55ff26-575b-4625-9127-3b55b58e5669
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 82f9dc16-1a4b-4211-949f-598a0e1646be
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Model Name'
+		dataType: string
+		lineageTag: cfc2f8f6-f59d-4281-ab7d-b07376ddce3e
+		summarizeBy: none
+		sourceColumn: model_name
+
+	column 'Schema Coverage'
+		dataType: string
+		lineageTag: 53c22dc3-2be0-429f-bc50-1d198dcf5e4f
+		summarizeBy: none
+		sourceColumn: schema_coverage
+
+	column 'Table Count'
+		dataType: int64
+		lineageTag: ba66ba59-8c4b-4681-8ab1-4e0e2a739673
+		summarizeBy: none
+		sourceColumn: table_count
+
+	column 'Relationship Count'
+		dataType: int64
+		lineageTag: 2517f257-d54f-4b42-abb9-bbffe5d1b32c
+		summarizeBy: none
+		sourceColumn: relationship_count
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: a421f0d6-79a3-4fa3-a16c-9986b7c285cc
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Semantic Model Catalog' = entity
+		mode: directLake
+		source
+			entityName: monitor_catalog_models
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

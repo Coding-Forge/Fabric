@@ -1,0 +1,202 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "impact_table",
+  "position": {
+    "x": 40,
+    "y": 815,
+    "z": 4000,
+    "height": 265,
+    "width": 1790,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayImpactBridge"
+                    }
+                  },
+                  "Property": "WorkspaceName"
+                }
+              },
+              "queryRef": "GatewayImpactBridge.WorkspaceName",
+              "nativeQueryRef": "WorkspaceName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayImpactBridge"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "GatewayImpactBridge.DatasetName",
+              "nativeQueryRef": "DatasetName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayImpactBridge"
+                    }
+                  },
+                  "Property": "DatasourceInstanceId"
+                }
+              },
+              "queryRef": "GatewayImpactBridge.DatasourceInstanceId",
+              "nativeQueryRef": "DatasourceInstanceId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayImpactBridge"
+                    }
+                  },
+                  "Property": "DatasourceType"
+                }
+              },
+              "queryRef": "GatewayImpactBridge.DatasourceType",
+              "nativeQueryRef": "DatasourceType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayImpactBridge"
+                    }
+                  },
+                  "Property": "GatewayId"
+                }
+              },
+              "queryRef": "GatewayImpactBridge.GatewayId",
+              "nativeQueryRef": "GatewayId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayImpactBridge"
+                    }
+                  },
+                  "Property": "Server"
+                }
+              },
+              "queryRef": "GatewayImpactBridge.Server",
+              "nativeQueryRef": "Server"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayImpactBridge"
+                    }
+                  },
+                  "Property": "Database"
+                }
+              },
+              "queryRef": "GatewayImpactBridge.Database",
+              "nativeQueryRef": "Database"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayImpactBridge"
+                    }
+                  },
+                  "Property": "Url"
+                }
+              },
+              "queryRef": "GatewayImpactBridge.Url",
+              "nativeQueryRef": "Url"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayImpactBridge"
+                    }
+                  },
+                  "Property": "GatewayDatasourceName"
+                }
+              },
+              "queryRef": "GatewayImpactBridge.GatewayDatasourceName",
+              "nativeQueryRef": "GatewayDatasourceName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayImpactBridge"
+                    }
+                  },
+                  "Property": "CredentialType"
+                }
+              },
+              "queryRef": "GatewayImpactBridge.CredentialType",
+              "nativeQueryRef": "CredentialType"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9.0D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Workspace -> Dataset -> Datasource -> Gateway bridge'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "gateway_user_rights",
+  "position": {
+    "x": 650,
+    "y": 470,
+    "z": 3010,
+    "height": 320,
+    "width": 560,
+    "tabOrder": 3010
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GatewayUsers"
+                    }
+                  },
+                  "Property": "AccessRight"
+                }
+              },
+              "queryRef": "GatewayUsers.AccessRight",
+              "nativeQueryRef": "AccessRight",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "GatewayUsers"
+                        }
+                      },
+                      "Property": "UserId"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(GatewayUsers.UserId)",
+              "nativeQueryRef": "Count of UserId"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Gateway access rights'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

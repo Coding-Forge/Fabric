@@ -1,0 +1,120 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Gateway Status'
+	lineageTag: 15723ff9-eabd-58ef-b283-887171756e91
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 5913c0bd-009f-40ec-a0c9-38e02e99dcc9
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: b8a4fcf4-ca4f-4a61-a3f7-14ad7050aef1
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 12ef3ec3-58cc-43c6-ad85-00ab8d782d62
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 61754aab-8f75-4fbc-96d3-d256297dacd4
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 04da0bd2-cf42-4b48-b2ad-9e79f522882e
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: f87a2765-a978-4635-af56-d39967ed237e
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 6d676774-1f85-4766-a613-629f7d0b8317
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 509e1fa6-b217-4bfe-adc4-0a5d069b6feb
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 4793a538-142d-45cc-9dad-aaac2893a4fc
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 44ab475b-16df-4fa7-8ed0-a039b9853462
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: d5325206-c735-410f-93aa-8ae56742f573
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Gateway ID'
+		dataType: string
+		lineageTag: 37f61701-e8d3-4469-97df-9efe178bcc9b
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+	column 'Datasource ID'
+		dataType: string
+		lineageTag: cc7de09b-bd6d-4b8b-b38d-f6dc0624658b
+		summarizeBy: none
+		sourceColumn: datasource_id
+
+	column 'Status Code'
+		dataType: string
+		lineageTag: 5235ea55-4987-4a6d-a70b-7d2a5c1a849c
+		summarizeBy: none
+		sourceColumn: status_code
+
+	column 'HTTP Status'
+		dataType: int64
+		lineageTag: ade92a13-0d1b-4e1c-aca8-9d5edd9b57c1
+		summarizeBy: none
+		sourceColumn: http_status
+
+	column 'Connectivity Observation'
+		dataType: string
+		lineageTag: 82b3c94c-42a8-4890-9652-e79df57a823f
+		summarizeBy: none
+		sourceColumn: connectivity_observation
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 8d04d544-d8eb-412f-afe9-eae623340a57
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Gateway Status' = entity
+		mode: directLake
+		source
+			entityName: monitor_gateway_status
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

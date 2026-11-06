@@ -1,0 +1,16 @@
+table 'Permission Mode'
+	lineageTag: aa562b2c-961c-5d2e-99ae-07559b4b4d1b
+
+	column Mode
+		dataType: string
+		lineageTag: 519871e3-a1c0-4dc1-8876-4cbbc5cfeda3
+		summarizeBy: none
+		sourceColumn: mode
+
+	partition 'Permission Mode' = entity
+		mode: directLake
+		source
+			entityName: monitor_report_permission_mode
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

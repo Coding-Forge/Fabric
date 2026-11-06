@@ -1,0 +1,218 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
+  "name": "v_estate_11_10",
+  "position": {
+    "x": 24,
+    "y": 768,
+    "z": 10,
+    "tabOrder": 10,
+    "width": 1552,
+    "height": 200
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Evidence explorer - select a chart or slicer to investigate'"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Segoe UI Semibold'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#102A43'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#DFE7F1'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tenant Settings"
+                    }
+                  },
+                  "Property": "Setting Name"
+                }
+              },
+              "queryRef": "Tenant Settings.Setting Name",
+              "nativeQueryRef": "Setting Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tenant Settings"
+                    }
+                  },
+                  "Property": "Title"
+                }
+              },
+              "queryRef": "Tenant Settings.Title",
+              "nativeQueryRef": "Title"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tenant Settings"
+                    }
+                  },
+                  "Property": "Setting Group"
+                }
+              },
+              "queryRef": "Tenant Settings.Setting Group",
+              "nativeQueryRef": "Setting Group"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tenant Settings"
+                    }
+                  },
+                  "Property": "Enabled"
+                }
+              },
+              "queryRef": "Tenant Settings.Enabled",
+              "nativeQueryRef": "Enabled"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tenant Settings"
+                    }
+                  },
+                  "Property": "Enabled Group Count"
+                }
+              },
+              "queryRef": "Tenant Settings.Enabled Group Count",
+              "nativeQueryRef": "Enabled Group Count"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tenant Settings"
+                    }
+                  },
+                  "Property": "Excluded Group Count"
+                }
+              },
+              "queryRef": "Tenant Settings.Excluded Group Count",
+              "nativeQueryRef": "Excluded Group Count"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "howCreated": "Copilot"
+}

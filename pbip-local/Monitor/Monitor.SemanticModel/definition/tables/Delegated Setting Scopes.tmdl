@@ -1,0 +1,114 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Delegated Setting Scopes'
+	lineageTag: 853afb39-c1cc-54fa-93ac-cc4911e4dd76
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: dfe08315-baa3-4a48-bf59-f0888f342bc4
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 3b3510cf-8746-4a0d-8209-e6996a4ce4c9
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 87e8595f-130a-4004-b5b8-724962b03e38
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 4718aed0-539d-4f6d-9f52-5e0a28a9e695
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 45609aa2-26d9-412d-8490-d36552367055
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 9b458109-4cf1-4ad8-b578-5d6a3e10942f
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 1d9c3c19-c129-4aa6-ae6a-6d8565d3aae8
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 39336f59-e164-42a3-a03b-de2b02774e83
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: c07ad795-029f-4e92-acff-64b47b999855
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 51e0f710-c724-4dcb-9972-73439eef76af
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 5c805afd-ed63-4c96-b5da-30c0cca882a1
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Scope Type'
+		dataType: string
+		lineageTag: 8dc912ff-0413-4f44-8e22-edbf63a10acf
+		summarizeBy: none
+		sourceColumn: scope_type
+
+	column 'Entity ID'
+		dataType: string
+		lineageTag: 79291de4-ccc3-457c-bfd2-d8faf40c64e0
+		summarizeBy: none
+		sourceColumn: entity_id
+
+	column 'Settings Returned'
+		dataType: boolean
+		lineageTag: 670aa749-830c-4127-aa1e-661d434f893f
+		summarizeBy: none
+		sourceColumn: settings_returned
+
+	column 'Setting Count'
+		dataType: int64
+		lineageTag: e1565d83-1d4d-4518-b5fb-ada44c385d51
+		summarizeBy: none
+		sourceColumn: setting_count
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: b726acb9-62b9-4204-8256-71e10bee298d
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Delegated Setting Scopes' = entity
+		mode: directLake
+		source
+			entityName: monitor_delegated_setting_scopes
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

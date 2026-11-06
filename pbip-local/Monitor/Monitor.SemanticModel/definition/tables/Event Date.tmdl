@@ -1,0 +1,48 @@
+table 'Event Date'
+	lineageTag: 079c033c-5036-518d-bd08-6c0d966e9f14
+
+	column 'Date Key'
+		dataType: int64
+		isHidden
+		lineageTag: 55ce8156-976f-441a-b2f5-9befb036ca13
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column Date
+		dataType: dateTime
+		formatString: yyyy-MM-dd
+		lineageTag: f34628c4-e40b-4e7c-85ad-43dbdb33ef9b
+		summarizeBy: none
+		sourceColumn: date
+
+	column Year
+		dataType: int64
+		lineageTag: 554b6622-6914-4d61-9c0a-4e9e812a6651
+		summarizeBy: none
+		sourceColumn: year
+
+	column 'Month Number'
+		dataType: int64
+		lineageTag: 32166996-65ab-448e-aa67-b408caed9f0d
+		summarizeBy: none
+		sourceColumn: month_number
+
+	column 'Year Month'
+		dataType: string
+		lineageTag: d1d66d81-cd66-4c42-9a09-0628f7b698dc
+		summarizeBy: none
+		sourceColumn: year_month
+
+	column 'Day Of Week'
+		dataType: string
+		lineageTag: 181dddfa-03c7-4278-a58b-4f95edb648b8
+		summarizeBy: none
+		sourceColumn: day_of_week
+
+	partition 'Event Date' = entity
+		mode: directLake
+		source
+			entityName: monitor_report_date
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

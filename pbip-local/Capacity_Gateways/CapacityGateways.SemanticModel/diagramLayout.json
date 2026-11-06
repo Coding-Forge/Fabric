@@ -1,0 +1,165 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1929.3666944982795,
+            "y": 280.43435516630529
+          },
+          "nodeIndex": "Capacities",
+          "nodeLineageTag": "24a09c9e-cd94-48f3-b69f-85f5ec9be015",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 1
+        },
+        {
+          "location": {
+            "x": 840.98364448358586,
+            "y": 226.41946594590522
+          },
+          "nodeIndex": "CatalogDatasets",
+          "nodeLineageTag": "983df087-5cd6-4858-8dcd-f9358e48b023",
+          "size": {
+            "height": 295,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 1051.3666944982797,
+            "y": 1172.8567041462279
+          },
+          "nodeIndex": "CatalogDatasourceUsages",
+          "nodeLineageTag": "b7652218-b7b4-42aa-aca7-a62b20c87162",
+          "size": {
+            "height": 223,
+            "width": 289
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 1352.1852056767709,
+            "y": 548.27905312615076
+          },
+          "nodeIndex": "CatalogWorkspaces",
+          "nodeLineageTag": "2403fc67-9fc4-473d-b7c0-0d46d2eef19f",
+          "size": {
+            "height": 413,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 450.84317217308171
+          },
+          "nodeIndex": "GatewayDatasourceDetails",
+          "nodeLineageTag": "c4c0ed7f-1089-44ee-b3fa-a60fd8b6e36e",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 5
+        },
+        {
+          "location": {
+            "x": 336.28422476338562,
+            "y": 202.93263708292005
+          },
+          "nodeIndex": "GatewayDatasources",
+          "nodeLineageTag": "487de161-7903-4f6c-b115-5d5db29007c7",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 556.98364448358586,
+            "y": -50
+          },
+          "nodeIndex": "Gateways",
+          "nodeLineageTag": "db58f14e-4c6c-4edb-94fd-576027936b86",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 9.7197093125683978
+          },
+          "nodeIndex": "GatewayStatus",
+          "nodeLineageTag": "4ea81f66-20c9-4e76-86ba-2bf89e9154f9",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 8
+        },
+        {
+          "location": {
+            "x": 581.915417060718,
+            "y": 580.713408292456
+          },
+          "nodeIndex": "GatewayUsers",
+          "nodeLineageTag": "94e365ad-d580-47db-bb51-b74ae7d9c0e2",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 354.36669449827946,
+            "y": 967.71717758315265
+          },
+          "nodeIndex": "CatalogDatasourceInstances",
+          "nodeLineageTag": "bf751128-e29f-4a63-8fcb-01d717971960",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 10
+        },
+        {
+          "location": {
+            "x": 860.36669449827968,
+            "y": 681.928352073114
+          },
+          "nodeIndex": "GatewayImpactBridge",
+          "nodeLineageTag": "be3a2a2e-9568-45c3-b1ec-ee88953b1dc3",
+          "size": {
+            "height": 300,
+            "width": 382
+          },
+          "zIndex": 11
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

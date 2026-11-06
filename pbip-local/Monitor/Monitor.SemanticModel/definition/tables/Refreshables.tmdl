@@ -1,0 +1,138 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table Refreshables
+	lineageTag: ba069737-d213-5d34-ae70-41d5c0b6da70
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 87f80c68-b296-4e97-9066-b19f76513772
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: b4419029-9d00-4fb1-bd18-6943cda0bb02
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: cf30f8f6-bbf6-42c8-9b38-b94c8db4380e
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 09ab444c-4272-4968-9d70-c0e6e5ce7674
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 3effd8be-952c-4bf2-82a2-99a7bbe08ddb
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 018e4fc6-3a9d-4349-94da-bf6a0557b8b9
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: c24f9480-d842-48e0-8731-61e9a4a31d23
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 39d50acc-0320-45bd-971e-61be18f71281
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 637777d4-f007-4cd3-8a61-b672f4ab5de5
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 45aca19a-7b00-479a-9358-ac174d2315fa
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: e07ecf74-5f09-417d-9539-5cf69cccc5f8
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: 507fb645-ddab-4ce7-b147-7dce8cc01a58
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Item ID'
+		dataType: string
+		lineageTag: 5ac021fc-7d85-4f66-aeb1-fb3c3faa1d3a
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 8c004aed-8f22-40fd-b4fe-cc9d67cd1d29
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Dataset Name'
+		dataType: string
+		lineageTag: 2a7b56a6-d35e-4c61-93e3-1d1e2e66b77b
+		summarizeBy: none
+		sourceColumn: dataset_name
+
+	column 'Capacity ID'
+		dataType: string
+		lineageTag: 2bc6369e-3c2d-4070-8a83-bf880dd016d5
+		summarizeBy: none
+		sourceColumn: capacity_id
+
+	column 'Refresh Count'
+		dataType: int64
+		lineageTag: bcddb8dd-3880-4292-b635-e052b5b726aa
+		summarizeBy: none
+		sourceColumn: refresh_count
+
+	column 'Refresh Failures'
+		dataType: int64
+		lineageTag: 4b652900-8709-4b90-b75f-9c8d9e8bfa50
+		summarizeBy: none
+		sourceColumn: refresh_failures
+
+	column 'Schedule Enabled'
+		dataType: boolean
+		lineageTag: bdd3234c-1cc7-4029-8615-6564770bc43d
+		summarizeBy: none
+		sourceColumn: schedule_enabled
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: f41b139c-ffd0-4dd5-9682-86f95add0692
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition Refreshables = entity
+		mode: directLake
+		source
+			entityName: monitor_refreshable_observations
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

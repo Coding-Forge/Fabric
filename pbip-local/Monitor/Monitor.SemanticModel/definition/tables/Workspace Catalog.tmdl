@@ -1,0 +1,126 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Workspace Catalog'
+	lineageTag: 9cf59603-874e-5e2e-a3e2-ae36b83055c7
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: bfbfb0f2-e08a-4e54-b17c-bb6365ee0059
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 7c0f902a-795a-412a-a282-17f0a2b4ef8d
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: fc311501-1dba-4f61-a26d-f54eeafedcc2
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: ca2bd096-4156-464a-bfc3-5ad75676bdeb
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 8d626ad3-5764-4d5d-8667-d1ad380ec374
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: f07d1e5c-450c-4fde-bf71-7b07d51ef812
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 0730e3d5-e2e6-42e5-bbfc-883923a6268e
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 59c87cd2-a54b-4abb-8391-3b43f3f19f87
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: a9b0f7bb-c18e-4ae4-9431-741a6d0e3b3f
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: b90ab9b7-f65d-44fd-8cea-c9c187896d26
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: c6ec2b1c-a90d-4591-b2b3-570ac9505a6c
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: f6f1fd4b-3dd7-4d51-9aeb-8f61aa916116
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Workspace Name'
+		dataType: string
+		lineageTag: 49023c70-141b-4106-aca4-d8acad4983eb
+		summarizeBy: none
+		sourceColumn: workspace_name
+
+	column 'Workspace Type'
+		dataType: string
+		lineageTag: 6e37f3e0-20ce-4645-805f-a0a0359c3895
+		summarizeBy: none
+		sourceColumn: workspace_type
+
+	column State
+		dataType: string
+		lineageTag: 7e04cea5-f6d4-41a0-be91-5d59cf13506e
+		summarizeBy: none
+		sourceColumn: state
+
+	column 'Capacity ID'
+		dataType: string
+		lineageTag: 3eb7582e-b333-4f0a-a999-d8f38141988a
+		summarizeBy: none
+		sourceColumn: capacity_id
+
+	column 'Returned Collections JSON'
+		dataType: string
+		lineageTag: a75dc600-7373-4d17-906b-227ec332d464
+		summarizeBy: none
+		sourceColumn: returned_collections_json
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 124525f0-0cd9-4852-9957-9a9e3149f19c
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Workspace Catalog' = entity
+		mode: directLake
+		source
+			entityName: monitor_catalog_workspaces
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

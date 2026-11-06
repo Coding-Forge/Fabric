@@ -1,0 +1,126 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Collection Health'
+	lineageTag: 3cdd4f90-ef79-5b4f-9202-e049efd1234c
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 8db4bb0f-835d-4f09-aae4-1a8bb29c6a35
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 943bf437-c7c0-4eba-a382-4bc45f9cce28
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 5540a7f3-1944-47b0-98ba-8376d92e07c3
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 7f3a9f4c-f820-4fa1-82d4-e8b9e0a076d7
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 66464476-32e0-41f9-a320-a153242afa52
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: b0d14362-5e5b-47c7-a784-86bd5280e6c1
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 292423b0-5073-4be9-97c4-ea4a5ced2c76
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 793bcb39-825d-47a7-9485-dec58005a785
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 8a55b580-0e85-4ab2-bed9-27b7a51be437
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: e7ff3665-23b5-447e-9977-1b15fdcb865d
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 67de4f07-bfe8-43e5-9f25-87d92c7d3f67
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column Complete
+		dataType: boolean
+		lineageTag: 068b788a-d6ab-4058-ad9f-e1bc9e58316a
+		summarizeBy: none
+		sourceColumn: complete
+
+	column Finished
+		dataType: boolean
+		lineageTag: ecacd18a-7665-47f5-b479-5c91461275f5
+		summarizeBy: none
+		sourceColumn: finished
+
+	column 'Successful Resources'
+		dataType: int64
+		lineageTag: fe982cc3-fc92-4c68-bdb5-3afdeb92f7c0
+		summarizeBy: none
+		sourceColumn: successful_resources
+
+	column 'Failed Resources'
+		dataType: int64
+		lineageTag: 295769ac-4bc8-4bcc-bbd0-4a921cf29e9c
+		summarizeBy: none
+		sourceColumn: failed_resources
+
+	column 'Record Count'
+		dataType: int64
+		lineageTag: 10e7af2b-b266-4040-bd52-8c3090530eff
+		summarizeBy: none
+		sourceColumn: record_count
+
+	column Coverage
+		dataType: string
+		lineageTag: 6c39d117-74ac-4e12-a0f5-405aaa5c375d
+		summarizeBy: none
+		sourceColumn: coverage
+
+	column Issue
+		dataType: string
+		lineageTag: 7660c585-3f0e-400a-8462-b6d32f540c76
+		summarizeBy: none
+		sourceColumn: issue
+
+	partition 'Collection Health' = entity
+		mode: directLake
+		source
+			entityName: monitor_collection_health
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

@@ -1,0 +1,151 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Activity Events'
+	lineageTag: 07faa991-b5da-5910-8443-ad0ff8b57700
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 5c7af38a-25eb-4160-9d35-10e314f8359e
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 94fc2359-0717-4a71-8eb7-431953a44af6
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: bd144b46-ad9b-48c2-bade-82fc9eed2033
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: ffdad0bd-354b-49fd-a8d9-4175a37f1faf
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: cbece039-45f1-488e-99af-128110ee2dda
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: e1c0f177-8ddc-473e-805c-1234933f9ccb
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: bd481bd7-1334-47aa-b1aa-1ec2626474f8
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: a62ccb04-8ee9-4181-94cd-65258544c220
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 9fa56fc2-b5f8-4846-ac34-1b00960d8bf4
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 312a58a3-c411-4314-ac30-c02d3e3413ea
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 75a2a80a-ce50-4c91-b4d8-5122e4b83fc8
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: a3f44b2d-10ea-4f93-adc5-ccdde78726c0
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Item ID'
+		dataType: string
+		lineageTag: 36c8caf5-2595-4933-bdbb-685d0ff8a53b
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 80de77d6-397e-44ca-89a1-47ce64fb1952
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Event ID'
+		dataType: string
+		lineageTag: 1a16ae76-9ff2-45fe-ae37-f6eb55e733bb
+		summarizeBy: none
+		sourceColumn: event_id
+
+	column 'Event Time UTC'
+		dataType: string
+		lineageTag: ac051f04-ee76-4a86-8891-39360de81a13
+		summarizeBy: none
+		sourceColumn: event_time_utc
+
+	column Operation
+		dataType: string
+		lineageTag: e86bf088-7081-418b-9c8b-2f2e274a46d5
+		summarizeBy: none
+		sourceColumn: operation
+
+	column Workload
+		dataType: string
+		lineageTag: acb4f1e1-d7eb-4956-9c23-879cda21d113
+		summarizeBy: none
+		sourceColumn: workload
+
+	column 'Actor Key'
+		dataType: string
+		isHidden
+		lineageTag: 532133d9-eb56-4810-8b65-1fdeef4c3400
+		summarizeBy: none
+		sourceColumn: actor_key
+
+	column 'Actor Type'
+		dataType: string
+		lineageTag: 85fc3144-5c25-46c7-a49c-b7e767d921f2
+		summarizeBy: none
+		sourceColumn: actor_type
+
+	column 'Is Success'
+		dataType: boolean
+		lineageTag: 3dd30092-64f9-4fb5-a604-e2e5cf912d42
+		summarizeBy: none
+		sourceColumn: is_success
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 511739db-58a5-4929-bb75-c75d867f1c39
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Activity Events' = entity
+		mode: directLake
+		source
+			entityName: monitor_activity_events
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

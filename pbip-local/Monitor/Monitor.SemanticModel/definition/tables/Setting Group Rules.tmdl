@@ -1,0 +1,120 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Setting Group Rules'
+	lineageTag: 212b17ef-b1ff-5c19-a30b-ce6fa795b91a
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 79612b0a-c5ba-4ccd-9345-6dc3112e2bc7
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: e582c5fa-d6a9-4fb3-a182-51b2cc699b43
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 0c946f37-402f-4fbc-9fff-cbad6b6e3841
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: b50729c0-568c-40fe-a96c-0eab6a88d78e
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 34f13780-394b-4d95-bb6b-4c08b4db2946
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: c4ebd7b2-9e70-436e-92c7-6919c7f5d539
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 9317c30f-3a61-4e2b-ba32-f97c1cfc70fb
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: f9808330-b7db-43a0-9fa5-681be9dac74c
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 43576482-5c12-4706-a3ee-6b76fd168eea
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 3cef3595-6d43-4f5c-8de2-0206011ab837
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 933782ac-e5e0-4622-8f6d-31795b3f2839
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Scope Type'
+		dataType: string
+		lineageTag: 7aceb248-62c9-4727-a3ac-8bf859cb3341
+		summarizeBy: none
+		sourceColumn: scope_type
+
+	column 'Entity ID'
+		dataType: string
+		lineageTag: 7b746171-de35-4366-a7e7-9e0688de92f9
+		summarizeBy: none
+		sourceColumn: entity_id
+
+	column 'Setting Name'
+		dataType: string
+		lineageTag: 2efd34fd-64f0-4dfe-b6d6-88ebc70c4226
+		summarizeBy: none
+		sourceColumn: setting_name
+
+	column 'Group ID'
+		dataType: string
+		lineageTag: 0b6c9ee5-b4c9-4dfe-a981-be968c294a0a
+		summarizeBy: none
+		sourceColumn: group_id
+
+	column 'Group Rule'
+		dataType: string
+		lineageTag: d0ef4e13-6c36-4ed5-96bb-bba3d77f0646
+		summarizeBy: none
+		sourceColumn: group_rule
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 0f73acd4-07de-4bdc-a41c-7e22cd7cf65b
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Setting Group Rules' = entity
+		mode: directLake
+		source
+			entityName: monitor_tenant_setting_groups
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

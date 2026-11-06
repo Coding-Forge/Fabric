@@ -1,0 +1,971 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 1386,
+        "y": 2610
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 4374.3709240874914,
+            "y": 2012.9928992996893
+          },
+          "nodeIndex": "Estate Measures",
+          "nodeLineageTag": "dcdc2e74-4c12-55a9-b947-fa354d6fa88e",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 670.45130744942458,
+            "y": 1080.2119027033677
+          },
+          "nodeIndex": "Activity Events",
+          "nodeLineageTag": "07faa991-b5da-5910-8443-ad0ff8b57700",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2211.8295438437331,
+            "y": 3456.1711025238997
+          },
+          "nodeIndex": "App Inventory",
+          "nodeLineageTag": "8a75fe84-9f61-5933-9d99-35c9cfd20231",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1815.3222692064032,
+            "y": 864.11026006114162
+          },
+          "nodeIndex": "Application",
+          "nodeLineageTag": "f3ef533c-6e2c-5686-9f39-0a094486ee72",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3341.139084219456,
+            "y": 821.21666842932564
+          },
+          "nodeIndex": "Capacity",
+          "nodeLineageTag": "be28708c-577a-5b04-9401-8d67316f7a5f",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1525.8717745215667,
+            "y": 2493.7100457636238
+          },
+          "nodeIndex": "Capacity Inventory",
+          "nodeLineageTag": "1bcba263-aefb-5623-9269-e03e73f7c091",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 670.45130744942469,
+            "y": 681.37287733073254
+          },
+          "nodeIndex": "Capacity Metrics",
+          "nodeLineageTag": "d42d7ff3-e2fc-597a-87df-c5308d4298a7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2968.8383375769881,
+            "y": 4101.9857985993785
+          },
+          "nodeIndex": "Collection Date",
+          "nodeLineageTag": "d11c913d-983b-5689-b3a8-0d2b4deef495",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 414.88731288101189,
+            "y": 2140.9498205138561
+          },
+          "nodeIndex": "Collection Health",
+          "nodeLineageTag": "3cdd4f90-ef79-5b4f-9202-e049efd1234c",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3224.7658212195429,
+            "y": 2389.3119478233912
+          },
+          "nodeIndex": "Connection",
+          "nodeLineageTag": "02fcb291-c040-5918-8fec-9bc0902e8d49",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 829.77462576202379,
+            "y": 2467.7569776804366
+          },
+          "nodeIndex": "Connection Inventory",
+          "nodeLineageTag": "87a6cc6b-e73b-5af1-b791-2fbbc14c6d01",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2703.4256381366549,
+            "y": 0
+          },
+          "nodeIndex": "Dataset",
+          "nodeLineageTag": "86d21610-ba24-5d57-8342-a155a4b8a911",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1681.5898326954084,
+            "y": 474.91104862060638
+          },
+          "nodeIndex": "Datasource",
+          "nodeLineageTag": "8ba2a624-dd06-58e3-8034-b47ad672d957",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2397.9219648560711,
+            "y": 2502.0094516378736
+          },
+          "nodeIndex": "Delegated Overrides",
+          "nodeLineageTag": "c909a643-69dc-58d6-a27a-bfd521a2dce2",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1792.5970483040435,
+            "y": 1132.2988965665588
+          },
+          "nodeIndex": "Delegated Setting Scopes",
+          "nodeLineageTag": "853afb39-c1cc-54fa-93ac-cc4911e4dd76",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1535.25786912961,
+            "y": 788.11026006114162
+          },
+          "nodeIndex": "Deployment Operations",
+          "nodeLineageTag": "f59f32c8-ad84-5d59-99bd-27029dd741d6",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3544.4682606067163,
+            "y": 1500.7455267368291
+          },
+          "nodeIndex": "Deployment Pipeline",
+          "nodeLineageTag": "ce914b04-7da4-5cf8-a6af-1d24f53034d3",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2467.4635930698041,
+            "y": 2811.5485035634038
+          },
+          "nodeIndex": "Deployment Pipelines",
+          "nodeLineageTag": "436416e9-9811-567b-979c-d1e9ef171696",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2781.4545827927168,
+            "y": 1828.778488779094
+          },
+          "nodeIndex": "Deployment Polls",
+          "nodeLineageTag": "92143d7b-7dcf-5fe8-bb26-fd0de6abf9b8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1796.9422309627212,
+            "y": 3411.729376753271
+          },
+          "nodeIndex": "Directory Group",
+          "nodeLineageTag": "d017fbb3-96c7-5e83-a640-c8abc2402e1c",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1726.456658000649,
+            "y": 1874.326222914334
+          },
+          "nodeIndex": "Directory Groups",
+          "nodeLineageTag": "f5d3deca-4310-5e2b-a06b-8164af765926",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1377.5293477610571,
+            "y": 2974.5973586446353
+          },
+          "nodeIndex": "Directory Users",
+          "nodeLineageTag": "d6e3a285-6aee-524c-9d7c-2cc53737ba02",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3544.4682606067163,
+            "y": 1797.13078229321
+          },
+          "nodeIndex": "Domain",
+          "nodeLineageTag": "e5e03b1b-b7ea-58cc-a5a4-dcdca88a1266",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 414.88731288101189,
+            "y": 2904.7882891254048
+          },
+          "nodeIndex": "Domain Coverage",
+          "nodeLineageTag": "76907543-f9f6-58ee-82f4-6192daff5a4b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2484.9332726555203,
+            "y": 3242.5500619552458
+          },
+          "nodeIndex": "Domain Inventory",
+          "nodeLineageTag": "39c63494-3682-5d7f-b6d1-2cf3a47f68a0",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2677.3767455731204,
+            "y": 1518.7243406321072
+          },
+          "nodeIndex": "Domain Workspaces",
+          "nodeLineageTag": "a17f76c8-2218-5f88-b605-d481d738177b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2096.4771455764203,
+            "y": 1126.5106715889419
+          },
+          "nodeIndex": "Event Date",
+          "nodeLineageTag": "079c033c-5036-518d-bd08-6c0d966e9f14",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2899.8205855365322,
+            "y": 3595.8397369483455
+          },
+          "nodeIndex": "Evidence Source",
+          "nodeLineageTag": "c78921d9-b8de-5f8e-a30c-d23723b43b78",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1691.6052132640575,
+            "y": 3006.8420638722591
+          },
+          "nodeIndex": "Gateway",
+          "nodeLineageTag": "34fdda86-fb84-595c-a1c0-f477501f4e5a",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1551.9705156027983,
+            "y": 1268.9975729421535
+          },
+          "nodeIndex": "Gateway Datasources",
+          "nodeLineageTag": "1a55e94f-c540-576a-bca7-a354245130cc",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2096.4771455764203,
+            "y": 634.801546552437
+          },
+          "nodeIndex": "Gateway Inventory",
+          "nodeLineageTag": "4218b2c6-c33c-5a7b-a6df-2c8dabee6b9e",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1838.5988888032298,
+            "y": 1453.0912669503841
+          },
+          "nodeIndex": "Gateway Status",
+          "nodeLineageTag": "15723ff9-eabd-58ef-b283-887171756e91",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2725.245105718815,
+            "y": 2465.5581123246611
+          },
+          "nodeIndex": "Git Connections",
+          "nodeLineageTag": "36cd30e7-4787-582e-adba-817f53e2b200",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2092.1103587553243,
+            "y": 1632.5334407535408
+          },
+          "nodeIndex": "Group Memberships",
+          "nodeLineageTag": "a9924a5d-2233-5b66-9bf8-4f69aeef1ae3",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2052.5762801887922,
+            "y": 3152.5382049281152
+          },
+          "nodeIndex": "Item",
+          "nodeLineageTag": "9842031f-c8da-5b2e-bc74-0450161bd5ef",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 962.64203488004523,
+            "y": 3383.0419507369529
+          },
+          "nodeIndex": "Item Catalog",
+          "nodeLineageTag": "6ebf7c39-087d-5936-b25c-c7520307ea81",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 967.6899455955288,
+            "y": 2948.6442905614485
+          },
+          "nodeIndex": "Item Inventory",
+          "nodeLineageTag": "96b6e936-5c0b-5635-92d7-b96df243665d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 360.46040833730126,
+            "y": 1670.4367117670527
+          },
+          "nodeIndex": "Job History",
+          "nodeLineageTag": "c4331248-9c28-554e-9bb9-2ee54c673cdb",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1038.7927796431686,
+            "y": 1627.474757414335
+          },
+          "nodeIndex": "Job Polls",
+          "nodeLineageTag": "4b16bd50-8734-557b-850c-76c4423c4dfe",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2826.3727014619185,
+            "y": 2128.86844296945
+          },
+          "nodeIndex": "License SKU",
+          "nodeLineageTag": "5f1961ae-82d8-588a-bf89-fb274e5732dc",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1190.235034099325,
+            "y": 2005.7455862847839
+          },
+          "nodeIndex": "Lineage Coverage",
+          "nodeLineageTag": "e8dcb7e2-c99d-543c-b324-104bafb1ec00",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1399.5000567173076,
+            "y": 1631.3423194537447
+          },
+          "nodeIndex": "Lineage Diagnostics",
+          "nodeLineageTag": "8786b3b3-a0ea-5076-b3d4-c8696bc8a184",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 175.09682200082057,
+            "y": 2151.3240246480646
+          },
+          "nodeIndex": "Lineage Edges",
+          "nodeLineageTag": "2c8c5cf1-0a53-52cb-84ce-f89acffb39f5",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2553.9510246959762,
+            "y": 3952.7270498293574
+          },
+          "nodeIndex": "Metric Query Date",
+          "nodeLineageTag": "c3453bca-2c69-5f6e-84a8-e3e2c4ca83ac",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1468.8705108456368,
+            "y": 2006.813671045008
+          },
+          "nodeIndex": "Model Columns",
+          "nodeLineageTag": "cff810ca-767b-5fae-b0af-0f0f35c1256d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 552.8026327145169,
+            "y": 3280.8755666470252
+          },
+          "nodeIndex": "Model Measures",
+          "nodeLineageTag": "6675256b-f30a-5376-9803-bb38b415a2ae",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1244.6619386430357,
+            "y": 2338.5970529140559
+          },
+          "nodeIndex": "Model Relationships",
+          "nodeLineageTag": "bd27c6b3-35e6-5af2-aa33-adbfaec92b7f",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1528.1357947457082,
+            "y": 3455.4846715256472
+          },
+          "nodeIndex": "Model Tables",
+          "nodeLineageTag": "08587dd9-64f2-50ef-9fcb-2c0d5097bc7b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2026.798816841319,
+            "y": 2110.0869337177423
+          },
+          "nodeIndex": "Observation Context",
+          "nodeLineageTag": "67a88f6a-9d0c-5611-8d6c-102e0e1a8904",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3140.1324185998269,
+            "y": 2690.2184432575436
+          },
+          "nodeIndex": "Organization Sharing",
+          "nodeLineageTag": "122eca19-ddb1-519f-bfb3-e247b871c357",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3196.3418956737287,
+            "y": 2003.7457153953844
+          },
+          "nodeIndex": "Permission Cycles",
+          "nodeLineageTag": "348709fb-a736-52fe-b988-23c67fce9cfb",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 816.00853699362483,
+            "y": 2130.5735260389483
+          },
+          "nodeIndex": "Permission Grants",
+          "nodeLineageTag": "6d6904e0-1f1f-5d46-8410-cd41d4b4148e",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 0,
+            "y": 1938.1727232940545
+          },
+          "nodeIndex": "Permission Mode",
+          "nodeLineageTag": "aa562b2c-961c-5d2e-99ae-07559b4b4d1b",
+          "size": {
+            "height": 104,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 23.268125594118374,
+            "y": 2632.2113375290764
+          },
+          "nodeIndex": "Permission Polls",
+          "nodeLineageTag": "0775f5b3-22ec-542a-9444-14fa6052f7c8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3129.5809477257048,
+            "y": 1723.981130088438
+          },
+          "nodeIndex": "Principal",
+          "nodeLineageTag": "5a000216-be6e-571c-960a-b93e68e00453",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3092.2640584541323,
+            "y": 1243.0938172074261
+          },
+          "nodeIndex": "Public Sharing",
+          "nodeLineageTag": "226d4c8e-4bf8-5bc7-8a00-96b6d87f5ca3",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 775.34772121831327,
+            "y": 1644.6690314443388
+          },
+          "nodeIndex": "Refresh History",
+          "nodeLineageTag": "deb492da-9884-5af0-bf9f-ef8aea196d5c",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2882.350905950816,
+            "y": 2911.4165554974097
+          },
+          "nodeIndex": "Refreshables",
+          "nodeLineageTag": "ba069737-d213-5d34-ae70-41d5c0b6da70",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2626.716856724745,
+            "y": 3698.3100178260233
+          },
+          "nodeIndex": "Related Item",
+          "nodeLineageTag": "9fe7400f-f2a4-54df-a33e-da2c901c56de",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3314.7078984175441,
+            "y": 3672.8016118879818
+          },
+          "nodeIndex": "Related Workspace",
+          "nodeLineageTag": "e91d643a-9221-52dc-90ef-f504de855a6a",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1085.3386203304367,
+            "y": 1150.4550065727328
+          },
+          "nodeIndex": "Semantic Model Catalog",
+          "nodeLineageTag": "7780a9eb-d126-55b9-a5ac-91e9c743c618",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2703.4256381366549,
+            "y": 326.8491010415446
+          },
+          "nodeIndex": "Setting",
+          "nodeLineageTag": "b1904e91-1717-52af-a843-49397dd9be1b",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2352.6051733609247,
+            "y": 1347.3247450993094
+          },
+          "nodeIndex": "Setting Group Rules",
+          "nodeLineageTag": "212b17ef-b1ff-5c19-a30b-ce6fa795b91a",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2926.2517713384441,
+            "y": 779.58361085306137
+          },
+          "nodeIndex": "Source Folder Date",
+          "nodeLineageTag": "ee3921ab-ad04-56e1-bd8d-18d47218781d",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1961.3578123802376,
+            "y": 2525.9547509912472
+          },
+          "nodeIndex": "Subscribed SKUs",
+          "nodeLineageTag": "4da18963-a0f9-5517-9134-8fb7f9ad54e4",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3959.3555734877282,
+            "y": 2327.395724295116
+          },
+          "nodeIndex": "Tag",
+          "nodeLineageTag": "e409ec7c-8f45-57d5-9ca1-1e87afb81c83",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3544.4682606067163,
+            "y": 2049.3418342449941
+          },
+          "nodeIndex": "Tag Inventory",
+          "nodeLineageTag": "9311b2c0-7cd7-56ad-adf1-4a237a29b7e7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1120.3705562485984,
+            "y": 557.76556312765251
+          },
+          "nodeIndex": "Tenant Settings",
+          "nodeLineageTag": "c21c5c09-ddee-5f08-90ae-5e9ab86c8210",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2429.9235020819224,
+            "y": 1741.4172195236167
+          },
+          "nodeIndex": "User Licenses",
+          "nodeLineageTag": "15e97b80-0442-530f-8fd7-2a1d387aca0d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2288.538325255643,
+            "y": 229.91423367142511
+          },
+          "nodeIndex": "Workspace",
+          "nodeLineageTag": "413533ec-7acf-5a2e-8bf0-966080d9ee3d",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2511.3644584574322,
+            "y": 1037.8370277510955
+          },
+          "nodeIndex": "Workspace Catalog",
+          "nodeLineageTag": "9cf59603-874e-5e2e-a3e2-ae36b83055c7",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2506.6716937059364,
+            "y": 2127.8951231112246
+          },
+          "nodeIndex": "Workspace Role Assignments",
+          "nodeLineageTag": "bf0f187b-4a68-5dca-a98e-05370c6f627d",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2070.0459597745084,
+            "y": 2829.3690998689776
+          },
+          "nodeIndex": "Workspace Role Coverage",
+          "nodeLineageTag": "955529e9-2ba7-54ed-a14f-bcf7adecc41c",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

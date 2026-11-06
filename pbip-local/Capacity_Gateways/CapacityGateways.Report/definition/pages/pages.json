@@ -1,0 +1,13 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.1.0/schema.json",
+  "pageOrder": [
+    "cg_landing",
+    "cg_overview",
+    "cg_capacity_overview",
+    "cg_gateway_watchtower",
+    "cg_gateway_impact",
+    "cg_datasource_runway",
+    "cg_stewardship"
+  ],
+  "activePageName": "cg_datasource_runway"
+}

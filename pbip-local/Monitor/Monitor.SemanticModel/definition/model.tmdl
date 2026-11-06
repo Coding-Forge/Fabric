@@ -1,0 +1,91 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-US
+	directLakeBehavior: directLakeOnly
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation __LastRPTime = 134384590019781308
+
+annotation PBI_ProTooling = ["DevMode","RemoteModeling","DaxQueryView_Desktop"]
+
+ref table 'Collection Health'
+ref table 'Item Inventory'
+ref table 'Permission Cycles'
+ref table 'Permission Polls'
+ref table 'Permission Grants'
+ref table 'Job Polls'
+ref table 'Job History'
+ref table 'Lineage Coverage'
+ref table 'Lineage Edges'
+ref table 'Lineage Diagnostics'
+ref table 'Domain Coverage'
+ref table 'Activity Events'
+ref table 'Workspace Catalog'
+ref table 'Item Catalog'
+ref table 'Semantic Model Catalog'
+ref table 'Model Tables'
+ref table 'Model Columns'
+ref table 'Model Measures'
+ref table 'Model Relationships'
+ref table 'Connection Inventory'
+ref table 'Gateway Inventory'
+ref table 'Gateway Datasources'
+ref table 'Gateway Status'
+ref table 'Refresh History'
+ref table Refreshables
+ref table 'App Inventory'
+ref table 'Capacity Inventory'
+ref table 'Capacity Metrics'
+ref table 'Directory Users'
+ref table 'Directory Groups'
+ref table 'Group Memberships'
+ref table 'User Licenses'
+ref table 'Subscribed SKUs'
+ref table 'Workspace Role Coverage'
+ref table 'Workspace Role Assignments'
+ref table 'Tenant Settings'
+ref table 'Delegated Setting Scopes'
+ref table 'Delegated Overrides'
+ref table 'Setting Group Rules'
+ref table 'Domain Inventory'
+ref table 'Domain Workspaces'
+ref table 'Git Connections'
+ref table 'Tag Inventory'
+ref table 'Organization Sharing'
+ref table 'Public Sharing'
+ref table 'Deployment Pipelines'
+ref table 'Deployment Polls'
+ref table 'Deployment Operations'
+ref table Workspace
+ref table Item
+ref table Capacity
+ref table Gateway
+ref table Connection
+ref table Principal
+ref table 'Directory Group'
+ref table 'License SKU'
+ref table Domain
+ref table 'Deployment Pipeline'
+ref table Datasource
+ref table Setting
+ref table Application
+ref table Tag
+ref table 'Related Workspace'
+ref table 'Related Item'
+ref table 'Observation Context'
+ref table Dataset
+ref table 'Estate Measures'
+ref table 'Evidence Source'
+ref table 'Permission Mode'
+ref table 'Collection Date'
+ref table 'Source Folder Date'
+ref table 'Event Date'
+ref table 'Metric Query Date'
+
+ref cultureInfo en-US
+

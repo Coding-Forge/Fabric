@@ -1,0 +1,204 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
+  "name": "v_estate_08_09",
+  "position": {
+    "x": 24,
+    "y": 684,
+    "z": 9,
+    "tabOrder": 9,
+    "width": 1552,
+    "height": 200
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Evidence explorer - select a chart or slicer to investigate'"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Segoe UI Semibold'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#102A43'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#DFE7F1'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connection Inventory"
+                    }
+                  },
+                  "Property": "Connection Name"
+                }
+              },
+              "queryRef": "Connection Inventory.Connection Name",
+              "nativeQueryRef": "Connection Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connection Inventory"
+                    }
+                  },
+                  "Property": "Connection Type"
+                }
+              },
+              "queryRef": "Connection Inventory.Connection Type",
+              "nativeQueryRef": "Connection Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connection Inventory"
+                    }
+                  },
+                  "Property": "Connectivity Type"
+                }
+              },
+              "queryRef": "Connection Inventory.Connectivity Type",
+              "nativeQueryRef": "Connectivity Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connection Inventory"
+                    }
+                  },
+                  "Property": "Privacy Level"
+                }
+              },
+              "queryRef": "Connection Inventory.Privacy Level",
+              "nativeQueryRef": "Privacy Level"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Connection Inventory"
+                    }
+                  },
+                  "Property": "Gateway ID"
+                }
+              },
+              "queryRef": "Connection Inventory.Gateway ID",
+              "nativeQueryRef": "Gateway ID"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "howCreated": "Copilot"
+}

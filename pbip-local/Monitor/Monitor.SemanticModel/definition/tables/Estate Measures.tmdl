@@ -1,0 +1,600 @@
+table 'Estate Measures'
+	lineageTag: dcdc2e74-4c12-55a9-b947-fa354d6fa88e
+
+	/// Source/context identity mismatch in either direction. Nonzero blocks business measures until lookups are rebuilt.
+	measure 'Unmapped Observations' = CALCULATE ( COUNTROWS ( EXCEPT ( VALUES ( 'Collection Health'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "collection_health" ), VALUES ( 'Collection Health'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Item Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "inventory" ), VALUES ( 'Item Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Permission Cycles'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "permission_cycles" ), VALUES ( 'Permission Cycles'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Permission Polls'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "permission_resources" ), VALUES ( 'Permission Polls'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Permission Grants'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "permission_grants" ), VALUES ( 'Permission Grants'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Job Polls'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "job_resources" ), VALUES ( 'Job Polls'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Job History'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "job_observations" ), VALUES ( 'Job History'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Lineage Coverage'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "lineage_resources" ), VALUES ( 'Lineage Coverage'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Lineage Edges'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "lineage_edges" ), VALUES ( 'Lineage Edges'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Lineage Diagnostics'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "lineage_diagnostics" ), VALUES ( 'Lineage Diagnostics'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Domain Coverage'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "estate_coverage" ), VALUES ( 'Domain Coverage'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Activity Events'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "activity_events" ), VALUES ( 'Activity Events'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Workspace Catalog'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "catalog_workspaces" ), VALUES ( 'Workspace Catalog'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Item Catalog'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "catalog_items" ), VALUES ( 'Item Catalog'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Semantic Model Catalog'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "catalog_models" ), VALUES ( 'Semantic Model Catalog'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Model Tables'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "model_tables" ), VALUES ( 'Model Tables'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Model Columns'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "model_columns" ), VALUES ( 'Model Columns'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Model Measures'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "model_measures" ), VALUES ( 'Model Measures'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Model Relationships'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "model_relationships" ), VALUES ( 'Model Relationships'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Connection Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "connection_observations" ), VALUES ( 'Connection Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Gateway Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "gateway_observations" ), VALUES ( 'Gateway Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Gateway Datasources'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "gateway_datasources" ), VALUES ( 'Gateway Datasources'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Gateway Status'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "gateway_status" ), VALUES ( 'Gateway Status'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Refresh History'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "refresh_observations" ), VALUES ( 'Refresh History'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Refreshables'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "refreshable_observations" ), VALUES ( 'Refreshables'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'App Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "apps" ), VALUES ( 'App Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Capacity Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "capacities" ), VALUES ( 'Capacity Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Capacity Metrics'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "capacity_metric_observations" ), VALUES ( 'Capacity Metrics'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Directory Users'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "directory_users" ), VALUES ( 'Directory Users'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Directory Groups'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "directory_groups" ), VALUES ( 'Directory Groups'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Group Memberships'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "group_memberships" ), VALUES ( 'Group Memberships'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'User Licenses'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "user_licenses" ), VALUES ( 'User Licenses'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Subscribed SKUs'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "subscribed_skus" ), VALUES ( 'Subscribed SKUs'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Workspace Role Coverage'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "workspace_role_scopes" ), VALUES ( 'Workspace Role Coverage'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Workspace Role Assignments'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "workspace_role_assignments" ), VALUES ( 'Workspace Role Assignments'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Tenant Settings'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "tenant_settings" ), VALUES ( 'Tenant Settings'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Delegated Setting Scopes'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "delegated_setting_scopes" ), VALUES ( 'Delegated Setting Scopes'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Delegated Overrides'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "delegated_setting_overrides" ), VALUES ( 'Delegated Overrides'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Setting Group Rules'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "tenant_setting_groups" ), VALUES ( 'Setting Group Rules'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Domain Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "domains" ), VALUES ( 'Domain Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Domain Workspaces'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "domain_workspaces" ), VALUES ( 'Domain Workspaces'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Git Connections'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "workspace_git_connections" ), VALUES ( 'Git Connections'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Tag Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "tags" ), VALUES ( 'Tag Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Organization Sharing'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "organization_shares" ), VALUES ( 'Organization Sharing'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Public Sharing'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "publish_to_web_shares" ), VALUES ( 'Public Sharing'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Deployment Pipelines'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "deployment_pipelines" ), VALUES ( 'Deployment Pipelines'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Deployment Polls'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "deployment_operation_resources" ), VALUES ( 'Deployment Polls'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Deployment Operations'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = "deployment_operations" ), VALUES ( 'Deployment Operations'[Observation ID] ) ) ), REMOVEFILTERS () )
+		formatString: #,0
+		displayFolder: 00 Readiness
+		lineageTag: 5ab8a74a-c165-4711-beba-d21d4a8cbf3b
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Model Status' = IF ( SELECTEDVALUE ( 'Estate Measures'[State] ) <> "ready", "Lookup build is incomplete - do not interpret this report", IF ( [Unmapped Observations] > 0, "REFRESH REQUIRED: source observations and report lookups no longer match", "Historical evidence - check coverage and date precision before interpreting results" ) )
+		displayFolder: 00 Readiness
+		lineageTag: 78821f3d-7029-4bc1-bca8-2ee7ef7f1758
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Lookup Built At' = FORMAT ( MAX ( 'Estate Measures'[Built At] ), "yyyy-MM-dd HH:mm" ) & " UTC"
+		displayFolder: 00 Readiness
+		lineageTag: db8ede92-3cd5-422d-841a-27a1d5fb66a6
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Dataset Count' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COUNTROWS ( 'Dataset' ) )
+		formatString: #,0
+		displayFolder: 00 Readiness
+		lineageTag: dd14ab7f-c76e-421d-b46c-e557c6feeeb3
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Datasets With Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", CALCULATE ( COUNTROWS ( 'Dataset' ), 'Dataset'[Profiled Rows] > 0 ) )
+		formatString: #,0
+		displayFolder: 00 Readiness
+		lineageTag: fa72cf9b-5346-49fe-ab4d-fd6303278e98
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Datasets Without Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", CALCULATE ( COUNTROWS ( 'Dataset' ), 'Dataset'[Profiled Rows] = 0 ) )
+		formatString: #,0
+		displayFolder: 00 Readiness
+		lineageTag: e9ea3dec-b537-4262-ac06-3647ceda274b
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Retained Observations' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Observation Context' ), 0 ) )
+		formatString: #,0
+		displayFolder: 00 Readiness
+		lineageTag: ad37f814-7615-40ad-b6c5-0ca894b05d30
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Legacy Observations' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", CALCULATE ( [Retained Observations], 'Observation Context'[Coverage Status] = "legacy_unverified" ) )
+		formatString: #,0
+		displayFolder: 00 Readiness
+		lineageTag: 228b9289-538a-434f-bce7-23b8403a15a5
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Exact Collection Times' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COUNT ( 'Observation Context'[Observed At] ) )
+		formatString: #,0
+		displayFolder: 00 Readiness
+		lineageTag: cbc7d613-61dd-4ff1-a161-6433c58130c5
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Latest Exact Collection' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", FORMAT ( MAX ( 'Observation Context'[Observed At] ), "yyyy-MM-dd HH:mm" ) & " UTC" )
+		displayFolder: 00 Readiness
+		lineageTag: d9ec7ab4-efd1-4acf-8854-46b96b576c81
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Hours Since Exact Collection' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", IF ( NOT ISBLANK ( MAX ( 'Observation Context'[Observed At] ) ), DATEDIFF ( MAX ( 'Observation Context'[Observed At] ), UTCNOW (), HOUR ) ) )
+		formatString: #,0
+		displayFolder: 00 Readiness
+		lineageTag: 3f159e00-e8c6-4a19-9c3b-516934237c95
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Collection Health Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Collection Health' ), 0 ) )
+		formatString: #,0
+		displayFolder: Confidence | Observation counts
+		lineageTag: 0655e60d-cb5c-4047-8a47-64fc12064973
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Item Inventory Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Item Inventory' ), 0 ) )
+		formatString: #,0
+		displayFolder: Inventory | Observation counts
+		lineageTag: fb99f5b8-5e1f-4ef1-897f-48cdd20d7e4c
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Permission Cycles Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", IF ( HASONEVALUE ( 'Permission Mode'[Mode] ), COALESCE ( COUNTROWS ( 'Permission Cycles' ), 0 ) ) )
+		formatString: #,0
+		displayFolder: Access | Observation counts
+		lineageTag: fe30d5bb-66a8-43c6-bbe5-1e2e150ca85c
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Permission Polls Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", IF ( HASONEVALUE ( 'Permission Mode'[Mode] ), COALESCE ( COUNTROWS ( 'Permission Polls' ), 0 ) ) )
+		formatString: #,0
+		displayFolder: Access | Observation counts
+		lineageTag: 0cf02f7e-9733-4f1a-859a-ef2a257ee607
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Permission Grants Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", IF ( HASONEVALUE ( 'Permission Mode'[Mode] ), COALESCE ( COUNTROWS ( 'Permission Grants' ), 0 ) ) )
+		formatString: #,0
+		displayFolder: Access | Observation counts
+		lineageTag: 492c3c86-ea12-4e07-b5d8-15ae329cf0b0
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Job Polls Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Job Polls' ), 0 ) )
+		formatString: #,0
+		displayFolder: Reliability | Observation counts
+		lineageTag: 461d7cc4-d548-47fb-8660-f639a9cdd623
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Job History Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Job History' ), 0 ) )
+		formatString: #,0
+		displayFolder: Reliability | Observation counts
+		lineageTag: 5c333756-5c89-40fe-bb9b-f88c4289efb1
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Lineage Coverage Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Lineage Coverage' ), 0 ) )
+		formatString: #,0
+		displayFolder: Lineage | Observation counts
+		lineageTag: 7ca8cf9b-88bd-4b8b-a2c4-402919f5af76
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Lineage Edges Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Lineage Edges' ), 0 ) )
+		formatString: #,0
+		displayFolder: Lineage | Observation counts
+		lineageTag: 2942ed1e-9c97-4420-8d82-1f75d5e52251
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Lineage Diagnostics Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Lineage Diagnostics' ), 0 ) )
+		formatString: #,0
+		displayFolder: Lineage | Observation counts
+		lineageTag: c574a24c-835a-4d66-9aab-1bd7f12a2129
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Domain Coverage Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Domain Coverage' ), 0 ) )
+		formatString: #,0
+		displayFolder: Confidence | Observation counts
+		lineageTag: ae2b2c16-da61-4128-a716-664a40edb24d
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Activity Events Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Activity Events' ), 0 ) )
+		formatString: #,0
+		displayFolder: Activity | Observation counts
+		lineageTag: fba4786d-1d97-4ac6-8940-34242a310a4f
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Workspace Catalog Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Workspace Catalog' ), 0 ) )
+		formatString: #,0
+		displayFolder: Inventory | Observation counts
+		lineageTag: ede88504-e308-458c-a355-0759f0c867f1
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Item Catalog Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Item Catalog' ), 0 ) )
+		formatString: #,0
+		displayFolder: Inventory | Observation counts
+		lineageTag: ed113018-026a-47a6-9e54-b6aa31519e18
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Semantic Model Catalog Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Semantic Model Catalog' ), 0 ) )
+		formatString: #,0
+		displayFolder: Schema | Observation counts
+		lineageTag: d9bedba4-0a2a-4b63-b70a-dfe4206d042a
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Model Tables Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Model Tables' ), 0 ) )
+		formatString: #,0
+		displayFolder: Schema | Observation counts
+		lineageTag: 977917e3-5c54-4d62-b75a-e095bfc2093d
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Model Columns Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Model Columns' ), 0 ) )
+		formatString: #,0
+		displayFolder: Schema | Observation counts
+		lineageTag: bcbb0e1a-c011-408f-abe7-4c0467308d71
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Model Measures Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Model Measures' ), 0 ) )
+		formatString: #,0
+		displayFolder: Schema | Observation counts
+		lineageTag: 2167fd58-d742-461c-b4eb-fa559c480155
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Model Relationships Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Model Relationships' ), 0 ) )
+		formatString: #,0
+		displayFolder: Schema | Observation counts
+		lineageTag: 11c8ebed-ecd2-4fbc-82d0-c64d51cc0ce2
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Connection Inventory Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Connection Inventory' ), 0 ) )
+		formatString: #,0
+		displayFolder: Connectivity | Observation counts
+		lineageTag: 8c1195b2-152a-4d5e-851c-50907578a935
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Gateway Inventory Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Gateway Inventory' ), 0 ) )
+		formatString: #,0
+		displayFolder: Connectivity | Observation counts
+		lineageTag: d7ad91fd-f5d7-46a4-822f-dd1d21e5636c
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Gateway Datasources Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Gateway Datasources' ), 0 ) )
+		formatString: #,0
+		displayFolder: Connectivity | Observation counts
+		lineageTag: ccbf47a3-ec6b-4e7a-ab8b-8ff5cdb1ec14
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Gateway Status Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Gateway Status' ), 0 ) )
+		formatString: #,0
+		displayFolder: Connectivity | Observation counts
+		lineageTag: 05e29f59-e2c0-4a85-a683-02309879ff96
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Refresh History Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Refresh History' ), 0 ) )
+		formatString: #,0
+		displayFolder: Reliability | Observation counts
+		lineageTag: 7fa576b5-0326-4e3c-94ed-b51ce8ff9804
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Refreshables Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Refreshables' ), 0 ) )
+		formatString: #,0
+		displayFolder: Reliability | Observation counts
+		lineageTag: 7d7ec212-6016-4163-b0b4-b8fe3d1b2db1
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'App Inventory Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'App Inventory' ), 0 ) )
+		formatString: #,0
+		displayFolder: Organization | Observation counts
+		lineageTag: ccbd5dfe-bd91-4c15-a03f-665687f3b24d
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Capacity Inventory Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Capacity Inventory' ), 0 ) )
+		formatString: #,0
+		displayFolder: Capacity | Observation counts
+		lineageTag: 02423817-d1d1-4100-b491-41b9446867fe
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Capacity Metrics Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Capacity Metrics' ), 0 ) )
+		formatString: #,0
+		displayFolder: Capacity | Observation counts
+		lineageTag: 26979aa2-3857-433c-b48d-f5e904fb246a
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Directory Users Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Directory Users' ), 0 ) )
+		formatString: #,0
+		displayFolder: Directory | Observation counts
+		lineageTag: f7263924-c1e6-475d-93d5-3e2235732a4a
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Directory Groups Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Directory Groups' ), 0 ) )
+		formatString: #,0
+		displayFolder: Directory | Observation counts
+		lineageTag: 0a9f4c85-83e5-4d79-8aae-dd3cacc4abf2
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Group Memberships Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Group Memberships' ), 0 ) )
+		formatString: #,0
+		displayFolder: Directory | Observation counts
+		lineageTag: 9b242863-d319-4b1b-8055-86875399213f
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'User Licenses Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'User Licenses' ), 0 ) )
+		formatString: #,0
+		displayFolder: Directory | Observation counts
+		lineageTag: 4c9b3c88-768b-4046-b9fb-3ac4ae4b018d
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Subscribed SKUs Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Subscribed SKUs' ), 0 ) )
+		formatString: #,0
+		displayFolder: Directory | Observation counts
+		lineageTag: 7722b1fe-79f5-465a-906b-c09234c48a8b
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Workspace Role Coverage Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Workspace Role Coverage' ), 0 ) )
+		formatString: #,0
+		displayFolder: Access | Observation counts
+		lineageTag: 7b01af13-74d0-49da-8d98-6ec2e9e12469
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Workspace Role Assignments Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Workspace Role Assignments' ), 0 ) )
+		formatString: #,0
+		displayFolder: Access | Observation counts
+		lineageTag: a039f78b-8670-48c7-bca5-d78ab288fa1b
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Tenant Settings Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Tenant Settings' ), 0 ) )
+		formatString: #,0
+		displayFolder: Governance | Observation counts
+		lineageTag: a30a435e-c92c-41e3-b02d-5f34d8e30f12
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Delegated Setting Scopes Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Delegated Setting Scopes' ), 0 ) )
+		formatString: #,0
+		displayFolder: Governance | Observation counts
+		lineageTag: 80755534-f7d3-4612-8c1b-bf1f993922fd
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Delegated Overrides Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Delegated Overrides' ), 0 ) )
+		formatString: #,0
+		displayFolder: Governance | Observation counts
+		lineageTag: 202406b1-2bf3-4439-a668-d26fa9b74754
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Setting Group Rules Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Setting Group Rules' ), 0 ) )
+		formatString: #,0
+		displayFolder: Governance | Observation counts
+		lineageTag: 2dc7abac-b47f-43a3-934a-d276d3fe987a
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Domain Inventory Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Domain Inventory' ), 0 ) )
+		formatString: #,0
+		displayFolder: Organization | Observation counts
+		lineageTag: dcb04616-542a-4168-8a90-71c6f1d8f166
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Domain Workspaces Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Domain Workspaces' ), 0 ) )
+		formatString: #,0
+		displayFolder: Organization | Observation counts
+		lineageTag: 87cb142a-e6c2-4fe6-9f0c-c08b9cb4c6f4
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Git Connections Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Git Connections' ), 0 ) )
+		formatString: #,0
+		displayFolder: Change | Observation counts
+		lineageTag: 898cbe03-1e22-460b-b37a-9236bfb4821c
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Tag Inventory Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Tag Inventory' ), 0 ) )
+		formatString: #,0
+		displayFolder: Organization | Observation counts
+		lineageTag: 84274c58-438c-4061-b7ae-7009326b8b7c
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Organization Sharing Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Organization Sharing' ), 0 ) )
+		formatString: #,0
+		displayFolder: Access | Observation counts
+		lineageTag: f108c4db-a949-40f7-b6fe-880f53a52f0c
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Public Sharing Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Public Sharing' ), 0 ) )
+		formatString: #,0
+		displayFolder: Access | Observation counts
+		lineageTag: 8b3268f2-5855-419a-b2fd-76559bc80285
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Deployment Pipelines Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Deployment Pipelines' ), 0 ) )
+		formatString: #,0
+		displayFolder: Change | Observation counts
+		lineageTag: cf9509f6-b29f-4f3f-8c1d-f0953d9d7c95
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Deployment Polls Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Deployment Polls' ), 0 ) )
+		formatString: #,0
+		displayFolder: Change | Observation counts
+		lineageTag: d291aebf-41ce-4985-ab23-e476faeb3329
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Deployment Operations Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( 'Deployment Operations' ), 0 ) )
+		formatString: #,0
+		displayFolder: Change | Observation counts
+		lineageTag: 83b8fbe4-9df0-4712-bed8-b7dd2b658e55
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Workspaces Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Workspace Catalog', 'Workspace Catalog'[Workspace ID] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Inventory
+		lineageTag: 8279feea-fd39-4862-a0f8-c36c8f28ac38
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Items Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( FILTER ( 'Item Inventory', 'Item Inventory'[Item Type] <> "Workspace" ), 'Item Inventory'[Workspace ID], 'Item Inventory'[Item ID] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Inventory
+		lineageTag: f31773c3-09b7-4498-9250-331290d4f6de
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Models Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Semantic Model Catalog', 'Semantic Model Catalog'[Workspace ID], 'Semantic Model Catalog'[Item ID] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Schema
+		lineageTag: 1ea7549c-9bba-4d24-9095-92532732d8c2
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Tables Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Model Tables', 'Model Tables'[Workspace ID], 'Model Tables'[Item ID], 'Model Tables'[Table Name] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Schema
+		lineageTag: fca8774c-159a-40e0-b5db-4f94078bfe4d
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Columns Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Model Columns', 'Model Columns'[Workspace ID], 'Model Columns'[Item ID], 'Model Columns'[Table Name], 'Model Columns'[Column Name] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Schema
+		lineageTag: 55c140c9-fd5c-4efa-807d-eb08ee815bcb
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Measures Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Model Measures', 'Model Measures'[Workspace ID], 'Model Measures'[Item ID], 'Model Measures'[Table Name], 'Model Measures'[Measure Name] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Schema
+		lineageTag: 56f73966-f61e-4b5e-925d-aa3f0ba1332d
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Connections Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Connection Inventory', 'Connection Inventory'[Connection ID] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Connectivity
+		lineageTag: 42856d71-4d8e-4e89-95fb-087e64424e16
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Capacities Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Capacity Inventory', 'Capacity Inventory'[Capacity ID] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Capacity
+		lineageTag: 33254717-1c95-42a4-9808-941145537141
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Actor Keys Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( FILTER ( 'Activity Events', 'Activity Events'[Actor Key] <> BLANK () ), 'Activity Events'[Actor Key] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Activity
+		lineageTag: d6197d6c-744f-4c02-beaa-4f4c7d931be5
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Directory Users Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Directory Users', 'Directory Users'[Principal ID] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Directory
+		lineageTag: aa801127-37f2-4dbc-a372-fa1e17fc51e0
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Directory Groups Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Directory Groups', 'Directory Groups'[Group ID] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Directory
+		lineageTag: 8965f1c9-f150-4130-9177-c83e3251d962
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Licensed Users Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'User Licenses', 'User Licenses'[Principal ID] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Directory
+		lineageTag: d80515f0-e4a6-45be-adb2-fdbad244de6b
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Git Workspaces Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Git Connections', 'Git Connections'[Workspace ID] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Change
+		lineageTag: 84b9d1f6-3bb9-415a-808b-ef61c377c6af
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Upstream Pairs Observed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", COALESCE ( COUNTROWS ( SUMMARIZE ( FILTER ( 'Lineage Edges', 'Lineage Edges'[Direction] = "upstream" ), 'Lineage Edges'[Workspace ID], 'Lineage Edges'[Item ID], 'Lineage Edges'[Related Workspace ID], 'Lineage Edges'[Related Item ID], 'Lineage Edges'[Related Type], 'Lineage Edges'[Relation Type], 'Lineage Edges'[Evidence Type] ) ), 0 ) )
+		formatString: #,0
+		displayFolder: Lineage
+		lineageTag: b9f9bd3c-d1e9-4523-a60a-0bd76ac7dab8
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Permission Polls - Success' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", CALCULATE ( [Permission Polls Rows], 'Permission Polls'[Coverage Status] = "success" ) )
+		formatString: #,0
+		displayFolder: Access
+		lineageTag: 8920297f-eca9-45c6-9576-da9d2ca9d203
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Permission Polls - Failed' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", CALCULATE ( [Permission Polls Rows], 'Permission Polls'[Coverage Status] = "failed" ) )
+		formatString: #,0
+		displayFolder: Access
+		lineageTag: 35ee52a6-7a1d-4bc8-ac08-8f0ac18abd61
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Permission Polls - Deferred' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", CALCULATE ( [Permission Polls Rows], 'Permission Polls'[Coverage Status] = "deferred" ) )
+		formatString: #,0
+		displayFolder: Access
+		lineageTag: 3f706093-0d72-4dd0-9e03-656900d5e9b6
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Permission Poll Success %' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", DIVIDE ( [Permission Polls - Success], [Permission Polls Rows] ) )
+		formatString: 0.0%
+		displayFolder: Access
+		lineageTag: 35eecfce-779d-48e8-9333-597f128bd541
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Mode Selection' = IF ( HASONEVALUE ( 'Permission Mode'[Mode] ), "Permission scope: " & SELECTEDVALUE ( 'Permission Mode'[Mode] ), "Select exactly one permission mode - Scoped and Tenant are not interchangeable" )
+		displayFolder: Access
+		lineageTag: 9d8bdc55-dc44-431c-b27d-c1ada4682b75
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Scoped Grant Observations' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", IF ( HASONEVALUE ( 'Permission Mode'[Mode] ), [Permission Grants Rows] ) )
+		formatString: #,0
+		displayFolder: Access
+		lineageTag: dc6000ef-a35a-42d6-adb2-1683d6f80c01
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Completed Healthy Cycles' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", CALCULATE ( [Permission Cycles Rows], 'Permission Cycles'[Chain Valid] = TRUE (), 'Permission Cycles'[Cycle Finished] = TRUE (), 'Permission Cycles'[Cycle Healthy] = TRUE () ) )
+		formatString: #,0
+		displayFolder: Access
+		lineageTag: ba1a2da3-48d0-448a-bdd1-db7a826f1d7c
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Successful Empty Job Polls' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", CALCULATE ( [Job Polls Rows], 'Job Polls'[Coverage Status] = "success", 'Job Polls'[Record Count] = 0 ) )
+		formatString: #,0
+		displayFolder: Reliability
+		lineageTag: 143cb72e-fa7c-456e-8e20-371b291b03d7
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Mean Job Seconds' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", AVERAGE ( 'Job History'[Duration Seconds] ) )
+		formatString: #,0.0
+		displayFolder: Reliability
+		lineageTag: d9913a9b-ad3b-4077-a56a-b48b85160f2a
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Mean Refresh Seconds' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", AVERAGE ( 'Refresh History'[Duration Seconds] ) )
+		formatString: #,0.0
+		displayFolder: Reliability
+		lineageTag: d1005361-6cd1-4c39-b6fe-1952659d1f6d
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Unresolved Lineage Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", CALCULATE ( [Lineage Edges Rows], 'Lineage Edges'[Resolution] <> "in_batch" ) )
+		formatString: #,0
+		displayFolder: Lineage
+		lineageTag: 86eb9dc2-c241-458c-aefe-3e27be232211
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Runtime Verified Lineage Rows' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", CALCULATE ( [Lineage Edges Rows], 'Lineage Edges'[Runtime Verified] = TRUE () ) )
+		formatString: #,0
+		displayFolder: Lineage
+		lineageTag: 9e4d4723-16ed-456b-a828-bd117d778f16
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Metric Selection' = IF ( HASONEVALUE ( 'Capacity Metrics'[Metric Name] ) && HASONEVALUE ( 'Source Folder Date'[Date] ), "Provider values are unscaled; naive timepoints have unknown UTC", "Select one metric and one source-folder date before reading values" )
+		displayFolder: Capacity
+		lineageTag: 61851a9f-4b51-4ffc-a9e8-56147afb64f4
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Provider Metric Average' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", IF ( HASONEVALUE ( 'Capacity Metrics'[Metric Name] ) && HASONEVALUE ( 'Source Folder Date'[Date] ), AVERAGE ( 'Capacity Metrics'[Metric Value] ) ) )
+		formatString: #,0.000
+		displayFolder: Capacity
+		lineageTag: 91dd87c0-9fdf-4464-98b0-8daad8ba699d
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Provider Metric Peak' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", IF ( HASONEVALUE ( 'Capacity Metrics'[Metric Name] ) && HASONEVALUE ( 'Source Folder Date'[Date] ), MAX ( 'Capacity Metrics'[Metric Value] ) ) )
+		formatString: #,0.000
+		displayFolder: Capacity
+		lineageTag: 72fc1e83-2418-41af-ad02-8277f1e2565d
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Metric Query Window' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", MIN ( 'Capacity Metrics'[Metric Date] ) & " to " & MAX ( 'Capacity Metrics'[Metric Date] ) )
+		displayFolder: Capacity
+		lineageTag: 6c609db4-3dcb-4d71-adea-dda092466225
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'License Units - Single Date' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", IF ( HASONEVALUE ( 'Source Folder Date'[Date] ), SUM ( 'Subscribed SKUs'[Enabled Units] ) ) )
+		formatString: #,0
+		displayFolder: Directory
+		lineageTag: f7768164-c161-4806-9516-e1046aa9b6a4
+
+	/// Retained evidence in the selected context; not an exhaustive current-state claim.
+	measure 'Consumed Units - Single Date' = IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = "ready", IF ( HASONEVALUE ( 'Source Folder Date'[Date] ), SUM ( 'Subscribed SKUs'[Consumed Units] ) ) )
+		formatString: #,0
+		displayFolder: Directory
+		lineageTag: ab17bbe1-b5ed-48e2-8d21-217eca1a8209
+
+	column State
+		dataType: string
+		isHidden
+		lineageTag: b16984d4-b881-4862-b50b-e00be0b494ca
+		summarizeBy: none
+		sourceColumn: state
+
+	column 'Built At'
+		dataType: dateTime
+		isHidden
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 4970d397-8da6-4e57-aa2f-23b879207666
+		summarizeBy: none
+		sourceColumn: built_at
+
+	column 'Source Rows'
+		dataType: int64
+		isHidden
+		lineageTag: ca197ef5-7b3b-470b-935d-8f71ca5cdc7c
+		summarizeBy: none
+		sourceColumn: source_rows
+
+	column 'Source Datasets'
+		dataType: int64
+		isHidden
+		lineageTag: 1d7e2e71-0325-413c-aa3a-154ea620af4e
+		summarizeBy: none
+		sourceColumn: source_datasets
+
+	column 'Nonempty Datasets'
+		dataType: int64
+		isHidden
+		lineageTag: 23ced393-57c1-4f68-b077-8c06d38e235d
+		summarizeBy: none
+		sourceColumn: nonempty_datasets
+
+	column 'Source Signature'
+		dataType: string
+		isHidden
+		lineageTag: d96ea9bb-42aa-4bd3-aadd-6a9805e7ffbf
+		summarizeBy: none
+		sourceColumn: source_signature
+
+	column 'Contract Version'
+		dataType: int64
+		isHidden
+		lineageTag: 3e5e782a-2b28-48e1-a747-bbcf56bfe9cf
+		summarizeBy: none
+		sourceColumn: contract_version
+
+	partition 'Estate Measures' = entity
+		mode: directLake
+		source
+			entityName: monitor_report_build
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

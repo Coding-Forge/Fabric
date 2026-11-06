@@ -1,0 +1,47 @@
+table Capacity
+	lineageTag: be28708c-577a-5b04-9401-8d67316f7a5f
+
+	column 'Entity Key'
+		dataType: string
+		isHidden
+		lineageTag: c61dcb7d-875c-4cbf-944b-404bbfdc67fa
+		summarizeBy: none
+		sourceColumn: entity_key
+
+	column 'Entity ID'
+		dataType: string
+		lineageTag: 7a8474de-efcb-4627-9d07-99772df0ace5
+		summarizeBy: none
+		sourceColumn: entity_id
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: cdeec603-1bdc-47ae-967f-0f94b61c205f
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column Label
+		dataType: string
+		lineageTag: 64aa8065-8559-4120-93dd-9c55b6b79b3d
+		summarizeBy: none
+		sourceColumn: label
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 5b032e84-5a71-42be-a3fc-421f9664e50d
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Label Basis'
+		dataType: string
+		lineageTag: ac043d9d-0f83-422a-9f6f-a327ac089f08
+		summarizeBy: none
+		sourceColumn: label_basis
+
+	partition Capacity = entity
+		mode: directLake
+		source
+			entityName: monitor_report_capacity
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

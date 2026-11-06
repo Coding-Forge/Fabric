@@ -1,0 +1,108 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Job Polls'
+	lineageTag: 4b16bd50-8734-557b-850c-76c4423c4dfe
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 7c955ddc-1971-427e-b253-73704f2e7d91
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: aa9e0678-4510-4604-bdbc-587314d550d0
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 6e7ca3ba-aea5-4de7-a442-32681cdf3e0f
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 621a1f31-1db4-4ae8-921a-213b202e9ea2
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 540df4e6-7604-4593-a53f-c841b31e4972
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 5b0a2c13-a727-438e-a87f-27a6d7aaa05f
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: ed4ababd-323e-4ba9-af32-187fd68320e6
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 51bb9901-ba04-47fc-95d3-09d63366d771
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 538ae71e-1ec5-4389-821a-a4d5b6b5abe8
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: dbf3d5a6-3be4-45b9-88ff-b135a93ace98
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: fcc858b6-cfde-4eb0-a663-398d03e52823
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: f64bbeb3-63d5-4602-81e2-51bb395f9abf
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Item ID'
+		dataType: string
+		lineageTag: 3379e2ed-bd69-4a19-a2ae-fe1a2b358b0a
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 21686e4f-531c-4800-be25-e40c19fb2e23
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Record Count'
+		dataType: int64
+		lineageTag: 40575ed8-60fa-428a-b1b7-08a2a4f2387a
+		summarizeBy: none
+		sourceColumn: record_count
+
+	partition 'Job Polls' = entity
+		mode: directLake
+		source
+			entityName: monitor_job_resources
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

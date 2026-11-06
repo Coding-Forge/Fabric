@@ -1,0 +1,3715 @@
+{
+  "profiled_at_utc": "2026-11-06T16:05:07.109780+00:00",
+  "workspace_id": "1f681810-ec02-411f-ac4b-9b5544272273",
+  "lakehouse_id": "f1d6b7d9-f02b-4a44-9828-8dd5da8d6822",
+  "schema": "dbo",
+  "read_only": true,
+  "cross_table_transaction": false,
+  "datasets": {
+    "collection_health": {
+      "delta_version": 1,
+      "row_count": 1116,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "complete": "bool",
+        "finished": "bool",
+        "successful_resources": "int64",
+        "failed_resources": "int64",
+        "record_count": "int64",
+        "coverage": "string_view",
+        "issue": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 24,
+        "module": 0,
+        "mode": 430,
+        "run_id": 24,
+        "cycle_id": 439,
+        "coverage_status": 0,
+        "complete": 38,
+        "finished": 38,
+        "successful_resources": 62,
+        "failed_resources": 62,
+        "record_count": 1070,
+        "coverage": 12,
+        "issue": 1078
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "fabricitemaccesspermissions": 428,
+          "fabricitemaccesspermissions_tenant": 258,
+          "fabricconnections": 123,
+          "fabricdeploymentpipelineoperations": 123,
+          "fabricitemjobhistory": 92,
+          "fabricitemdefinitions": 45,
+          "lineage_edges": 23,
+          "catalog": 12,
+          "workspaces": 11,
+          "items": 1
+        },
+        "mode": {
+          "Scoped": 428,
+          "Tenant": 258
+        },
+        "coverage_status": {
+          "partial_or_failed": 735,
+          "success": 342,
+          "legacy_unverified": 23,
+          "invalid": 14,
+          "unfinished": 1,
+          "missing": 1
+        },
+        "coverage": {
+          "Explicit configured items only; preview admin accessDetails, not expanded groups or complete effective permissions. Maximum 50 items per cycle; one HTTP attempt per slice, at most six slices per invocation with a 150-second admission budget. Inventory and access observations may span runs; cycle evidence is not a point-in-time tenant snapshot.": 428,
+          "Opt-in tenant active-item discovery and preview Admin accessDetails; not expanded groups or complete effective permissions. All returned types are attempted; unsupported/denied items fail cycle coverage. One HTTP attempt per slice, at most six slices per invocation within 150 seconds. Discovery and access span time, not an atomic snapshot.": 258,
+          "Caller-visible connections only, not tenant-wide. Credential details and all connection paths are intentionally excluded.": 123,
+          "Caller-visible pipelines, not tenant-wide; operation history requires pipeline Admin. Up to 20 recent deployments per pipeline; polling gaps cannot be recovered.": 123,
+          "Explicit configured supported items; resource access required. Most items expose only 100 recent completed jobs plus active jobs; polling gaps cannot be recovered. Admin discovery does not grant resource access.": 92,
+          "Scanner batch only; not exhaustive tenant or runtime I/O coverage": 35,
+          "Tenant admin inventory of Notebook/DataPipeline; per-item read/write access required. Static notebook inference only, not actual run I/O. Pipeline JSON is captured without activity parsing. Definitions can contain sensitive values.": 23,
+          "Tenant admin inventory of Notebook/DataPipeline; per-item read/write access required. Static notebook inference only, not actual run I/O. Pipeline JSON has supported static activity references, not execution evidence. Definitions can contain sensitive values.": 22
+        },
+        "issue": {
+          "no_manifest_or_exact_observation_time": 23,
+          "invalid_permission_chain": 8,
+          "invalid_run_artifacts": 6,
+          "no_collection_files": 1
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-10-19T23:15:43.117715Z",
+          "max": "2026-11-05T15:20:37.265226Z"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 1116,
+        "run_id": 1092,
+        "cycle_id": 24
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "fd44d7faae0ad95f38f96e0bc16315fa92de4418f685516d2bf491cb2d6256c8"
+    },
+    "inventory": {
+      "delta_version": 1,
+      "row_count": 1143,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "item_name": "string_view",
+        "inventory_source": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 479,
+        "module": 0,
+        "mode": 677,
+        "run_id": 479,
+        "cycle_id": 677,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "item_name": 466,
+        "inventory_source": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "workspaces": 374,
+          "fabricitemaccesspermissions": 264,
+          "fabricitemaccesspermissions_tenant": 202,
+          "lineage_edges": 198,
+          "catalog": 105
+        },
+        "mode": {
+          "Scoped": 264,
+          "Tenant": 202
+        },
+        "coverage_status": {
+          "success": 664,
+          "legacy_unverified": 479
+        },
+        "item_type": {
+          "Workspace": 374,
+          "Report": 195,
+          "SemanticModel": 192,
+          "Lakehouse": 68,
+          "Notebook": 62,
+          "Warehouse": 50,
+          "MLExperiment": 48,
+          "SQLEndpoint": 46,
+          "DataPipeline": 38,
+          "Dataflow": 28,
+          "MLModel": 24,
+          "App": 12,
+          "Dashboard": 4,
+          "PolicySet": 2
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-10-20T17:23:20.107783Z",
+          "max": "2026-11-05T14:39:36.505565Z"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 1143,
+        "run_id": 68,
+        "cycle_id": 24,
+        "workspace_id": 34,
+        "item_id": 141
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "f02a051770a474b9fbfaf974f1fa7a41a97db9831f0abbc4b705a40686922062"
+    },
+    "permission_cycles": {
+      "delta_version": 1,
+      "row_count": 686,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "chain_valid": "bool",
+        "cycle_finished": "bool",
+        "cycle_healthy": "bool",
+        "slice_count": "int64",
+        "selected_items": "int64"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "chain_valid": 0,
+        "cycle_finished": 9,
+        "cycle_healthy": 9,
+        "slice_count": 9,
+        "selected_items": 9
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "fabricitemaccesspermissions": 428,
+          "fabricitemaccesspermissions_tenant": 258
+        },
+        "mode": {
+          "Scoped": 428,
+          "Tenant": 258
+        },
+        "coverage_status": {
+          "partial_or_failed": 677,
+          "invalid": 9
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-10-20T17:23:20.130068Z",
+          "max": "2026-11-05T15:20:37.265226Z"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 686,
+        "run_id": 686,
+        "cycle_id": 33
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "14d2a4a3911b8dbb21ba81e14dedc87e2568e58e68a6d6fbe7168c8464df04f0"
+    },
+    "permission_resources": {
+      "delta_version": 1,
+      "row_count": 677,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "observation_unit": "string_view",
+        "record_count": "int64",
+        "resource_outcome": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "workspace_id": 16,
+        "item_id": 126,
+        "item_type": 126,
+        "observation_unit": 0,
+        "record_count": 300,
+        "resource_outcome": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "fabricitemaccesspermissions": 419,
+          "fabricitemaccesspermissions_tenant": 258
+        },
+        "mode": {
+          "Scoped": 419,
+          "Tenant": 258
+        },
+        "coverage_status": {
+          "success": 377,
+          "failed": 216,
+          "deferred": 84
+        },
+        "item_type": {
+          "Lakehouse": 80,
+          "SQLEndpoint": 74,
+          "Notebook": 65,
+          "Warehouse": 57,
+          "SemanticModel": 54,
+          "Report": 48,
+          "MLExperiment": 48,
+          "DataPipeline": 45,
+          "Dataflow": 30,
+          "MLModel": 28,
+          "App": 14,
+          "Dashboard": 4,
+          "PolicySet": 4
+        },
+        "resource_outcome": {
+          "succeeded": 377,
+          "failed": 216,
+          "deferred": 84
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-10-20T17:23:20.107783Z",
+          "max": "2026-11-05T15:20:37.237879Z"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 677,
+        "run_id": 677,
+        "cycle_id": 24,
+        "workspace_id": 29,
+        "item_id": 101
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "6ce270749668503c9931977869bbd91f6ac106c98e75730ae0c69cf036490349"
+    },
+    "permission_grants": {
+      "delta_version": 1,
+      "row_count": 723,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "principal_id": "string_view",
+        "principal_type": "string_view",
+        "permissions_json": "string_view",
+        "additional_permissions_json": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "principal_id": 0,
+        "principal_type": 0,
+        "permissions_json": 0,
+        "additional_permissions_json": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "fabricitemaccesspermissions": 396,
+          "fabricitemaccesspermissions_tenant": 327
+        },
+        "mode": {
+          "Scoped": 396,
+          "Tenant": 327
+        },
+        "coverage_status": {
+          "success": 723
+        },
+        "item_type": {
+          "SQLEndpoint": 126,
+          "Lakehouse": 124,
+          "Notebook": 118,
+          "Warehouse": 82,
+          "DataPipeline": 79,
+          "MLExperiment": 78,
+          "MLModel": 39,
+          "SemanticModel": 33,
+          "Report": 31,
+          "App": 7,
+          "PolicySet": 4,
+          "Dashboard": 2
+        },
+        "principal_type": {
+          "ServicePrincipal": 287,
+          "User": 269,
+          "Group": 167
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-10-20T17:40:25.312486Z",
+          "max": "2026-11-05T15:20:37.237879Z"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 723,
+        "run_id": 275,
+        "cycle_id": 13,
+        "workspace_id": 29,
+        "item_id": 95,
+        "principal_id": 8
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "cd6b934f0bc96b7dfb030d7a5ba483c6b63f280f7d23331c85140b3be7763c78"
+    },
+    "job_resources": {
+      "delta_version": 1,
+      "row_count": 267,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "record_count": "int64"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 267,
+        "run_id": 0,
+        "cycle_id": 267,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "record_count": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "fabricitemjobhistory": 267
+        },
+        "mode": {},
+        "coverage_status": {
+          "success": 267
+        },
+        "item_type": {
+          "Notebook": 178,
+          "DataPipeline": 89
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-10-20T17:23:20.180747Z",
+          "max": "2026-11-05T13:14:50.045015Z"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 267,
+        "run_id": 89,
+        "cycle_id": 0,
+        "workspace_id": 1,
+        "item_id": 3
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "b9e07cf1b78adaf4e9ebfd9a1b707eebf82f4496a9c90ed4044935aa37af160f"
+    },
+    "job_observations": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "job_id": "string_view",
+        "job_type": "string_view",
+        "invoke_type": "string_view",
+        "status": "string_view",
+        "start_time_utc": "string_view",
+        "end_time_utc": "string_view",
+        "duration_seconds": "double",
+        "root_activity_id": "string_view",
+        "failure_code": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "job_id": 0,
+        "job_type": 0,
+        "invoke_type": 0,
+        "status": 0,
+        "start_time_utc": 0,
+        "end_time_utc": 0,
+        "duration_seconds": 0,
+        "root_activity_id": 0,
+        "failure_code": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "item_type": {},
+        "status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "start_time_utc": {
+          "min": null,
+          "max": null
+        },
+        "end_time_utc": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "job_id": 0,
+        "root_activity_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "67a0823c47ada2dca6b90bcc9b22093a3be1aa4b885cbca7c662a7483e5c9716"
+    },
+    "lineage_resources": {
+      "delta_version": 1,
+      "row_count": 471,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "evidence_type": "string_view",
+        "record_count": "int64",
+        "diagnostic_count": "int64"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 105,
+        "module": 0,
+        "mode": 471,
+        "run_id": 105,
+        "cycle_id": 471,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "evidence_type": 0,
+        "record_count": 134,
+        "diagnostic_count": 134
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "lineage_edges": 198,
+          "fabricitemdefinitions": 168,
+          "catalog": 105
+        },
+        "mode": {},
+        "coverage_status": {
+          "success": 232,
+          "failed": 130,
+          "legacy_unverified": 105,
+          "invalid": 4
+        },
+        "item_type": {
+          "Report": 155,
+          "SemanticModel": 148,
+          "Notebook": 87,
+          "DataPipeline": 81
+        },
+        "evidence_type": {
+          "scanner_relationship": 303,
+          "static_inference": 168
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-11-03T21:01:50.195117Z",
+          "max": "2026-11-05T13:16:00.722768Z"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 471,
+        "run_id": 53,
+        "cycle_id": 0,
+        "workspace_id": 12,
+        "item_id": 35
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "cb6186b7a0a71f3043e92f1c3a62b4ff4214c8f2b140de82c5020dfc2d8bb0e5"
+    },
+    "lineage_edges": {
+      "delta_version": 1,
+      "row_count": 575,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "related_workspace_id": "string_view",
+        "related_item_id": "string_view",
+        "related_type": "string_view",
+        "direction": "string_view",
+        "relation_type": "string_view",
+        "reference": "string_view",
+        "resolution": "string_view",
+        "evidence_type": "string_view",
+        "runtime_verified": "bool"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 181,
+        "module": 0,
+        "mode": 575,
+        "run_id": 181,
+        "cycle_id": 575,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "related_workspace_id": 256,
+        "related_item_id": 18,
+        "related_type": 0,
+        "direction": 0,
+        "relation_type": 0,
+        "reference": 548,
+        "resolution": 0,
+        "evidence_type": 0,
+        "runtime_verified": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "lineage_edges": 367,
+          "catalog": 181,
+          "fabricitemdefinitions": 27
+        },
+        "mode": {},
+        "coverage_status": {
+          "success": 394,
+          "legacy_unverified": 181
+        },
+        "item_type": {
+          "SemanticModel": 393,
+          "Report": 155,
+          "Notebook": 15,
+          "DataPipeline": 12
+        },
+        "direction": {
+          "upstream": 414,
+          "downstream": 161
+        },
+        "resolution": {
+          "in_batch": 310,
+          "external_or_unresolved": 238,
+          "unresolved": 27
+        },
+        "evidence_type": {
+          "scanner_relationship": 548,
+          "static_inference": 27
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-11-03T21:01:50.195117Z",
+          "max": "2026-11-05T12:53:06.579356Z"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 575,
+        "run_id": 32,
+        "cycle_id": 0,
+        "workspace_id": 6,
+        "item_id": 21,
+        "related_workspace_id": 5,
+        "related_item_id": 34
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "82da1441079b0cf3ecdb3e9837361046c131920cf687446706a92b410f8e24ef"
+    },
+    "lineage_diagnostics": {
+      "delta_version": 1,
+      "row_count": 14,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "reason": "string_view",
+        "location": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 14,
+        "run_id": 0,
+        "cycle_id": 14,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "reason": 0,
+        "location": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "fabricitemdefinitions": 14
+        },
+        "mode": {},
+        "coverage_status": {
+          "success": 14
+        },
+        "item_type": {
+          "Notebook": 8,
+          "DataPipeline": 6
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-11-04T19:21:15.669142Z",
+          "max": "2026-11-05T12:53:06.579356Z"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 14,
+        "run_id": 5,
+        "cycle_id": 0,
+        "workspace_id": 1,
+        "item_id": 3
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "6dc6ddd984baeaccbe014953d4918003eb4e40e38af4a9e2a0161772f7ad86f8"
+    },
+    "estate_coverage": {
+      "delta_version": 8,
+      "row_count": 442,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "analysis": "string_view",
+        "source_date": "string_view",
+        "record_count": "int64",
+        "issue": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 196,
+        "module": 0,
+        "mode": 442,
+        "run_id": 196,
+        "cycle_id": 442,
+        "coverage_status": 0,
+        "analysis": 0,
+        "source_date": 246,
+        "record_count": 17,
+        "issue": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "fabricdeploymentpipelineoperations": 123,
+          "fabricconnections": 123,
+          "activity": 95,
+          "graph": 39,
+          "catalog": 12,
+          "tenant": 11,
+          "capacity": 11,
+          "workspaces": 11,
+          "capacity_metrics": 10,
+          "gitconnections": 7
+        },
+        "mode": {},
+        "coverage_status": {
+          "success": 229,
+          "legacy_unverified": 196,
+          "failed": 17
+        },
+        "analysis": {
+          "deployments": 123,
+          "connections": 123,
+          "activity": 95,
+          "directory": 39,
+          "catalog": 23,
+          "capacity": 21,
+          "settings": 11,
+          "git": 7
+        },
+        "issue": {
+          "Caller-visible pipelines; operation history needs pipeline Admin and exposes up to 20 recent deployments. Polling gaps cannot be recovered.": 123,
+          "caller_visible_only_endpoints_and_credentials_excluded": 106,
+          "no_completion_manifest_or_exact_collection_time": 95,
+          "Groups/members are optional and capped; membership is transitive USERS only. IDs are not anonymous; names, UPNs and mail are excluded.": 39,
+          "Metrics app extraction is opt-in. Values/units are unchanged; naive timepoints have unknown UTC. Snapshots are not additive KPIs.": 21,
+          "connection_resource_failed": 17,
+          "semantic_model_schema_only_physical_schemas_uncollected": 12,
+          "Observed settings/group rules, not computed effective policy or precedence. Missing override collections stay unknown.": 11,
+          "legacy_item_inventory_not_physical_schema": 11,
+          "Observed repository/branch metadata, not source code or sync health proof. Owners/directories are pseudonyms; URLs/credentials are excluded.": 7
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-10-19T23:15:43.117715Z",
+          "max": "2026-11-05T13:14:48.279526Z"
+        },
+        "source_date": {
+          "min": "2026-10-14",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 442,
+        "run_id": 246,
+        "cycle_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "25745c895a6aff85207cc63eccb816ea5d7009f1f496c5bddb4cac3052249ad6"
+    },
+    "activity_events": {
+      "delta_version": 1,
+      "row_count": 3937,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "event_id": "string_view",
+        "event_time_utc": "string_view",
+        "operation": "string_view",
+        "workload": "string_view",
+        "actor_key": "string_view",
+        "actor_type": "string_view",
+        "is_success": "bool",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 3937,
+        "module": 0,
+        "mode": 3937,
+        "run_id": 3937,
+        "cycle_id": 3937,
+        "coverage_status": 0,
+        "workspace_id": 2199,
+        "item_id": 3393,
+        "item_type": 3937,
+        "event_id": 0,
+        "event_time_utc": 0,
+        "operation": 0,
+        "workload": 0,
+        "actor_key": 0,
+        "actor_type": 0,
+        "is_success": 1633,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "activity": 3937
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 3937
+        },
+        "item_type": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "event_time_utc": {
+          "min": "2026-10-14T20:53:01.000000Z",
+          "max": "2026-11-05T13:09:10.000000Z"
+        },
+        "source_date": {
+          "min": "2026-10-14",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 3937,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 13,
+        "item_id": 10,
+        "event_id": 3937
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "d09d116f694cbf32b214b4753f0d0120697d9882e4d0296dd3f68435e457d7eb"
+    },
+    "catalog_workspaces": {
+      "delta_version": 1,
+      "row_count": 410,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "workspace_name": "string_view",
+        "workspace_type": "string_view",
+        "state": "string_view",
+        "capacity_id": "string_view",
+        "returned_collections_json": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 410,
+        "module": 0,
+        "mode": 410,
+        "run_id": 410,
+        "cycle_id": 410,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "workspace_name": 0,
+        "workspace_type": 374,
+        "state": 374,
+        "capacity_id": 388,
+        "returned_collections_json": 374,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "workspaces": 374,
+          "catalog": 36
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 410
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 410,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 34,
+        "capacity_id": 3
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "120a635975e88815dab94c7b62910d7c4d3b581e6e8b23a3d847d9d828b5eebf"
+    },
+    "catalog_items": {
+      "delta_version": 1,
+      "row_count": 105,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "item_name": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 105,
+        "module": 0,
+        "mode": 105,
+        "run_id": 105,
+        "cycle_id": 105,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "item_name": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "catalog": 105
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 105
+        },
+        "item_type": {
+          "Report": 56,
+          "SemanticModel": 49
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 105,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 4,
+        "item_id": 18
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "35ea6815de2a8cb9c4a1682a0880a31858ae8959d0f1aca287831245b2250337"
+    },
+    "catalog_models": {
+      "delta_version": 1,
+      "row_count": 49,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "model_name": "string_view",
+        "schema_coverage": "string_view",
+        "table_count": "int64",
+        "relationship_count": "int64",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 49,
+        "module": 0,
+        "mode": 49,
+        "run_id": 49,
+        "cycle_id": 49,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "model_name": 0,
+        "schema_coverage": 0,
+        "table_count": 0,
+        "relationship_count": 49,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "catalog": 49
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 49
+        },
+        "item_type": {
+          "SemanticModel": 49
+        },
+        "schema_coverage": {
+          "returned": 49
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 49,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 4,
+        "item_id": 7
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "ae1892f3f25e68bf58623e6cb2e187d5d3c0e51d0168064f53964dbd035662db"
+    },
+    "model_tables": {
+      "delta_version": 1,
+      "row_count": 609,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "table_name": "string_view",
+        "is_hidden": "bool",
+        "column_count": "int64",
+        "measure_count": "int64",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 609,
+        "module": 0,
+        "mode": 609,
+        "run_id": 609,
+        "cycle_id": 609,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "table_name": 0,
+        "is_hidden": 0,
+        "column_count": 0,
+        "measure_count": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "catalog": 609
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 609
+        },
+        "item_type": {
+          "SemanticModel": 609
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 609,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 2,
+        "item_id": 3
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "fa71a1dc81e38b60694be9becd04c10bf97a29c417d8405b5c58521c1b50bfdc"
+    },
+    "model_columns": {
+      "delta_version": 1,
+      "row_count": 4813,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "table_name": "string_view",
+        "column_name": "string_view",
+        "data_type": "string_view",
+        "is_hidden": "bool",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 4813,
+        "module": 0,
+        "mode": 4813,
+        "run_id": 4813,
+        "cycle_id": 4813,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "table_name": 0,
+        "column_name": 0,
+        "data_type": 0,
+        "is_hidden": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "catalog": 4813
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 4813
+        },
+        "item_type": {
+          "SemanticModel": 4813
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 4813,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 2,
+        "item_id": 3
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "56f503d20abff47ddf32aa72c35e4ab28e7caf6f069388f14e698924c6332b17"
+    },
+    "model_measures": {
+      "delta_version": 1,
+      "row_count": 2311,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "table_name": "string_view",
+        "measure_name": "string_view",
+        "data_type": "string_view",
+        "expression_returned": "bool",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 2311,
+        "module": 0,
+        "mode": 2311,
+        "run_id": 2311,
+        "cycle_id": 2311,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "table_name": 0,
+        "measure_name": 0,
+        "data_type": 2311,
+        "expression_returned": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "catalog": 2311
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 2311
+        },
+        "item_type": {
+          "SemanticModel": 2311
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 2311,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 2,
+        "item_id": 3
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "c43b536c5de69bc7bd0a55415884ba390b65496ed83db3229da1bab5083a402d"
+    },
+    "model_relationships": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "from_table": "string_view",
+        "from_column": "string_view",
+        "to_table": "string_view",
+        "to_column": "string_view",
+        "from_cardinality": "string_view",
+        "to_cardinality": "string_view",
+        "is_active": "bool",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "from_table": 0,
+        "from_column": 0,
+        "to_table": 0,
+        "to_column": 0,
+        "from_cardinality": 0,
+        "to_cardinality": 0,
+        "is_active": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "item_type": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 0,
+        "item_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "0b2debfc7a6c260d4648d6a998664d59bd8f41617c7b043e63f761c6f15d6b38"
+    },
+    "connection_observations": {
+      "delta_version": 1,
+      "row_count": 424,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "connection_id": "string_view",
+        "connection_name": "string_view",
+        "gateway_id": "string_view",
+        "connectivity_type": "string_view",
+        "privacy_level": "string_view",
+        "connection_type": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 424,
+        "run_id": 0,
+        "cycle_id": 424,
+        "coverage_status": 0,
+        "connection_id": 0,
+        "connection_name": 424,
+        "gateway_id": 0,
+        "connectivity_type": 0,
+        "privacy_level": 424,
+        "connection_type": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "fabricconnections": 424
+        },
+        "mode": {},
+        "coverage_status": {
+          "success": 424
+        },
+        "connectivity_type": {
+          "OnPremisesGatewayPersonal": 318,
+          "PersonalCloud": 106
+        },
+        "connection_type": {
+          "File": 212,
+          "Folder": 106,
+          "Web": 106
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": "2026-10-20T13:40:58.315603Z",
+          "max": "2026-11-05T13:14:48.235565Z"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 424,
+        "run_id": 106,
+        "cycle_id": 0,
+        "connection_id": 4,
+        "gateway_id": 1
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "382c12a3ee9b27d210f11fe5821ad5891996f115b64b42b00ba1055872d1afc0"
+    },
+    "gateway_observations": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "gateway_id": "string_view",
+        "gateway_name": "string_view",
+        "gateway_type": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "gateway_id": 0,
+        "gateway_name": 0,
+        "gateway_type": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "gateway_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "d784bea6206e67e07f620ea45108bb820db4fc018816f84869b23565315903df"
+    },
+    "gateway_datasources": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "gateway_id": "string_view",
+        "datasource_id": "string_view",
+        "datasource_name": "string_view",
+        "datasource_type": "string_view",
+        "detail_returned": "bool",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "gateway_id": 0,
+        "datasource_id": 0,
+        "datasource_name": 0,
+        "datasource_type": 0,
+        "detail_returned": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "gateway_id": 0,
+        "datasource_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "4b3afd343f3d41290810cb21619e5e897c9dbe3ece4fcad9c7b1a528234ca79a"
+    },
+    "gateway_status": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "gateway_id": "string_view",
+        "datasource_id": "string_view",
+        "status_code": "string_view",
+        "http_status": "int64",
+        "connectivity_observation": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "gateway_id": 0,
+        "datasource_id": 0,
+        "status_code": 0,
+        "http_status": 0,
+        "connectivity_observation": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "connectivity_observation": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "gateway_id": 0,
+        "datasource_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "2847f1d2ea3335225424c70073fa8761e7ab83c38c40081b68b1c46c8c0e4384"
+    },
+    "refresh_observations": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "dataset_name": "string_view",
+        "refresh_id": "string_view",
+        "refresh_type": "string_view",
+        "status": "string_view",
+        "start_time_utc": "string_view",
+        "end_time_utc": "string_view",
+        "duration_seconds": "double",
+        "failure_code": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "dataset_name": 0,
+        "refresh_id": 0,
+        "refresh_type": 0,
+        "status": 0,
+        "start_time_utc": 0,
+        "end_time_utc": 0,
+        "duration_seconds": 0,
+        "failure_code": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "item_type": {},
+        "status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "start_time_utc": {
+          "min": null,
+          "max": null
+        },
+        "end_time_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "refresh_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "bf7578f01abf6efe915514514ccb6d8d52a9e1de24aa7a76f2a1848096cbfcfb"
+    },
+    "refreshable_observations": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "item_id": "string_view",
+        "item_type": "string_view",
+        "dataset_name": "string_view",
+        "capacity_id": "string_view",
+        "refresh_count": "int64",
+        "refresh_failures": "int64",
+        "schedule_enabled": "bool",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "item_type": 0,
+        "dataset_name": 0,
+        "capacity_id": 0,
+        "refresh_count": 0,
+        "refresh_failures": 0,
+        "schedule_enabled": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "item_type": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 0,
+        "item_id": 0,
+        "capacity_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "72aa86509158f32b958a7d7422f3f25ffeead0b7bce27487b0e727f7e24b541e"
+    },
+    "apps": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "app_id": "string_view",
+        "app_name": "string_view",
+        "workspace_id": "string_view",
+        "last_update_utc": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "app_id": 0,
+        "app_name": 0,
+        "workspace_id": 0,
+        "last_update_utc": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "last_update_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "app_id": 0,
+        "workspace_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "79770eae683fb865684c6c59108a30183f996b332c6330144da4436926d7aa3d"
+    },
+    "capacities": {
+      "delta_version": 1,
+      "row_count": 33,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "capacity_id": "string_view",
+        "capacity_name": "string_view",
+        "sku": "string_view",
+        "state": "string_view",
+        "region": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 33,
+        "module": 0,
+        "mode": 33,
+        "run_id": 33,
+        "cycle_id": 33,
+        "coverage_status": 0,
+        "capacity_id": 0,
+        "capacity_name": 0,
+        "sku": 0,
+        "state": 0,
+        "region": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "capacity": 33
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 33
+        },
+        "sku": {
+          "F16": 22,
+          "F64": 11
+        },
+        "region": {
+          "West US 3": 33
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 33,
+        "run_id": 0,
+        "cycle_id": 0,
+        "capacity_id": 3
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "9c40359351921e64014377e0cfcdf7fc49c491f1753431118612ecc8169ca177"
+    },
+    "capacity_metric_observations": {
+      "delta_version": 1,
+      "row_count": 34705,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "capacity_id": "string_view",
+        "sku": "string_view",
+        "metric_group": "string_view",
+        "metric_date": "string_view",
+        "timepoint_raw": "string_view",
+        "timepoint_utc": "string_view",
+        "metric_name": "string_view",
+        "metric_value": "double",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 34705,
+        "module": 0,
+        "mode": 34705,
+        "run_id": 34705,
+        "cycle_id": 34705,
+        "coverage_status": 0,
+        "capacity_id": 0,
+        "sku": 0,
+        "metric_group": 0,
+        "metric_date": 0,
+        "timepoint_raw": 0,
+        "timepoint_utc": 34705,
+        "metric_name": 0,
+        "metric_value": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "capacity_metrics": 34705
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 34705
+        },
+        "sku": {
+          "F64": 34430,
+          "F16": 275
+        },
+        "metric_group": {
+          "utilization": 22085,
+          "carryover": 12620
+        },
+        "metric_name": {
+          "SKU CU by timepoint %": 3155,
+          "Expected burndown in minutes": 3155,
+          "Background billable CU %": 3155,
+          "Cumulative carry over %": 3155,
+          "SKU CU by timepoint": 3155,
+          "Carry over burndown %": 3155,
+          "Carry over add %": 3155,
+          "Interactive billable CU %": 3155,
+          "Interactive non billable CU %": 3155,
+          "CU limit": 3155,
+          "Background non billable CU %": 3155
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "metric_date": {
+          "min": "2026-10-14",
+          "max": "2026-10-15"
+        },
+        "timepoint_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-10-16"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 34705,
+        "run_id": 0,
+        "cycle_id": 0,
+        "capacity_id": 2
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "e0d01b4e2fccb2a7ac346f9014ae9bb2ad73ebbfeb3e50fe29c745220c3e7a36"
+    },
+    "directory_users": {
+      "delta_version": 1,
+      "row_count": 33,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "principal_id": "string_view",
+        "account_enabled": "bool",
+        "user_type": "string_view",
+        "assigned_license_count": "int64",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 33,
+        "module": 0,
+        "mode": 33,
+        "run_id": 33,
+        "cycle_id": 33,
+        "coverage_status": 0,
+        "principal_id": 0,
+        "account_enabled": 3,
+        "user_type": 3,
+        "assigned_license_count": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "graph": 33
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 33
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 33,
+        "run_id": 0,
+        "cycle_id": 0,
+        "principal_id": 3
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "1048e59d34573d7535b08ff979e019acdbc84f0ebb692b465964217b54f46d9a"
+    },
+    "directory_groups": {
+      "delta_version": 1,
+      "row_count": 7,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "group_id": "string_view",
+        "security_enabled": "bool",
+        "mail_enabled": "bool",
+        "group_types_json": "string_view",
+        "is_audience_group": "bool",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 7,
+        "module": 0,
+        "mode": 7,
+        "run_id": 7,
+        "cycle_id": 7,
+        "coverage_status": 0,
+        "group_id": 0,
+        "security_enabled": 0,
+        "mail_enabled": 0,
+        "group_types_json": 0,
+        "is_audience_group": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "graph": 7
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 7
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-19",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 7,
+        "run_id": 0,
+        "cycle_id": 0,
+        "group_id": 1
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "b3bd287a0a5072c3153047f3d370292515843969cd35aa3ed89c7e733f26b001"
+    },
+    "group_memberships": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "group_id": "string_view",
+        "principal_id": "string_view",
+        "membership_kind": "string_view",
+        "is_audience_group": "bool",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "group_id": 0,
+        "principal_id": 0,
+        "membership_kind": 0,
+        "is_audience_group": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "group_id": 0,
+        "principal_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "8595d078c26e4dbeb97f98336c89f09ba1a8758d00ba71ad13307335e47db01f"
+    },
+    "user_licenses": {
+      "delta_version": 1,
+      "row_count": 30,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "principal_id": "string_view",
+        "sku_id": "string_view",
+        "disabled_plans_json": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 30,
+        "module": 0,
+        "mode": 30,
+        "run_id": 30,
+        "cycle_id": 30,
+        "coverage_status": 0,
+        "principal_id": 0,
+        "sku_id": 0,
+        "disabled_plans_json": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "graph": 30
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 30
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-16",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 30,
+        "run_id": 0,
+        "cycle_id": 0,
+        "principal_id": 2,
+        "sku_id": 2
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "6716063a833296a0bb418641ddab4697c3ab178f2204c821657c37f786bc9ee4"
+    },
+    "subscribed_skus": {
+      "delta_version": 1,
+      "row_count": 22,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "sku_id": "string_view",
+        "sku_part_number": "string_view",
+        "capability_status": "string_view",
+        "consumed_units": "int64",
+        "enabled_units": "int64",
+        "suspended_units": "int64",
+        "warning_units": "int64",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 22,
+        "module": 0,
+        "mode": 22,
+        "run_id": 22,
+        "cycle_id": 22,
+        "coverage_status": 0,
+        "sku_id": 0,
+        "sku_part_number": 0,
+        "capability_status": 0,
+        "consumed_units": 0,
+        "enabled_units": 0,
+        "suspended_units": 0,
+        "warning_units": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "graph": 22
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 22
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 22,
+        "run_id": 0,
+        "cycle_id": 0,
+        "sku_id": 2
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "42bcf57991ae6c2569165e4e38ef7725b87052f7167d5ba129143ba68578b794"
+    },
+    "workspace_role_scopes": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "roles_returned": "bool",
+        "assignment_count": "int64",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "roles_returned": 0,
+        "assignment_count": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "aa7c484cc0da26380d0213060bf8a51327aabc8cafa09831b217042187bbd879"
+    },
+    "workspace_role_assignments": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "principal_id": "string_view",
+        "principal_type": "string_view",
+        "workspace_role": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "principal_id": 0,
+        "principal_type": 0,
+        "workspace_role": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "principal_type": {},
+        "workspace_role": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 0,
+        "principal_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "d9d1f03023625ca743fc9d8637f8538616c73dad12b994a1cb8207d52d652fbd"
+    },
+    "tenant_settings": {
+      "delta_version": 1,
+      "row_count": 1970,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "setting_name": "string_view",
+        "title": "string_view",
+        "setting_group": "string_view",
+        "enabled": "bool",
+        "can_specify_groups": "bool",
+        "enabled_group_count": "int64",
+        "excluded_group_count": "int64",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 1970,
+        "module": 0,
+        "mode": 1970,
+        "run_id": 1970,
+        "cycle_id": 1970,
+        "coverage_status": 0,
+        "setting_name": 0,
+        "title": 0,
+        "setting_group": 0,
+        "enabled": 0,
+        "can_specify_groups": 0,
+        "enabled_group_count": 1915,
+        "excluded_group_count": 1970,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "tenant": 1970
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 1970
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 1970,
+        "run_id": 0,
+        "cycle_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "80e9d613cd138aabbda02a7ba0db2c5c311b71f5902c4612c2db2563a8015425"
+    },
+    "delegated_setting_scopes": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "scope_type": "string_view",
+        "entity_id": "string_view",
+        "settings_returned": "bool",
+        "setting_count": "int64",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "scope_type": 0,
+        "entity_id": 0,
+        "settings_returned": 0,
+        "setting_count": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "scope_type": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "entity_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "e81e4d7ba5c4ef3bcc1d091cab1cf191283e0b13958b4b236b72be89cb424533"
+    },
+    "delegated_setting_overrides": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "scope_type": "string_view",
+        "entity_id": "string_view",
+        "setting_name": "string_view",
+        "title": "string_view",
+        "setting_group": "string_view",
+        "enabled": "bool",
+        "delegated_from": "string_view",
+        "enabled_group_count": "int64",
+        "excluded_group_count": "int64",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "scope_type": 0,
+        "entity_id": 0,
+        "setting_name": 0,
+        "title": 0,
+        "setting_group": 0,
+        "enabled": 0,
+        "delegated_from": 0,
+        "enabled_group_count": 0,
+        "excluded_group_count": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "scope_type": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "entity_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "ccd637b343c1a31d88b5c722881721b430ab6ca85a08e8d8141454a3eb26bf8d"
+    },
+    "tenant_setting_groups": {
+      "delta_version": 1,
+      "row_count": 55,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "scope_type": "string_view",
+        "entity_id": "string_view",
+        "setting_name": "string_view",
+        "group_id": "string_view",
+        "group_rule": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 55,
+        "module": 0,
+        "mode": 55,
+        "run_id": 55,
+        "cycle_id": 55,
+        "coverage_status": 0,
+        "scope_type": 0,
+        "entity_id": 55,
+        "setting_name": 0,
+        "group_id": 0,
+        "group_rule": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "tenant": 55
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 55
+        },
+        "scope_type": {
+          "tenant": 55
+        },
+        "group_rule": {
+          "enabled": 55
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-15",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 55,
+        "run_id": 0,
+        "cycle_id": 0,
+        "entity_id": 0,
+        "group_id": 1
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "c2ef45d9ce09d2e2dead6b8442cfe3744892e1331e5e87403ffd9ecec243fabb"
+    },
+    "domains": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "domain_id": "string_view",
+        "domain_name": "string_view",
+        "parent_domain_id": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "domain_id": 0,
+        "domain_name": 0,
+        "parent_domain_id": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "domain_id": 0,
+        "parent_domain_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "7ccdccee539ad6777aeb9b270d6b777b4a63430238c570f0e829a78875d4d128"
+    },
+    "domain_workspaces": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "domain_id": "string_view",
+        "workspace_id": "string_view",
+        "workspace_name": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "domain_id": 0,
+        "workspace_id": 0,
+        "workspace_name": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "domain_id": 0,
+        "workspace_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "f1e87497aef9dbd9670778dba3283b0868fd092267b439a08cd16d18dcf5bbb0"
+    },
+    "workspace_git_connections": {
+      "delta_version": 1,
+      "row_count": 56,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "workspace_id": "string_view",
+        "provider_type": "string_view",
+        "owner_key": "string_view",
+        "organization_name": "string_view",
+        "project_name": "string_view",
+        "repository_name": "string_view",
+        "branch_name": "string_view",
+        "directory_key": "string_view",
+        "connection_state": "string_view",
+        "last_sync_utc": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 56,
+        "module": 0,
+        "mode": 56,
+        "run_id": 56,
+        "cycle_id": 56,
+        "coverage_status": 0,
+        "workspace_id": 0,
+        "provider_type": 0,
+        "owner_key": 42,
+        "organization_name": 14,
+        "project_name": 14,
+        "repository_name": 0,
+        "branch_name": 0,
+        "directory_key": 0,
+        "connection_state": 56,
+        "last_sync_utc": 56,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {
+          "gitconnections": 56
+        },
+        "mode": {},
+        "coverage_status": {
+          "legacy_unverified": 56
+        },
+        "provider_type": {
+          "AzureDevOps": 42,
+          "GitHub": 14
+        }
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "last_sync_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": "2026-10-19",
+          "max": "2026-11-05"
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 56,
+        "run_id": 0,
+        "cycle_id": 0,
+        "workspace_id": 8
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "125f704fbcb523e0dc4edb4885a4b85d6b387803cdd555216fb5686c44b5b86d"
+    },
+    "tags": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "tag_id": "string_view",
+        "tag_name": "string_view",
+        "scope_type": "string_view",
+        "domain_id": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "tag_id": 0,
+        "tag_name": 0,
+        "scope_type": 0,
+        "domain_id": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "scope_type": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "tag_id": 0,
+        "domain_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "9720ee6dcefbc164d5d49997e29be31d6903df5abc1f3b107f608fc3fb90ef53"
+    },
+    "organization_shares": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "artifact_id": "string_view",
+        "artifact_type": "string_view",
+        "access_right": "string_view",
+        "share_type": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "artifact_id": 0,
+        "artifact_type": 0,
+        "access_right": 0,
+        "share_type": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "artifact_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "ddfd10e97c4b51304df198c1f576c759400ad2dac509c7c9d3d689ac914d39d8"
+    },
+    "publish_to_web_shares": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "artifact_id": "string_view",
+        "artifact_type": "string_view",
+        "access_right": "string_view",
+        "share_type": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "artifact_id": 0,
+        "artifact_type": 0,
+        "access_right": 0,
+        "share_type": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "artifact_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "ddfd10e97c4b51304df198c1f576c759400ad2dac509c7c9d3d689ac914d39d8"
+    },
+    "deployment_pipelines": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "pipeline_id": "string_view",
+        "pipeline_name": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "pipeline_id": 0,
+        "pipeline_name": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "pipeline_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "4850a0c910bedf3108c2675849f2dde4fec9f1cf10d7146453f4cdd7a8589c1d"
+    },
+    "deployment_operation_resources": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "pipeline_id": "string_view",
+        "record_count": "int64",
+        "resource_outcome": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "pipeline_id": 0,
+        "record_count": 0,
+        "resource_outcome": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "resource_outcome": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "pipeline_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "3e637a092d2ebcd6d15442c703388693b2212720b8294689a1dea5d95315f0ba"
+    },
+    "deployment_operations": {
+      "delta_version": 0,
+      "row_count": 0,
+      "schema": {
+        "schema_version": "int32",
+        "observation_id": "string_view",
+        "source_path": "string_view",
+        "source_sha256": "string_view",
+        "record_sha256": "string_view",
+        "observed_at_utc": "string_view",
+        "module": "string_view",
+        "mode": "string_view",
+        "run_id": "string_view",
+        "cycle_id": "string_view",
+        "coverage_status": "string_view",
+        "pipeline_id": "string_view",
+        "operation_id": "string_view",
+        "operation_type": "string_view",
+        "status": "string_view",
+        "last_updated_utc": "string_view",
+        "execution_start_utc": "string_view",
+        "execution_end_utc": "string_view",
+        "duration_seconds": "double",
+        "source_stage_id": "string_view",
+        "target_stage_id": "string_view",
+        "source_date": "string_view"
+      },
+      "missing_contract_columns": [],
+      "null_counts": {
+        "schema_version": 0,
+        "observation_id": 0,
+        "source_path": 0,
+        "source_sha256": 0,
+        "record_sha256": 0,
+        "observed_at_utc": 0,
+        "module": 0,
+        "mode": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "coverage_status": 0,
+        "pipeline_id": 0,
+        "operation_id": 0,
+        "operation_type": 0,
+        "status": 0,
+        "last_updated_utc": 0,
+        "execution_start_utc": 0,
+        "execution_end_utc": 0,
+        "duration_seconds": 0,
+        "source_stage_id": 0,
+        "target_stage_id": 0,
+        "source_date": 0
+      },
+      "observation_id_duplicates": 0,
+      "categories": {
+        "module": {},
+        "mode": {},
+        "coverage_status": {},
+        "status": {}
+      },
+      "time_ranges": {
+        "observed_at_utc": {
+          "min": null,
+          "max": null
+        },
+        "last_updated_utc": {
+          "min": null,
+          "max": null
+        },
+        "execution_start_utc": {
+          "min": null,
+          "max": null
+        },
+        "execution_end_utc": {
+          "min": null,
+          "max": null
+        },
+        "source_date": {
+          "min": null,
+          "max": null
+        }
+      },
+      "id_distinct_counts": {
+        "observation_id": 0,
+        "run_id": 0,
+        "cycle_id": 0,
+        "pipeline_id": 0,
+        "operation_id": 0,
+        "source_stage_id": 0,
+        "target_stage_id": 0
+      },
+      "cross_dataset_observation_id_collisions": 0,
+      "cache_sha256": "f9dbea3c703965d48fe97034effbb69b0e7fb0a58a3a1c8fd2dce08aa3dc7412"
+    }
+  },
+  "cross_dataset": {
+    "distinct_observation_ids": 55683,
+    "distinct_workspace_ids": 35,
+    "distinct_item_ids": 144,
+    "item_ids_with_multiple_known_workspaces": 0
+  }
+}

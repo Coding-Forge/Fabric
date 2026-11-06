@@ -1,0 +1,174 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "stewardship_workspaces",
+  "position": {
+    "x": 40,
+    "y": 700,
+    "z": 3000,
+    "height": 360,
+    "width": 1800,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogWorkspaces"
+                    }
+                  },
+                  "Property": "WorkspaceName"
+                }
+              },
+              "queryRef": "CatalogWorkspaces.WorkspaceName",
+              "nativeQueryRef": "WorkspaceName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogWorkspaces"
+                    }
+                  },
+                  "Property": "State"
+                }
+              },
+              "queryRef": "CatalogWorkspaces.State",
+              "nativeQueryRef": "State"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogWorkspaces"
+                    }
+                  },
+                  "Property": "IsOnDedicatedCapacity"
+                }
+              },
+              "queryRef": "CatalogWorkspaces.IsOnDedicatedCapacity",
+              "nativeQueryRef": "IsOnDedicatedCapacity"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogWorkspaces"
+                    }
+                  },
+                  "Property": "ReportCount"
+                }
+              },
+              "queryRef": "CatalogWorkspaces.ReportCount",
+              "nativeQueryRef": "ReportCount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogWorkspaces"
+                    }
+                  },
+                  "Property": "DatasetCount"
+                }
+              },
+              "queryRef": "CatalogWorkspaces.DatasetCount",
+              "nativeQueryRef": "DatasetCount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogWorkspaces"
+                    }
+                  },
+                  "Property": "DataflowCount"
+                }
+              },
+              "queryRef": "CatalogWorkspaces.DataflowCount",
+              "nativeQueryRef": "DataflowCount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogWorkspaces"
+                    }
+                  },
+                  "Property": "DatamartCount"
+                }
+              },
+              "queryRef": "CatalogWorkspaces.DatamartCount",
+              "nativeQueryRef": "DatamartCount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogWorkspaces"
+                    }
+                  },
+                  "Property": "DashboardCount"
+                }
+              },
+              "queryRef": "CatalogWorkspaces.DashboardCount",
+              "nativeQueryRef": "DashboardCount"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9.0D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Workspace artifact stewardship queue'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

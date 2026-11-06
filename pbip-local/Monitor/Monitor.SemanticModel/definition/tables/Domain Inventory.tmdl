@@ -1,0 +1,108 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Domain Inventory'
+	lineageTag: 39c63494-3682-5d7f-b6d1-2cf3a47f68a0
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 88b01def-b534-4404-bfbc-7f57e1d48886
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: d72060b2-63ac-4726-9467-2fae7b1dfb71
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: d4b1af8f-8afc-4071-9ad5-3371fb7da8ab
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 8b666620-8677-46e5-bf46-f35cca6647fe
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: d88adce5-ce43-47a2-b514-c8dcc41883e5
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 40b0e984-193b-42cf-b33e-602ffef17821
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 24d0438b-cc09-430c-a10c-12d83da01db5
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: bb6db804-5d65-48d1-94f3-082034686ff5
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: a2a16184-cfce-4ad1-8d1a-46531a345aee
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: deadd625-dc7a-46c7-b259-1844d9b3be7a
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 322c6bdd-227e-46a5-8941-3b7c9ca5f563
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Domain ID'
+		dataType: string
+		lineageTag: 31995ee1-9e4a-4cc9-a97a-7f13a1d78c74
+		summarizeBy: none
+		sourceColumn: domain_id
+
+	column 'Domain Name'
+		dataType: string
+		lineageTag: 028f67ef-f70f-4a2b-9761-18cf1a23a7f9
+		summarizeBy: none
+		sourceColumn: domain_name
+
+	column 'Parent Domain ID'
+		dataType: string
+		lineageTag: d96aeb42-1e10-4010-8cc7-5c6ad52d2ca3
+		summarizeBy: none
+		sourceColumn: parent_domain_id
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 1547d779-8c18-4d80-9d56-6c57d035167c
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Domain Inventory' = entity
+		mode: directLake
+		source
+			entityName: monitor_domains
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

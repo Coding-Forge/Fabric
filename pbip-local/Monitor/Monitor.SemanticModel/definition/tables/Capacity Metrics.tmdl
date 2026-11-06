@@ -1,0 +1,138 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Capacity Metrics'
+	lineageTag: d42d7ff3-e2fc-597a-87df-c5308d4298a7
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 2f190e18-8d2b-4361-a413-44a2cc4f2bf9
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 81437df0-fbbb-4643-8ef0-e4859e3dd9fa
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 513a603a-b576-4f3c-b837-8a78059e68d8
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 465130c4-507e-4608-b6c8-5bab61021e79
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: c712ec36-43bc-4e79-99e1-f5ff3202de9b
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 8e75d409-af2c-43d7-a6a1-5e11de777f3c
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: d886a817-c390-4b34-b581-b45f5a40da3f
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: c1fc0462-b71e-4e9c-9a34-ccc550aa6db5
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: f7da4321-4389-45da-9e7c-3fa1892e623d
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 33ea1f67-1e09-45b5-9493-fa76b5ca9b36
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 98221733-6c8f-4445-8d45-3fcf4a73d351
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Capacity ID'
+		dataType: string
+		lineageTag: d7821292-940a-4ec6-99b8-d52da5d517bc
+		summarizeBy: none
+		sourceColumn: capacity_id
+
+	column SKU
+		dataType: string
+		lineageTag: 04784924-b386-46c1-ba50-7f3f2c81280f
+		summarizeBy: none
+		sourceColumn: sku
+
+	column 'Metric Group'
+		dataType: string
+		lineageTag: 6a364a7d-6d2b-42dc-be1f-9e1052207263
+		summarizeBy: none
+		sourceColumn: metric_group
+
+	column 'Metric Date'
+		dataType: string
+		lineageTag: b240bfca-e7c7-4254-aa7b-9b90a9cb3ba4
+		summarizeBy: none
+		sourceColumn: metric_date
+
+	column 'Timepoint Raw'
+		dataType: string
+		lineageTag: 352899a9-ad2e-4ffb-b793-355cdfa3a5ff
+		summarizeBy: none
+		sourceColumn: timepoint_raw
+
+	column 'Timepoint UTC'
+		dataType: string
+		lineageTag: a23b1882-82c0-409b-88ab-e50a99a5291d
+		summarizeBy: none
+		sourceColumn: timepoint_utc
+
+	column 'Metric Name'
+		dataType: string
+		lineageTag: 593511b1-6809-416e-8d67-3e4b330974a0
+		summarizeBy: none
+		sourceColumn: metric_name
+
+	column 'Metric Value'
+		dataType: double
+		lineageTag: 73ce2599-36f9-4af3-9d8a-483a887f2fc2
+		summarizeBy: none
+		sourceColumn: metric_value
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 5517b042-ea55-4097-b3fb-6e41ac0ea92c
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Capacity Metrics' = entity
+		mode: directLake
+		source
+			entityName: monitor_capacity_metric_observations
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

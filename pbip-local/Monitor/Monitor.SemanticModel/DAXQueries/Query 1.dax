@@ -1,0 +1,10 @@
+// Welcome to DAX query view! Learn more about DAX queries at https://aka.ms/dax-queries.
+// Right-click on tables, columns, or measures in the data pane to access quick queries, or ask Copilot for help writing DAX.
+
+// Select "Run" to try this sample DAX query.
+EVALUATE
+ROW(
+    "DatasetRows", COUNTROWS('Dataset'),
+    "ContextRows", COUNTROWS('Observation Context'),
+    "InventoryRows", COUNTROWS('Item Inventory')
+)

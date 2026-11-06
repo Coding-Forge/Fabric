@@ -1,0 +1,108 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Domain Coverage'
+	lineageTag: 76907543-f9f6-58ee-82f4-6192daff5a4b
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 08d3b9a0-6ea7-478b-b082-0f9e39ed514d
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 4c3e9f5b-9a56-4df3-9514-263a5cec9b8a
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 7a809bf0-4f4b-410f-be93-4506cede73cb
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 39862eae-32b2-4865-8481-305c603d5075
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: e4d5857e-7e98-47e2-8052-d9c9fb372e34
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 08ad534b-f5a1-419b-98bd-9d53b314bac0
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 5795481e-b6f0-4b68-810a-e8c50bda71dd
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: ac7bf9d0-a0f9-434f-b849-e1fb9a0ce039
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 0246b823-e8e8-4c62-a127-4364cfe049e3
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 3248b414-8aa0-4f26-ab2f-7bf77293a288
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 46ff22fb-b8af-4808-893f-c112cebff90f
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column Analysis
+		dataType: string
+		lineageTag: d85f9ae7-f597-4464-99f0-6806e06011bb
+		summarizeBy: none
+		sourceColumn: analysis
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: d0d6d653-0718-48c8-b492-10792b9c34a9
+		summarizeBy: none
+		sourceColumn: source_date
+
+	column 'Record Count'
+		dataType: int64
+		lineageTag: 2d10affb-2c7e-4fad-b142-5884a88b1037
+		summarizeBy: none
+		sourceColumn: record_count
+
+	column Issue
+		dataType: string
+		lineageTag: c18a36d0-8ff5-4779-8057-e9ba7b075d10
+		summarizeBy: none
+		sourceColumn: issue
+
+	partition 'Domain Coverage' = entity
+		mode: directLake
+		source
+			entityName: monitor_estate_coverage
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

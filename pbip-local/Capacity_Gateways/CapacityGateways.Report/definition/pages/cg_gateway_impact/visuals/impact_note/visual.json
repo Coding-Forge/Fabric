@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "impact_note",
+  "position": {
+    "x": 1260,
+    "y": 295,
+    "z": 2040,
+    "height": 130,
+    "width": 560,
+    "tabOrder": 2040
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Follow the breadcrumb: Workspace -> Dataset -> Datasource Instance -> Gateway. If catalog has gateway IDs but gateway inventory is empty, validate gateway admin visibility or VNet-gateway limitations.",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

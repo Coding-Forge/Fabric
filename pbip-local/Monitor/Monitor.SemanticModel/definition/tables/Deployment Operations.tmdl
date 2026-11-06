@@ -1,0 +1,150 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Deployment Operations'
+	lineageTag: f59f32c8-ad84-5d59-99bd-27029dd741d6
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: f6868862-ac93-4edc-85af-d3fd10feca1c
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: aa6ea12e-6cf5-4780-9ad1-8983fcec2fae
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: dfc0545a-cc0b-46cd-91ef-f725b0947048
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 9dd253e8-8283-4a03-a9b4-803738429921
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 03b85322-96c0-4e75-b5ea-9761d8ea65f4
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: b4feddf9-1acc-41eb-990c-6b86c3fc65d1
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 36ee8240-a553-4777-a69f-eb4f610d5396
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 63d4f14e-f14c-46f5-9fdf-e0f9483e5bf8
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 9d4ad7a8-f1ed-4955-afc5-9c8ef1cfb5d3
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 5aa8a68e-1cb6-46d1-9d39-b9798f4ae0ef
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 8d91cd2a-7a7c-40ea-8d91-27a998ca096a
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Pipeline ID'
+		dataType: string
+		lineageTag: 7d616a6a-e2fb-441d-a8fe-444b3574e405
+		summarizeBy: none
+		sourceColumn: pipeline_id
+
+	column 'Operation ID'
+		dataType: string
+		lineageTag: b1851d47-1551-437d-ace7-54388cd17709
+		summarizeBy: none
+		sourceColumn: operation_id
+
+	column 'Operation Type'
+		dataType: string
+		lineageTag: f9764fdb-ff49-462c-a5d9-cbc38f8f5144
+		summarizeBy: none
+		sourceColumn: operation_type
+
+	column Status
+		dataType: string
+		lineageTag: 21645983-49d8-4c31-b102-81ccb57b5d78
+		summarizeBy: none
+		sourceColumn: status
+
+	column 'Last Updated UTC'
+		dataType: string
+		lineageTag: 0913e6d0-1a1b-4998-9fc2-a2e4ee5d355a
+		summarizeBy: none
+		sourceColumn: last_updated_utc
+
+	column 'Execution Start UTC'
+		dataType: string
+		lineageTag: c2f343bb-dc55-480b-9099-95eedb88feea
+		summarizeBy: none
+		sourceColumn: execution_start_utc
+
+	column 'Execution End UTC'
+		dataType: string
+		lineageTag: 0d5a277d-7016-46ea-8acc-ebbe408d2823
+		summarizeBy: none
+		sourceColumn: execution_end_utc
+
+	column 'Duration Seconds'
+		dataType: double
+		lineageTag: c2154093-205a-44b2-ac6c-87facea1cee1
+		summarizeBy: none
+		sourceColumn: duration_seconds
+
+	column 'Source Stage ID'
+		dataType: string
+		lineageTag: 8172d762-4cf7-4ac2-9349-7222cd6bf902
+		summarizeBy: none
+		sourceColumn: source_stage_id
+
+	column 'Target Stage ID'
+		dataType: string
+		lineageTag: d35d28e5-b18d-414d-96ff-3a295683858c
+		summarizeBy: none
+		sourceColumn: target_stage_id
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: dace2db1-64db-4152-870b-520ccbaa35e7
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Deployment Operations' = entity
+		mode: directLake
+		source
+			entityName: monitor_deployment_operations
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

@@ -1,0 +1,102 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Deployment Pipelines'
+	lineageTag: 436416e9-9811-567b-979c-d1e9ef171696
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 6c7e7388-7d97-4e86-b78c-0bc0bacc071f
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 0299b6ef-467e-4e19-903b-4724cdfba757
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 3881a832-090f-4729-8c5c-6aa222de4ba5
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: f5cd10d8-8d67-4e1b-9f9e-ee3ad12b48c5
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: dba5610a-a225-46d1-9716-f4f4db9dab8c
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 708a0419-d19b-478a-b722-471112a8edab
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 77a261db-e8e9-47ff-bf45-a6897fb9b3c6
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 50358d57-7dbc-4a83-a2a9-16d1ef6071e8
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: a76ebae4-c60c-4ac1-9b6a-ba246dcb654d
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: a0add417-2ade-4099-a654-ed3792d26b55
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: dd142a67-53df-4aaf-a9a6-e962fe7f04b4
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Pipeline ID'
+		dataType: string
+		lineageTag: d972787c-a681-408a-98a2-cd3867822936
+		summarizeBy: none
+		sourceColumn: pipeline_id
+
+	column 'Pipeline Name'
+		dataType: string
+		lineageTag: ed93a612-d0a0-40e1-a950-cf4ea464f961
+		summarizeBy: none
+		sourceColumn: pipeline_name
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 41e1262c-cdbc-48dc-a279-ed9ef596696a
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Deployment Pipelines' = entity
+		mode: directLake
+		source
+			entityName: monitor_deployment_pipelines
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

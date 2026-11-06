@@ -1,0 +1,75 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "estate_15",
+  "displayName": "Workspace detail",
+  "displayOption": "FitToWidth",
+  "height": 1148,
+  "width": 1600,
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "workspace_scope",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspace"
+              }
+            },
+            "Property": "Entity ID"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  },
+  "pageBinding": {
+    "name": "workspace_detail",
+    "type": "Drillthrough",
+    "parameters": [
+      {
+        "name": "workspace",
+        "boundFilter": "workspace_scope",
+        "fieldExpr": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspace"
+              }
+            },
+            "Property": "Entity ID"
+          }
+        }
+      }
+    ]
+  },
+  "objects": {
+    "background": [
+      {
+        "properties": {
+          "color": {
+            "solid": {
+              "color": {
+                "expr": {
+                  "Literal": {
+                    "Value": "'#F3F6FB'"
+                  }
+                }
+              }
+            }
+          },
+          "transparency": {
+            "expr": {
+              "Literal": {
+                "Value": "0D"
+              }
+            }
+          }
+        }
+      }
+    ]
+  },
+  "visibility": "HiddenInViewMode",
+  "type": "Drillthrough",
+  "howCreated": "Copilot"
+}

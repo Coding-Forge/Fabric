@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "gateway_empty_note",
+  "position": {
+    "x": 980,
+    "y": 295,
+    "z": 2030,
+    "height": 130,
+    "width": 780,
+    "tabOrder": 2030
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "If the cards read zero, the drawbridge is quiet: gateway JSON files are present but empty. Validate gateway permissions, tenant settings, or whether this estate currently has no gateways in scope.",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

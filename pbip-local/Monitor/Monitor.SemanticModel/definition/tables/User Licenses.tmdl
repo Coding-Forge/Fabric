@@ -1,0 +1,108 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'User Licenses'
+	lineageTag: 15e97b80-0442-530f-8fd7-2a1d387aca0d
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: ca0fce0b-d01a-42f8-bc9d-0f725cd83305
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 46713787-9373-4840-a3b7-f77d4c015b68
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: d8bbc432-f0f8-457e-9ef6-467e0a08ccb3
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 7ec73da7-e7e0-4eda-909b-520da927d62d
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: bec9bb85-d940-4a39-9837-3856fd2d82e4
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 108a5965-86cd-41bc-811a-db1b26d37a5a
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: ed3e44c9-4313-4bf2-8a74-e68f8b7de526
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 6a554193-2111-4b5f-8b10-9756994f1664
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 855cea9e-7d09-4b81-a68d-78a323d07628
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 2f36f4c3-e44b-4149-a989-d2fa087f4d87
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 92df8b16-5bf0-4187-9466-a72a4aa73ae1
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Principal ID'
+		dataType: string
+		lineageTag: 13f761ef-7f54-4d2b-babd-54e13c1a9371
+		summarizeBy: none
+		sourceColumn: principal_id
+
+	column 'SKU ID'
+		dataType: string
+		lineageTag: 27b6f253-ddaf-448c-a733-ba4c721aafd0
+		summarizeBy: none
+		sourceColumn: sku_id
+
+	column 'Disabled Plans JSON'
+		dataType: string
+		lineageTag: 5d2b8286-146d-4940-b76d-5bc94cd41225
+		summarizeBy: none
+		sourceColumn: disabled_plans_json
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 370ac05c-d5e9-402f-b1e7-383d9a3831a9
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'User Licenses' = entity
+		mode: directLake
+		source
+			entityName: monitor_user_licenses
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

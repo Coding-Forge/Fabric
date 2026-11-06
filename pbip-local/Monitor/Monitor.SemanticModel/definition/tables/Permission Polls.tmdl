@@ -1,0 +1,120 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Permission Polls'
+	lineageTag: 0775f5b3-22ec-542a-9444-14fa6052f7c8
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 326f5b4e-5853-46fc-b85a-ab6b54a1b01c
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 69d963a6-62d8-43a7-90ac-c5ef71d214f7
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 76efdd22-ac03-4b49-a7d4-24c5164cd6fd
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 3a5368c7-839d-4d08-b5b7-a3fddda8ce5d
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: e7036b7d-8349-43f0-bd61-405968678371
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: a8229807-94d9-403e-bbfe-e1b65be7ad0d
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 558fc371-78d1-4feb-94e7-65fa220470cc
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: bb17dee3-6059-4d57-8097-b444ec459873
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: cc94c670-7d72-459d-8b12-9170f01003c9
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 57f530dd-e9d5-4ec4-8ef9-f6c438f124b2
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 01fbbf4c-9fec-4843-8b5c-04d9727087a2
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: cc2e3052-694a-44b9-a2dd-4f788c4b7c3c
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Item ID'
+		dataType: string
+		lineageTag: 155b32b2-6c12-46f8-9e72-ce811240f264
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 7c842361-3196-48fa-b54e-04a8f907a4bb
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Observation Unit'
+		dataType: string
+		lineageTag: c297bb3f-210e-4b33-9958-1820ef9bbfaa
+		summarizeBy: none
+		sourceColumn: observation_unit
+
+	column 'Record Count'
+		dataType: int64
+		lineageTag: cf51feaf-7490-4bca-aad8-38f68402c05a
+		summarizeBy: none
+		sourceColumn: record_count
+
+	column 'Resource Outcome'
+		dataType: string
+		lineageTag: ddf1dae6-1fc6-47ba-b98b-3c4466338671
+		summarizeBy: none
+		sourceColumn: resource_outcome
+
+	partition 'Permission Polls' = entity
+		mode: directLake
+		source
+			entityName: monitor_permission_resources
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

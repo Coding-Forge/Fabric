@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "landing_note",
+  "position": {
+    "x": 1290,
+    "y": 360,
+    "z": 220,
+    "height": 300,
+    "width": 500,
+    "tabOrder": 220
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Today's gateway files are empty arrays, so gateway cards may show zero. That is useful signal: either there are no gateways in scope, or gateway collection needs permission/configuration attention.",
+                    "textStyle": {
+                      "fontSize": "18pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

@@ -1,0 +1,48 @@
+table 'Collection Date'
+	lineageTag: d11c913d-983b-5689-b3a8-0d2b4deef495
+
+	column 'Date Key'
+		dataType: int64
+		isHidden
+		lineageTag: 2315a5b4-1e00-4f65-8eac-3ec70b1dae69
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column Date
+		dataType: dateTime
+		formatString: yyyy-MM-dd
+		lineageTag: e440dd9f-d71d-439f-833f-181a06a0697c
+		summarizeBy: none
+		sourceColumn: date
+
+	column Year
+		dataType: int64
+		lineageTag: d118e0b0-ffb6-4c7a-a0dd-4fa4876fab6f
+		summarizeBy: none
+		sourceColumn: year
+
+	column 'Month Number'
+		dataType: int64
+		lineageTag: 682f30ac-9739-4cad-868a-d6515b966f23
+		summarizeBy: none
+		sourceColumn: month_number
+
+	column 'Year Month'
+		dataType: string
+		lineageTag: 1d9a2439-1577-453c-b2b2-096445e9db15
+		summarizeBy: none
+		sourceColumn: year_month
+
+	column 'Day Of Week'
+		dataType: string
+		lineageTag: c28e8de1-4b16-443c-9d7f-b53f0b92e839
+		summarizeBy: none
+		sourceColumn: day_of_week
+
+	partition 'Collection Date' = entity
+		mode: directLake
+		source
+			entityName: monitor_report_date
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

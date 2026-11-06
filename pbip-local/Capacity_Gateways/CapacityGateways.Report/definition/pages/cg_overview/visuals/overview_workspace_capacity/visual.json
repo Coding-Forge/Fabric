@@ -1,0 +1,85 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "overview_workspace_capacity",
+  "position": {
+    "x": 650,
+    "y": 470,
+    "z": 3010,
+    "height": 320,
+    "width": 560,
+    "tabOrder": 3010
+  },
+  "visual": {
+    "visualType": "donutChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogWorkspaces"
+                    }
+                  },
+                  "Property": "IsOnDedicatedCapacity"
+                }
+              },
+              "queryRef": "CatalogWorkspaces.IsOnDedicatedCapacity",
+              "nativeQueryRef": "IsOnDedicatedCapacity",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "CatalogWorkspaces"
+                        }
+                      },
+                      "Property": "WorkspaceId"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(CatalogWorkspaces.WorkspaceId)",
+              "nativeQueryRef": "Count of WorkspaceId"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Workspace capacity posture'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

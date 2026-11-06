@@ -1,0 +1,126 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Permission Grants'
+	lineageTag: 6d6904e0-1f1f-5d46-8410-cd41d4b4148e
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: b6636df7-e5cc-428d-a864-d5b36664e0ae
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 1df0dc5f-fbcc-4ad0-a330-63026d969e52
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 273e7d4a-3b3c-43a5-99de-ee25ce58d7ae
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: a52bb69d-7432-4de5-875d-fd7ba1aa6d3e
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: f10ac834-ede9-4dbf-9079-b517a292a3c2
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: a696daf4-46ec-46d3-aff6-750c8c056ef9
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: caabf081-d966-4fab-8158-3aae957920b8
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 52325908-1f1e-467d-98e7-be3fa2c51f41
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: b984248f-7fd1-4a81-9ecd-22c5a03c6d36
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 956b2726-595b-4a24-bee3-c602aeb7be27
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: ec14d09e-5662-458d-b5b7-df954b523e81
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: 9c8ba9c4-b104-4c5c-974a-ee6c3b16b48d
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Item ID'
+		dataType: string
+		lineageTag: 11d184f5-a119-46b4-8080-1120f5c6a494
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: a3b90a19-a2f3-4848-bb3c-3461ca0a85cb
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Principal ID'
+		dataType: string
+		lineageTag: d49fd138-33a0-4854-aee7-4e3023bbc8f2
+		summarizeBy: none
+		sourceColumn: principal_id
+
+	column 'Principal Type'
+		dataType: string
+		lineageTag: efc1cf59-e757-4a22-8aec-8de4b348ca5f
+		summarizeBy: none
+		sourceColumn: principal_type
+
+	column 'Permissions JSON'
+		dataType: string
+		lineageTag: c4aeea5f-9fe4-4071-8038-c9ec03573ff1
+		summarizeBy: none
+		sourceColumn: permissions_json
+
+	column 'Additional Permissions JSON'
+		dataType: string
+		lineageTag: 1e5f0746-6f24-4114-992a-2c83902f560c
+		summarizeBy: none
+		sourceColumn: additional_permissions_json
+
+	partition 'Permission Grants' = entity
+		mode: directLake
+		source
+			entityName: monitor_permission_grants
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

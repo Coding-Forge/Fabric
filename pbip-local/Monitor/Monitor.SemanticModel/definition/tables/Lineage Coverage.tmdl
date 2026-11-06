@@ -1,0 +1,120 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Lineage Coverage'
+	lineageTag: e8dcb7e2-c99d-543c-b324-104bafb1ec00
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 1cfcb73d-307a-4297-af52-84a1175d2ee0
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: ced2f1e5-7db1-4d97-800c-16a7b0da69b0
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: f95603d0-71c6-45ff-ade5-0918e708a93c
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 3f9c5f28-58f3-47b4-ba16-2bd6e0829a24
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: aba19c3c-e0e1-4573-8e90-d422ea88b790
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: e6a5545b-bfa0-4a35-8122-0174e2963224
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 2dea46a7-ac88-48a1-a4ff-26d911b2ad79
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: d1ebc4ca-22da-4409-bca3-b06a0f0ebe45
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: f4b47431-71cc-456a-ba11-a5f44071b057
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: d5c18129-edd0-4b23-a980-3102a7a2faac
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: ae03c2dc-d288-444c-88c7-74eb4f06d341
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: 8eb9ac17-42ec-4c37-9dd0-5ffc201721a9
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Item ID'
+		dataType: string
+		lineageTag: 93fb1f4a-21b5-4d4f-9431-1e12f504efa3
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 5bf7a4df-dc8b-4b86-9d75-781aabc15781
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Evidence Type'
+		dataType: string
+		lineageTag: 9bad8582-bac7-43ea-9313-11988f00d2c7
+		summarizeBy: none
+		sourceColumn: evidence_type
+
+	column 'Record Count'
+		dataType: int64
+		lineageTag: 9aefe35c-41fc-43b1-a39b-c484cc1c0965
+		summarizeBy: none
+		sourceColumn: record_count
+
+	column 'Diagnostic Count'
+		dataType: int64
+		lineageTag: d95e0a31-3a10-4b64-8d3f-a6ddabe5a71a
+		summarizeBy: none
+		sourceColumn: diagnostic_count
+
+	partition 'Lineage Coverage' = entity
+		mode: directLake
+		source
+			entityName: monitor_lineage_resources
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

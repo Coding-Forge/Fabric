@@ -1,0 +1,218 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
+  "name": "v_estate_04_11",
+  "position": {
+    "x": 24,
+    "y": 768,
+    "z": 11,
+    "tabOrder": 11,
+    "width": 1552,
+    "height": 200
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Evidence explorer - select a chart or slicer to investigate'"
+                }
+              }
+            },
+            "fontFamily": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Segoe UI Semibold'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "12D"
+                }
+              }
+            },
+            "fontColor": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#102A43'"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#FFFFFF'"
+                    }
+                  }
+                }
+              }
+            },
+            "transparency": {
+              "expr": {
+                "Literal": {
+                  "Value": "0D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "border": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#DFE7F1'"
+                    }
+                  }
+                }
+              }
+            },
+            "radius": {
+              "expr": {
+                "Literal": {
+                  "Value": "8D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Permission Grants"
+                    }
+                  },
+                  "Property": "Mode"
+                }
+              },
+              "queryRef": "Permission Grants.Mode",
+              "nativeQueryRef": "Mode"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Permission Grants"
+                    }
+                  },
+                  "Property": "Workspace ID"
+                }
+              },
+              "queryRef": "Permission Grants.Workspace ID",
+              "nativeQueryRef": "Workspace ID"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Permission Grants"
+                    }
+                  },
+                  "Property": "Item ID"
+                }
+              },
+              "queryRef": "Permission Grants.Item ID",
+              "nativeQueryRef": "Item ID"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Permission Grants"
+                    }
+                  },
+                  "Property": "Principal Type"
+                }
+              },
+              "queryRef": "Permission Grants.Principal Type",
+              "nativeQueryRef": "Principal Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Permission Grants"
+                    }
+                  },
+                  "Property": "Permissions JSON"
+                }
+              },
+              "queryRef": "Permission Grants.Permissions JSON",
+              "nativeQueryRef": "Permissions JSON"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Estate Measures"
+                    }
+                  },
+                  "Property": "Scoped Grant Observations"
+                }
+              },
+              "queryRef": "Estate Measures.Scoped Grant Observations",
+              "nativeQueryRef": "Scoped Grant Observations"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "howCreated": "Copilot"
+}

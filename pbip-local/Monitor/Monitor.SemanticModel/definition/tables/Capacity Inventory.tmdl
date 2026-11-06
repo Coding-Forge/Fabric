@@ -1,0 +1,120 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Capacity Inventory'
+	lineageTag: 1bcba263-aefb-5623-9269-e03e73f7c091
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 0b22c8a0-87ef-4a1b-9bc9-73dcd7c99d63
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 6b7a65d8-0ef6-4520-8357-bc01f9ed0c5c
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 446d30aa-a8bf-4b11-b1b5-693eaf408d6f
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 60663fec-56a5-409a-8f46-014e827c1b32
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: a28b6f13-00bc-41db-bdc9-1673f290e0fe
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: 9004f1ca-dec9-4ec5-9892-bdeabe21a4e8
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 3ce9deea-bded-4f55-90c0-7520456b145b
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 3240487f-b803-432e-9301-5ab3f4647e95
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 323ffc11-ded5-4dd3-b501-c6e86630d9f9
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: c3e4e998-ebf5-4b04-8214-685b545adf49
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 2616c13e-b84e-4eed-809c-c9ee5259fe96
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Capacity ID'
+		dataType: string
+		lineageTag: 431e7064-b40f-4e52-a015-880e202f7b9c
+		summarizeBy: none
+		sourceColumn: capacity_id
+
+	column 'Capacity Name'
+		dataType: string
+		lineageTag: f23c90be-db1f-45cc-9ca7-6660f1783627
+		summarizeBy: none
+		sourceColumn: capacity_name
+
+	column SKU
+		dataType: string
+		lineageTag: 45d67645-59d3-436e-b833-0bee0cf107f8
+		summarizeBy: none
+		sourceColumn: sku
+
+	column State
+		dataType: string
+		lineageTag: 9791b64d-b8ac-4be9-a1a8-f888337bc37f
+		summarizeBy: none
+		sourceColumn: state
+
+	column Region
+		dataType: string
+		lineageTag: e8d0bc2d-5ce1-4483-84bc-7ffc8859c967
+		summarizeBy: none
+		sourceColumn: region
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 731c4fd4-ee4f-4b6f-ae4e-f74bc00e45f1
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Capacity Inventory' = entity
+		mode: directLake
+		source
+			entityName: monitor_capacities
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

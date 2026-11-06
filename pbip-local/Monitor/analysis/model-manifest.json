@@ -1,0 +1,2562 @@
+{
+  "fact_tables": 48,
+  "model_tables": {
+    "Collection Health": {
+      "source": "monitor_collection_health",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "complete": "boolean",
+        "finished": "boolean",
+        "successful_resources": "long",
+        "failed_resources": "long",
+        "record_count": "long",
+        "coverage": "string",
+        "issue": "string"
+      },
+      "dataset": "collection_health",
+      "hidden": false
+    },
+    "Item Inventory": {
+      "source": "monitor_inventory",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "item_name": "string",
+        "inventory_source": "string"
+      },
+      "dataset": "inventory",
+      "hidden": false
+    },
+    "Permission Cycles": {
+      "source": "monitor_permission_cycles",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "chain_valid": "boolean",
+        "cycle_finished": "boolean",
+        "cycle_healthy": "boolean",
+        "slice_count": "long",
+        "selected_items": "long"
+      },
+      "dataset": "permission_cycles",
+      "hidden": false
+    },
+    "Permission Polls": {
+      "source": "monitor_permission_resources",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "observation_unit": "string",
+        "record_count": "long",
+        "resource_outcome": "string"
+      },
+      "dataset": "permission_resources",
+      "hidden": false
+    },
+    "Permission Grants": {
+      "source": "monitor_permission_grants",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "principal_id": "string",
+        "principal_type": "string",
+        "permissions_json": "string",
+        "additional_permissions_json": "string"
+      },
+      "dataset": "permission_grants",
+      "hidden": false
+    },
+    "Job Polls": {
+      "source": "monitor_job_resources",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "record_count": "long"
+      },
+      "dataset": "job_resources",
+      "hidden": false
+    },
+    "Job History": {
+      "source": "monitor_job_observations",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "job_id": "string",
+        "job_type": "string",
+        "invoke_type": "string",
+        "status": "string",
+        "start_time_utc": "string",
+        "end_time_utc": "string",
+        "duration_seconds": "double",
+        "root_activity_id": "string",
+        "failure_code": "string"
+      },
+      "dataset": "job_observations",
+      "hidden": false
+    },
+    "Lineage Coverage": {
+      "source": "monitor_lineage_resources",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "evidence_type": "string",
+        "record_count": "long",
+        "diagnostic_count": "long"
+      },
+      "dataset": "lineage_resources",
+      "hidden": false
+    },
+    "Lineage Edges": {
+      "source": "monitor_lineage_edges",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "related_workspace_id": "string",
+        "related_item_id": "string",
+        "related_type": "string",
+        "direction": "string",
+        "relation_type": "string",
+        "reference": "string",
+        "resolution": "string",
+        "evidence_type": "string",
+        "runtime_verified": "boolean"
+      },
+      "dataset": "lineage_edges",
+      "hidden": false
+    },
+    "Lineage Diagnostics": {
+      "source": "monitor_lineage_diagnostics",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "reason": "string",
+        "location": "string"
+      },
+      "dataset": "lineage_diagnostics",
+      "hidden": false
+    },
+    "Domain Coverage": {
+      "source": "monitor_estate_coverage",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "analysis": "string",
+        "source_date": "string",
+        "record_count": "long",
+        "issue": "string"
+      },
+      "dataset": "estate_coverage",
+      "hidden": false
+    },
+    "Activity Events": {
+      "source": "monitor_activity_events",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "event_id": "string",
+        "event_time_utc": "string",
+        "operation": "string",
+        "workload": "string",
+        "actor_key": "string",
+        "actor_type": "string",
+        "is_success": "boolean",
+        "source_date": "string"
+      },
+      "dataset": "activity_events",
+      "hidden": false
+    },
+    "Workspace Catalog": {
+      "source": "monitor_catalog_workspaces",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "workspace_name": "string",
+        "workspace_type": "string",
+        "state": "string",
+        "capacity_id": "string",
+        "returned_collections_json": "string",
+        "source_date": "string"
+      },
+      "dataset": "catalog_workspaces",
+      "hidden": false
+    },
+    "Item Catalog": {
+      "source": "monitor_catalog_items",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "item_name": "string",
+        "source_date": "string"
+      },
+      "dataset": "catalog_items",
+      "hidden": false
+    },
+    "Semantic Model Catalog": {
+      "source": "monitor_catalog_models",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "model_name": "string",
+        "schema_coverage": "string",
+        "table_count": "long",
+        "relationship_count": "long",
+        "source_date": "string"
+      },
+      "dataset": "catalog_models",
+      "hidden": false
+    },
+    "Model Tables": {
+      "source": "monitor_model_tables",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "table_name": "string",
+        "is_hidden": "boolean",
+        "column_count": "long",
+        "measure_count": "long",
+        "source_date": "string"
+      },
+      "dataset": "model_tables",
+      "hidden": false
+    },
+    "Model Columns": {
+      "source": "monitor_model_columns",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "table_name": "string",
+        "column_name": "string",
+        "data_type": "string",
+        "is_hidden": "boolean",
+        "source_date": "string"
+      },
+      "dataset": "model_columns",
+      "hidden": false
+    },
+    "Model Measures": {
+      "source": "monitor_model_measures",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "table_name": "string",
+        "measure_name": "string",
+        "data_type": "string",
+        "expression_returned": "boolean",
+        "source_date": "string"
+      },
+      "dataset": "model_measures",
+      "hidden": false
+    },
+    "Model Relationships": {
+      "source": "monitor_model_relationships",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "from_table": "string",
+        "from_column": "string",
+        "to_table": "string",
+        "to_column": "string",
+        "from_cardinality": "string",
+        "to_cardinality": "string",
+        "is_active": "boolean",
+        "source_date": "string"
+      },
+      "dataset": "model_relationships",
+      "hidden": false
+    },
+    "Connection Inventory": {
+      "source": "monitor_connection_observations",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "connection_id": "string",
+        "connection_name": "string",
+        "gateway_id": "string",
+        "connectivity_type": "string",
+        "privacy_level": "string",
+        "connection_type": "string"
+      },
+      "dataset": "connection_observations",
+      "hidden": false
+    },
+    "Gateway Inventory": {
+      "source": "monitor_gateway_observations",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "gateway_id": "string",
+        "gateway_name": "string",
+        "gateway_type": "string",
+        "source_date": "string"
+      },
+      "dataset": "gateway_observations",
+      "hidden": false
+    },
+    "Gateway Datasources": {
+      "source": "monitor_gateway_datasources",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "gateway_id": "string",
+        "datasource_id": "string",
+        "datasource_name": "string",
+        "datasource_type": "string",
+        "detail_returned": "boolean",
+        "source_date": "string"
+      },
+      "dataset": "gateway_datasources",
+      "hidden": false
+    },
+    "Gateway Status": {
+      "source": "monitor_gateway_status",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "gateway_id": "string",
+        "datasource_id": "string",
+        "status_code": "string",
+        "http_status": "long",
+        "connectivity_observation": "string",
+        "source_date": "string"
+      },
+      "dataset": "gateway_status",
+      "hidden": false
+    },
+    "Refresh History": {
+      "source": "monitor_refresh_observations",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "dataset_name": "string",
+        "refresh_id": "string",
+        "refresh_type": "string",
+        "status": "string",
+        "start_time_utc": "string",
+        "end_time_utc": "string",
+        "duration_seconds": "double",
+        "failure_code": "string",
+        "source_date": "string"
+      },
+      "dataset": "refresh_observations",
+      "hidden": false
+    },
+    "Refreshables": {
+      "source": "monitor_refreshable_observations",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "item_id": "string",
+        "item_type": "string",
+        "dataset_name": "string",
+        "capacity_id": "string",
+        "refresh_count": "long",
+        "refresh_failures": "long",
+        "schedule_enabled": "boolean",
+        "source_date": "string"
+      },
+      "dataset": "refreshable_observations",
+      "hidden": false
+    },
+    "App Inventory": {
+      "source": "monitor_apps",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "app_id": "string",
+        "app_name": "string",
+        "workspace_id": "string",
+        "last_update_utc": "string",
+        "source_date": "string"
+      },
+      "dataset": "apps",
+      "hidden": false
+    },
+    "Capacity Inventory": {
+      "source": "monitor_capacities",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "capacity_id": "string",
+        "capacity_name": "string",
+        "sku": "string",
+        "state": "string",
+        "region": "string",
+        "source_date": "string"
+      },
+      "dataset": "capacities",
+      "hidden": false
+    },
+    "Capacity Metrics": {
+      "source": "monitor_capacity_metric_observations",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "capacity_id": "string",
+        "sku": "string",
+        "metric_group": "string",
+        "metric_date": "string",
+        "timepoint_raw": "string",
+        "timepoint_utc": "string",
+        "metric_name": "string",
+        "metric_value": "double",
+        "source_date": "string"
+      },
+      "dataset": "capacity_metric_observations",
+      "hidden": false
+    },
+    "Directory Users": {
+      "source": "monitor_directory_users",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "principal_id": "string",
+        "account_enabled": "boolean",
+        "user_type": "string",
+        "assigned_license_count": "long",
+        "source_date": "string"
+      },
+      "dataset": "directory_users",
+      "hidden": false
+    },
+    "Directory Groups": {
+      "source": "monitor_directory_groups",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "group_id": "string",
+        "security_enabled": "boolean",
+        "mail_enabled": "boolean",
+        "group_types_json": "string",
+        "is_audience_group": "boolean",
+        "source_date": "string"
+      },
+      "dataset": "directory_groups",
+      "hidden": false
+    },
+    "Group Memberships": {
+      "source": "monitor_group_memberships",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "group_id": "string",
+        "principal_id": "string",
+        "membership_kind": "string",
+        "is_audience_group": "boolean",
+        "source_date": "string"
+      },
+      "dataset": "group_memberships",
+      "hidden": false
+    },
+    "User Licenses": {
+      "source": "monitor_user_licenses",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "principal_id": "string",
+        "sku_id": "string",
+        "disabled_plans_json": "string",
+        "source_date": "string"
+      },
+      "dataset": "user_licenses",
+      "hidden": false
+    },
+    "Subscribed SKUs": {
+      "source": "monitor_subscribed_skus",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "sku_id": "string",
+        "sku_part_number": "string",
+        "capability_status": "string",
+        "consumed_units": "long",
+        "enabled_units": "long",
+        "suspended_units": "long",
+        "warning_units": "long",
+        "source_date": "string"
+      },
+      "dataset": "subscribed_skus",
+      "hidden": false
+    },
+    "Workspace Role Coverage": {
+      "source": "monitor_workspace_role_scopes",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "roles_returned": "boolean",
+        "assignment_count": "long",
+        "source_date": "string"
+      },
+      "dataset": "workspace_role_scopes",
+      "hidden": false
+    },
+    "Workspace Role Assignments": {
+      "source": "monitor_workspace_role_assignments",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "principal_id": "string",
+        "principal_type": "string",
+        "workspace_role": "string",
+        "source_date": "string"
+      },
+      "dataset": "workspace_role_assignments",
+      "hidden": false
+    },
+    "Tenant Settings": {
+      "source": "monitor_tenant_settings",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "setting_name": "string",
+        "title": "string",
+        "setting_group": "string",
+        "enabled": "boolean",
+        "can_specify_groups": "boolean",
+        "enabled_group_count": "long",
+        "excluded_group_count": "long",
+        "source_date": "string"
+      },
+      "dataset": "tenant_settings",
+      "hidden": false
+    },
+    "Delegated Setting Scopes": {
+      "source": "monitor_delegated_setting_scopes",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "scope_type": "string",
+        "entity_id": "string",
+        "settings_returned": "boolean",
+        "setting_count": "long",
+        "source_date": "string"
+      },
+      "dataset": "delegated_setting_scopes",
+      "hidden": false
+    },
+    "Delegated Overrides": {
+      "source": "monitor_delegated_setting_overrides",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "scope_type": "string",
+        "entity_id": "string",
+        "setting_name": "string",
+        "title": "string",
+        "setting_group": "string",
+        "enabled": "boolean",
+        "delegated_from": "string",
+        "enabled_group_count": "long",
+        "excluded_group_count": "long",
+        "source_date": "string"
+      },
+      "dataset": "delegated_setting_overrides",
+      "hidden": false
+    },
+    "Setting Group Rules": {
+      "source": "monitor_tenant_setting_groups",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "scope_type": "string",
+        "entity_id": "string",
+        "setting_name": "string",
+        "group_id": "string",
+        "group_rule": "string",
+        "source_date": "string"
+      },
+      "dataset": "tenant_setting_groups",
+      "hidden": false
+    },
+    "Domain Inventory": {
+      "source": "monitor_domains",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "domain_id": "string",
+        "domain_name": "string",
+        "parent_domain_id": "string",
+        "source_date": "string"
+      },
+      "dataset": "domains",
+      "hidden": false
+    },
+    "Domain Workspaces": {
+      "source": "monitor_domain_workspaces",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "domain_id": "string",
+        "workspace_id": "string",
+        "workspace_name": "string",
+        "source_date": "string"
+      },
+      "dataset": "domain_workspaces",
+      "hidden": false
+    },
+    "Git Connections": {
+      "source": "monitor_workspace_git_connections",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "workspace_id": "string",
+        "provider_type": "string",
+        "owner_key": "string",
+        "organization_name": "string",
+        "project_name": "string",
+        "repository_name": "string",
+        "branch_name": "string",
+        "directory_key": "string",
+        "connection_state": "string",
+        "last_sync_utc": "string",
+        "source_date": "string"
+      },
+      "dataset": "workspace_git_connections",
+      "hidden": false
+    },
+    "Tag Inventory": {
+      "source": "monitor_tags",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "tag_id": "string",
+        "tag_name": "string",
+        "scope_type": "string",
+        "domain_id": "string",
+        "source_date": "string"
+      },
+      "dataset": "tags",
+      "hidden": false
+    },
+    "Organization Sharing": {
+      "source": "monitor_organization_shares",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "artifact_id": "string",
+        "artifact_type": "string",
+        "access_right": "string",
+        "share_type": "string",
+        "source_date": "string"
+      },
+      "dataset": "organization_shares",
+      "hidden": false
+    },
+    "Public Sharing": {
+      "source": "monitor_publish_to_web_shares",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "artifact_id": "string",
+        "artifact_type": "string",
+        "access_right": "string",
+        "share_type": "string",
+        "source_date": "string"
+      },
+      "dataset": "publish_to_web_shares",
+      "hidden": false
+    },
+    "Deployment Pipelines": {
+      "source": "monitor_deployment_pipelines",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "pipeline_id": "string",
+        "pipeline_name": "string",
+        "source_date": "string"
+      },
+      "dataset": "deployment_pipelines",
+      "hidden": false
+    },
+    "Deployment Polls": {
+      "source": "monitor_deployment_operation_resources",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "pipeline_id": "string",
+        "record_count": "long",
+        "resource_outcome": "string",
+        "source_date": "string"
+      },
+      "dataset": "deployment_operation_resources",
+      "hidden": false
+    },
+    "Deployment Operations": {
+      "source": "monitor_deployment_operations",
+      "types": {
+        "schema_version": "int",
+        "observation_id": "string",
+        "source_path": "string",
+        "source_sha256": "string",
+        "record_sha256": "string",
+        "observed_at_utc": "string",
+        "module": "string",
+        "mode": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "coverage_status": "string",
+        "pipeline_id": "string",
+        "operation_id": "string",
+        "operation_type": "string",
+        "status": "string",
+        "last_updated_utc": "string",
+        "execution_start_utc": "string",
+        "execution_end_utc": "string",
+        "duration_seconds": "double",
+        "source_stage_id": "string",
+        "target_stage_id": "string",
+        "source_date": "string"
+      },
+      "dataset": "deployment_operations",
+      "hidden": false
+    },
+    "Workspace": {
+      "source": "monitor_report_workspace",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Item": {
+      "source": "monitor_report_item",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Capacity": {
+      "source": "monitor_report_capacity",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Gateway": {
+      "source": "monitor_report_gateway",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Connection": {
+      "source": "monitor_report_connection",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Principal": {
+      "source": "monitor_report_principal",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Directory Group": {
+      "source": "monitor_report_group",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "License SKU": {
+      "source": "monitor_report_sku",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Domain": {
+      "source": "monitor_report_domain",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Deployment Pipeline": {
+      "source": "monitor_report_pipeline",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Datasource": {
+      "source": "monitor_report_datasource",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Setting": {
+      "source": "monitor_report_setting",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Application": {
+      "source": "monitor_report_app",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Tag": {
+      "source": "monitor_report_tag",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Related Workspace": {
+      "source": "monitor_report_workspace",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Related Item": {
+      "source": "monitor_report_item",
+      "types": {
+        "entity_key": "string",
+        "entity_id": "string",
+        "workspace_id": "string",
+        "label": "string",
+        "item_type": "string",
+        "label_basis": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Observation Context": {
+      "source": "monitor_report_context",
+      "types": {
+        "observation_id": "string",
+        "dataset": "string",
+        "source_key": "string",
+        "workspace_key": "string",
+        "item_key": "string",
+        "capacity_key": "string",
+        "gateway_key": "string",
+        "connection_key": "string",
+        "principal_key": "string",
+        "group_key": "string",
+        "sku_key": "string",
+        "domain_key": "string",
+        "pipeline_key": "string",
+        "datasource_key": "string",
+        "setting_key": "string",
+        "app_key": "string",
+        "tag_key": "string",
+        "related_workspace_key": "string",
+        "related_item_key": "string",
+        "observed_date_key": "long",
+        "source_date_key": "long",
+        "event_date_key": "long",
+        "metric_date_key": "long",
+        "observed_at": "timestamp",
+        "coverage_status": "string",
+        "module": "string",
+        "run_id": "string",
+        "cycle_id": "string",
+        "mode": "string"
+      },
+      "dataset": null,
+      "hidden": true
+    },
+    "Dataset": {
+      "source": "monitor_report_dataset",
+      "types": {
+        "dataset": "string",
+        "label": "string",
+        "domain": "string",
+        "profiled_rows": "long",
+        "delta_version": "long",
+        "availability": "string",
+        "latest_exact_observation": "timestamp",
+        "latest_source_date": "date",
+        "profiled_at": "timestamp"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Estate Measures": {
+      "source": "monitor_report_build",
+      "types": {
+        "state": "string",
+        "built_at": "timestamp",
+        "source_rows": "long",
+        "source_datasets": "long",
+        "nonempty_datasets": "long",
+        "source_signature": "string",
+        "contract_version": "long"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Evidence Source": {
+      "source": "monitor_report_source",
+      "types": {
+        "source_key": "string",
+        "module": "string",
+        "source_path": "string",
+        "source_sha256": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Permission Mode": {
+      "source": "monitor_report_permission_mode",
+      "types": {
+        "mode": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Collection Date": {
+      "source": "monitor_report_date",
+      "types": {
+        "date_key": "long",
+        "date": "date",
+        "year": "long",
+        "month_number": "long",
+        "year_month": "string",
+        "day_of_week": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Source Folder Date": {
+      "source": "monitor_report_date",
+      "types": {
+        "date_key": "long",
+        "date": "date",
+        "year": "long",
+        "month_number": "long",
+        "year_month": "string",
+        "day_of_week": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Event Date": {
+      "source": "monitor_report_date",
+      "types": {
+        "date_key": "long",
+        "date": "date",
+        "year": "long",
+        "month_number": "long",
+        "year_month": "string",
+        "day_of_week": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    },
+    "Metric Query Date": {
+      "source": "monitor_report_date",
+      "types": {
+        "date_key": "long",
+        "date": "date",
+        "year": "long",
+        "month_number": "long",
+        "year_month": "string",
+        "day_of_week": "string"
+      },
+      "dataset": null,
+      "hidden": false
+    }
+  },
+  "measures": {
+    "Unmapped Observations": {
+      "expression": "CALCULATE ( COUNTROWS ( EXCEPT ( VALUES ( 'Collection Health'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"collection_health\" ), VALUES ( 'Collection Health'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Item Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"inventory\" ), VALUES ( 'Item Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Permission Cycles'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"permission_cycles\" ), VALUES ( 'Permission Cycles'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Permission Polls'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"permission_resources\" ), VALUES ( 'Permission Polls'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Permission Grants'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"permission_grants\" ), VALUES ( 'Permission Grants'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Job Polls'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"job_resources\" ), VALUES ( 'Job Polls'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Job History'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"job_observations\" ), VALUES ( 'Job History'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Lineage Coverage'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"lineage_resources\" ), VALUES ( 'Lineage Coverage'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Lineage Edges'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"lineage_edges\" ), VALUES ( 'Lineage Edges'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Lineage Diagnostics'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"lineage_diagnostics\" ), VALUES ( 'Lineage Diagnostics'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Domain Coverage'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"estate_coverage\" ), VALUES ( 'Domain Coverage'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Activity Events'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"activity_events\" ), VALUES ( 'Activity Events'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Workspace Catalog'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"catalog_workspaces\" ), VALUES ( 'Workspace Catalog'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Item Catalog'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"catalog_items\" ), VALUES ( 'Item Catalog'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Semantic Model Catalog'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"catalog_models\" ), VALUES ( 'Semantic Model Catalog'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Model Tables'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"model_tables\" ), VALUES ( 'Model Tables'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Model Columns'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"model_columns\" ), VALUES ( 'Model Columns'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Model Measures'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"model_measures\" ), VALUES ( 'Model Measures'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Model Relationships'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"model_relationships\" ), VALUES ( 'Model Relationships'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Connection Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"connection_observations\" ), VALUES ( 'Connection Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Gateway Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"gateway_observations\" ), VALUES ( 'Gateway Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Gateway Datasources'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"gateway_datasources\" ), VALUES ( 'Gateway Datasources'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Gateway Status'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"gateway_status\" ), VALUES ( 'Gateway Status'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Refresh History'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"refresh_observations\" ), VALUES ( 'Refresh History'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Refreshables'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"refreshable_observations\" ), VALUES ( 'Refreshables'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'App Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"apps\" ), VALUES ( 'App Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Capacity Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"capacities\" ), VALUES ( 'Capacity Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Capacity Metrics'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"capacity_metric_observations\" ), VALUES ( 'Capacity Metrics'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Directory Users'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"directory_users\" ), VALUES ( 'Directory Users'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Directory Groups'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"directory_groups\" ), VALUES ( 'Directory Groups'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Group Memberships'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"group_memberships\" ), VALUES ( 'Group Memberships'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'User Licenses'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"user_licenses\" ), VALUES ( 'User Licenses'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Subscribed SKUs'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"subscribed_skus\" ), VALUES ( 'Subscribed SKUs'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Workspace Role Coverage'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"workspace_role_scopes\" ), VALUES ( 'Workspace Role Coverage'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Workspace Role Assignments'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"workspace_role_assignments\" ), VALUES ( 'Workspace Role Assignments'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Tenant Settings'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"tenant_settings\" ), VALUES ( 'Tenant Settings'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Delegated Setting Scopes'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"delegated_setting_scopes\" ), VALUES ( 'Delegated Setting Scopes'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Delegated Overrides'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"delegated_setting_overrides\" ), VALUES ( 'Delegated Overrides'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Setting Group Rules'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"tenant_setting_groups\" ), VALUES ( 'Setting Group Rules'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Domain Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"domains\" ), VALUES ( 'Domain Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Domain Workspaces'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"domain_workspaces\" ), VALUES ( 'Domain Workspaces'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Git Connections'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"workspace_git_connections\" ), VALUES ( 'Git Connections'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Tag Inventory'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"tags\" ), VALUES ( 'Tag Inventory'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Organization Sharing'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"organization_shares\" ), VALUES ( 'Organization Sharing'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Public Sharing'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"publish_to_web_shares\" ), VALUES ( 'Public Sharing'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Deployment Pipelines'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"deployment_pipelines\" ), VALUES ( 'Deployment Pipelines'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Deployment Polls'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"deployment_operation_resources\" ), VALUES ( 'Deployment Polls'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( VALUES ( 'Deployment Operations'[Observation ID] ), VALUES ( 'Observation Context'[Observation ID] ) ) ) + COUNTROWS ( EXCEPT ( CALCULATETABLE ( VALUES ( 'Observation Context'[Observation ID] ), 'Observation Context'[Dataset] = \"deployment_operations\" ), VALUES ( 'Deployment Operations'[Observation ID] ) ) ), REMOVEFILTERS () )",
+      "folder": "00 Readiness",
+      "format": "#,0",
+      "description": "Source/context identity mismatch in either direction. Nonzero blocks business measures until lookups are rebuilt."
+    },
+    "Model Status": {
+      "expression": "IF ( SELECTEDVALUE ( 'Estate Measures'[State] ) <> \"ready\", \"Lookup build is incomplete - do not interpret this report\", IF ( [Unmapped Observations] > 0, \"REFRESH REQUIRED: source observations and report lookups no longer match\", \"Historical evidence - check coverage and date precision before interpreting results\" ) )",
+      "folder": "00 Readiness",
+      "format": "",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Lookup Built At": {
+      "expression": "FORMAT ( MAX ( 'Estate Measures'[Built At] ), \"yyyy-MM-dd HH:mm\" ) & \" UTC\"",
+      "folder": "00 Readiness",
+      "format": "",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Dataset Count": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COUNTROWS ( 'Dataset' ) )",
+      "folder": "00 Readiness",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Datasets With Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", CALCULATE ( COUNTROWS ( 'Dataset' ), 'Dataset'[Profiled Rows] > 0 ) )",
+      "folder": "00 Readiness",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Datasets Without Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", CALCULATE ( COUNTROWS ( 'Dataset' ), 'Dataset'[Profiled Rows] = 0 ) )",
+      "folder": "00 Readiness",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Retained Observations": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Observation Context' ), 0 ) )",
+      "folder": "00 Readiness",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Legacy Observations": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", CALCULATE ( [Retained Observations], 'Observation Context'[Coverage Status] = \"legacy_unverified\" ) )",
+      "folder": "00 Readiness",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Exact Collection Times": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COUNT ( 'Observation Context'[Observed At] ) )",
+      "folder": "00 Readiness",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Latest Exact Collection": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", FORMAT ( MAX ( 'Observation Context'[Observed At] ), \"yyyy-MM-dd HH:mm\" ) & \" UTC\" )",
+      "folder": "00 Readiness",
+      "format": "",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Hours Since Exact Collection": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", IF ( NOT ISBLANK ( MAX ( 'Observation Context'[Observed At] ) ), DATEDIFF ( MAX ( 'Observation Context'[Observed At] ), UTCNOW (), HOUR ) ) )",
+      "folder": "00 Readiness",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Collection Health Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Collection Health' ), 0 ) )",
+      "folder": "Confidence | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Item Inventory Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Item Inventory' ), 0 ) )",
+      "folder": "Inventory | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Permission Cycles Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", IF ( HASONEVALUE ( 'Permission Mode'[Mode] ), COALESCE ( COUNTROWS ( 'Permission Cycles' ), 0 ) ) )",
+      "folder": "Access | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Permission Polls Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", IF ( HASONEVALUE ( 'Permission Mode'[Mode] ), COALESCE ( COUNTROWS ( 'Permission Polls' ), 0 ) ) )",
+      "folder": "Access | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Permission Grants Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", IF ( HASONEVALUE ( 'Permission Mode'[Mode] ), COALESCE ( COUNTROWS ( 'Permission Grants' ), 0 ) ) )",
+      "folder": "Access | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Job Polls Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Job Polls' ), 0 ) )",
+      "folder": "Reliability | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Job History Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Job History' ), 0 ) )",
+      "folder": "Reliability | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Lineage Coverage Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Lineage Coverage' ), 0 ) )",
+      "folder": "Lineage | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Lineage Edges Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Lineage Edges' ), 0 ) )",
+      "folder": "Lineage | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Lineage Diagnostics Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Lineage Diagnostics' ), 0 ) )",
+      "folder": "Lineage | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Domain Coverage Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Domain Coverage' ), 0 ) )",
+      "folder": "Confidence | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Activity Events Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Activity Events' ), 0 ) )",
+      "folder": "Activity | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Workspace Catalog Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Workspace Catalog' ), 0 ) )",
+      "folder": "Inventory | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Item Catalog Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Item Catalog' ), 0 ) )",
+      "folder": "Inventory | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Semantic Model Catalog Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Semantic Model Catalog' ), 0 ) )",
+      "folder": "Schema | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Model Tables Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Model Tables' ), 0 ) )",
+      "folder": "Schema | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Model Columns Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Model Columns' ), 0 ) )",
+      "folder": "Schema | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Model Measures Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Model Measures' ), 0 ) )",
+      "folder": "Schema | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Model Relationships Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Model Relationships' ), 0 ) )",
+      "folder": "Schema | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Connection Inventory Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Connection Inventory' ), 0 ) )",
+      "folder": "Connectivity | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Gateway Inventory Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Gateway Inventory' ), 0 ) )",
+      "folder": "Connectivity | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Gateway Datasources Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Gateway Datasources' ), 0 ) )",
+      "folder": "Connectivity | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Gateway Status Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Gateway Status' ), 0 ) )",
+      "folder": "Connectivity | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Refresh History Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Refresh History' ), 0 ) )",
+      "folder": "Reliability | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Refreshables Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Refreshables' ), 0 ) )",
+      "folder": "Reliability | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "App Inventory Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'App Inventory' ), 0 ) )",
+      "folder": "Organization | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Capacity Inventory Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Capacity Inventory' ), 0 ) )",
+      "folder": "Capacity | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Capacity Metrics Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Capacity Metrics' ), 0 ) )",
+      "folder": "Capacity | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Directory Users Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Directory Users' ), 0 ) )",
+      "folder": "Directory | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Directory Groups Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Directory Groups' ), 0 ) )",
+      "folder": "Directory | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Group Memberships Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Group Memberships' ), 0 ) )",
+      "folder": "Directory | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "User Licenses Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'User Licenses' ), 0 ) )",
+      "folder": "Directory | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Subscribed SKUs Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Subscribed SKUs' ), 0 ) )",
+      "folder": "Directory | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Workspace Role Coverage Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Workspace Role Coverage' ), 0 ) )",
+      "folder": "Access | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Workspace Role Assignments Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Workspace Role Assignments' ), 0 ) )",
+      "folder": "Access | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Tenant Settings Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Tenant Settings' ), 0 ) )",
+      "folder": "Governance | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Delegated Setting Scopes Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Delegated Setting Scopes' ), 0 ) )",
+      "folder": "Governance | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Delegated Overrides Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Delegated Overrides' ), 0 ) )",
+      "folder": "Governance | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Setting Group Rules Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Setting Group Rules' ), 0 ) )",
+      "folder": "Governance | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Domain Inventory Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Domain Inventory' ), 0 ) )",
+      "folder": "Organization | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Domain Workspaces Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Domain Workspaces' ), 0 ) )",
+      "folder": "Organization | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Git Connections Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Git Connections' ), 0 ) )",
+      "folder": "Change | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Tag Inventory Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Tag Inventory' ), 0 ) )",
+      "folder": "Organization | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Organization Sharing Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Organization Sharing' ), 0 ) )",
+      "folder": "Access | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Public Sharing Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Public Sharing' ), 0 ) )",
+      "folder": "Access | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Deployment Pipelines Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Deployment Pipelines' ), 0 ) )",
+      "folder": "Change | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Deployment Polls Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Deployment Polls' ), 0 ) )",
+      "folder": "Change | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Deployment Operations Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( 'Deployment Operations' ), 0 ) )",
+      "folder": "Change | Observation counts",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Workspaces Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Workspace Catalog', 'Workspace Catalog'[Workspace ID] ) ), 0 ) )",
+      "folder": "Inventory",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Items Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( FILTER ( 'Item Inventory', 'Item Inventory'[Item Type] <> \"Workspace\" ), 'Item Inventory'[Workspace ID], 'Item Inventory'[Item ID] ) ), 0 ) )",
+      "folder": "Inventory",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Models Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Semantic Model Catalog', 'Semantic Model Catalog'[Workspace ID], 'Semantic Model Catalog'[Item ID] ) ), 0 ) )",
+      "folder": "Schema",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Tables Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Model Tables', 'Model Tables'[Workspace ID], 'Model Tables'[Item ID], 'Model Tables'[Table Name] ) ), 0 ) )",
+      "folder": "Schema",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Columns Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Model Columns', 'Model Columns'[Workspace ID], 'Model Columns'[Item ID], 'Model Columns'[Table Name], 'Model Columns'[Column Name] ) ), 0 ) )",
+      "folder": "Schema",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Measures Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Model Measures', 'Model Measures'[Workspace ID], 'Model Measures'[Item ID], 'Model Measures'[Table Name], 'Model Measures'[Measure Name] ) ), 0 ) )",
+      "folder": "Schema",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Connections Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Connection Inventory', 'Connection Inventory'[Connection ID] ) ), 0 ) )",
+      "folder": "Connectivity",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Capacities Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Capacity Inventory', 'Capacity Inventory'[Capacity ID] ) ), 0 ) )",
+      "folder": "Capacity",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Actor Keys Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( FILTER ( 'Activity Events', 'Activity Events'[Actor Key] <> BLANK () ), 'Activity Events'[Actor Key] ) ), 0 ) )",
+      "folder": "Activity",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Directory Users Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Directory Users', 'Directory Users'[Principal ID] ) ), 0 ) )",
+      "folder": "Directory",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Directory Groups Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Directory Groups', 'Directory Groups'[Group ID] ) ), 0 ) )",
+      "folder": "Directory",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Licensed Users Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'User Licenses', 'User Licenses'[Principal ID] ) ), 0 ) )",
+      "folder": "Directory",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Git Workspaces Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( 'Git Connections', 'Git Connections'[Workspace ID] ) ), 0 ) )",
+      "folder": "Change",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Upstream Pairs Observed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", COALESCE ( COUNTROWS ( SUMMARIZE ( FILTER ( 'Lineage Edges', 'Lineage Edges'[Direction] = \"upstream\" ), 'Lineage Edges'[Workspace ID], 'Lineage Edges'[Item ID], 'Lineage Edges'[Related Workspace ID], 'Lineage Edges'[Related Item ID], 'Lineage Edges'[Related Type], 'Lineage Edges'[Relation Type], 'Lineage Edges'[Evidence Type] ) ), 0 ) )",
+      "folder": "Lineage",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Permission Polls - Success": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", CALCULATE ( [Permission Polls Rows], 'Permission Polls'[Coverage Status] = \"success\" ) )",
+      "folder": "Access",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Permission Polls - Failed": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", CALCULATE ( [Permission Polls Rows], 'Permission Polls'[Coverage Status] = \"failed\" ) )",
+      "folder": "Access",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Permission Polls - Deferred": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", CALCULATE ( [Permission Polls Rows], 'Permission Polls'[Coverage Status] = \"deferred\" ) )",
+      "folder": "Access",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Permission Poll Success %": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", DIVIDE ( [Permission Polls - Success], [Permission Polls Rows] ) )",
+      "folder": "Access",
+      "format": "0.0%",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Mode Selection": {
+      "expression": "IF ( HASONEVALUE ( 'Permission Mode'[Mode] ), \"Permission scope: \" & SELECTEDVALUE ( 'Permission Mode'[Mode] ), \"Select exactly one permission mode - Scoped and Tenant are not interchangeable\" )",
+      "folder": "Access",
+      "format": "",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Scoped Grant Observations": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", IF ( HASONEVALUE ( 'Permission Mode'[Mode] ), [Permission Grants Rows] ) )",
+      "folder": "Access",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Completed Healthy Cycles": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", CALCULATE ( [Permission Cycles Rows], 'Permission Cycles'[Chain Valid] = TRUE (), 'Permission Cycles'[Cycle Finished] = TRUE (), 'Permission Cycles'[Cycle Healthy] = TRUE () ) )",
+      "folder": "Access",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Successful Empty Job Polls": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", CALCULATE ( [Job Polls Rows], 'Job Polls'[Coverage Status] = \"success\", 'Job Polls'[Record Count] = 0 ) )",
+      "folder": "Reliability",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Mean Job Seconds": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", AVERAGE ( 'Job History'[Duration Seconds] ) )",
+      "folder": "Reliability",
+      "format": "#,0.0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Mean Refresh Seconds": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", AVERAGE ( 'Refresh History'[Duration Seconds] ) )",
+      "folder": "Reliability",
+      "format": "#,0.0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Unresolved Lineage Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", CALCULATE ( [Lineage Edges Rows], 'Lineage Edges'[Resolution] <> \"in_batch\" ) )",
+      "folder": "Lineage",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Runtime Verified Lineage Rows": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", CALCULATE ( [Lineage Edges Rows], 'Lineage Edges'[Runtime Verified] = TRUE () ) )",
+      "folder": "Lineage",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Metric Selection": {
+      "expression": "IF ( HASONEVALUE ( 'Capacity Metrics'[Metric Name] ) && HASONEVALUE ( 'Source Folder Date'[Date] ), \"Provider values are unscaled; naive timepoints have unknown UTC\", \"Select one metric and one source-folder date before reading values\" )",
+      "folder": "Capacity",
+      "format": "",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Provider Metric Average": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", IF ( HASONEVALUE ( 'Capacity Metrics'[Metric Name] ) && HASONEVALUE ( 'Source Folder Date'[Date] ), AVERAGE ( 'Capacity Metrics'[Metric Value] ) ) )",
+      "folder": "Capacity",
+      "format": "#,0.000",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Provider Metric Peak": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", IF ( HASONEVALUE ( 'Capacity Metrics'[Metric Name] ) && HASONEVALUE ( 'Source Folder Date'[Date] ), MAX ( 'Capacity Metrics'[Metric Value] ) ) )",
+      "folder": "Capacity",
+      "format": "#,0.000",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Metric Query Window": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", MIN ( 'Capacity Metrics'[Metric Date] ) & \" to \" & MAX ( 'Capacity Metrics'[Metric Date] ) )",
+      "folder": "Capacity",
+      "format": "",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "License Units - Single Date": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", IF ( HASONEVALUE ( 'Source Folder Date'[Date] ), SUM ( 'Subscribed SKUs'[Enabled Units] ) ) )",
+      "folder": "Directory",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    },
+    "Consumed Units - Single Date": {
+      "expression": "IF ( [Unmapped Observations] = 0 && SELECTEDVALUE ( 'Estate Measures'[State] ) = \"ready\", IF ( HASONEVALUE ( 'Source Folder Date'[Date] ), SUM ( 'Subscribed SKUs'[Consumed Units] ) ) )",
+      "folder": "Directory",
+      "format": "#,0",
+      "description": "Retained evidence in the selected context; not an exhaustive current-state claim."
+    }
+  },
+  "relationships": [
+    [
+      "Collection Health",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Item Inventory",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Permission Cycles",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Permission Polls",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Permission Grants",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Job Polls",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Job History",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Lineage Coverage",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Lineage Edges",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Lineage Diagnostics",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Domain Coverage",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Activity Events",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Workspace Catalog",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Item Catalog",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Semantic Model Catalog",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Model Tables",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Model Columns",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Model Measures",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Model Relationships",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Connection Inventory",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Gateway Inventory",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Gateway Datasources",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Gateway Status",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Refresh History",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Refreshables",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "App Inventory",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Capacity Inventory",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Capacity Metrics",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Directory Users",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Directory Groups",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Group Memberships",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "User Licenses",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Subscribed SKUs",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Workspace Role Coverage",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Workspace Role Assignments",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Tenant Settings",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Delegated Setting Scopes",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Delegated Overrides",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Setting Group Rules",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Domain Inventory",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Domain Workspaces",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Git Connections",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Tag Inventory",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Organization Sharing",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Public Sharing",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Deployment Pipelines",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Deployment Polls",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Deployment Operations",
+      "Observation ID",
+      "Observation Context",
+      "Observation ID"
+    ],
+    [
+      "Observation Context",
+      "Workspace Key",
+      "Workspace",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Item Key",
+      "Item",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Capacity Key",
+      "Capacity",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Gateway Key",
+      "Gateway",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Connection Key",
+      "Connection",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Principal Key",
+      "Principal",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Group Key",
+      "Directory Group",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "SKU Key",
+      "License SKU",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Domain Key",
+      "Domain",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Pipeline Key",
+      "Deployment Pipeline",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Datasource Key",
+      "Datasource",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Setting Key",
+      "Setting",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "App Key",
+      "Application",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Tag Key",
+      "Tag",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Related Workspace Key",
+      "Related Workspace",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Related Item Key",
+      "Related Item",
+      "Entity Key"
+    ],
+    [
+      "Observation Context",
+      "Source Key",
+      "Evidence Source",
+      "Source Key"
+    ],
+    [
+      "Observation Context",
+      "Dataset",
+      "Dataset",
+      "Dataset"
+    ],
+    [
+      "Observation Context",
+      "Observed Date Key",
+      "Collection Date",
+      "Date Key"
+    ],
+    [
+      "Observation Context",
+      "Source Date Key",
+      "Source Folder Date",
+      "Date Key"
+    ],
+    [
+      "Observation Context",
+      "Event Date Key",
+      "Event Date",
+      "Date Key"
+    ],
+    [
+      "Observation Context",
+      "Metric Date Key",
+      "Metric Query Date",
+      "Date Key"
+    ],
+    [
+      "Permission Cycles",
+      "Mode",
+      "Permission Mode",
+      "Mode"
+    ],
+    [
+      "Permission Polls",
+      "Mode",
+      "Permission Mode",
+      "Mode"
+    ],
+    [
+      "Permission Grants",
+      "Mode",
+      "Permission Mode",
+      "Mode"
+    ]
+  ],
+  "pages": [
+    "estate_01",
+    "estate_02",
+    "estate_03",
+    "estate_04",
+    "estate_05",
+    "estate_06",
+    "estate_07",
+    "estate_08",
+    "estate_09",
+    "estate_10",
+    "estate_11",
+    "estate_12",
+    "estate_13",
+    "estate_14",
+    "estate_15"
+  ],
+  "additional_physical_tables": [
+    "monitor_report_workspace",
+    "monitor_report_item",
+    "monitor_report_capacity",
+    "monitor_report_gateway",
+    "monitor_report_connection",
+    "monitor_report_principal",
+    "monitor_report_group",
+    "monitor_report_sku",
+    "monitor_report_domain",
+    "monitor_report_pipeline",
+    "monitor_report_datasource",
+    "monitor_report_setting",
+    "monitor_report_app",
+    "monitor_report_tag",
+    "monitor_report_context",
+    "monitor_report_date",
+    "monitor_report_dataset",
+    "monitor_report_build",
+    "monitor_report_source",
+    "monitor_report_permission_mode"
+  ],
+  "source_expression": "DirectLake - Fabric Estate"
+}

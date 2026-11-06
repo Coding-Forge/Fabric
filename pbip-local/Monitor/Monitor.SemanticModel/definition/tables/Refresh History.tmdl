@@ -1,0 +1,156 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Refresh History'
+	lineageTag: deb492da-9884-5af0-bf9f-ef8aea196d5c
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: f43b5c99-05d3-4890-8689-75e718131562
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 9ca9600c-8315-486a-a024-65dd7fe8c0c9
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: dd6c1276-41e5-4594-b100-f1cf9b665096
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: fa062916-3fd4-4aa1-9056-8b186d82fd5b
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 696fcf88-a5e0-4a0d-83fa-d63b55790106
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: d1ecaaee-94ec-4da4-8221-1dbfb8a29954
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 8d2d2dec-b138-40f6-847a-799abece10b9
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 4a4d8031-3a41-401a-843c-c2b77e6a62bb
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: d906a7a7-8fd6-414b-a627-01d5584e51aa
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 98130921-dad1-4afa-a2c1-dcfcbc5135a8
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 5673048c-52ef-4d34-95cc-2d61f4ec8ec0
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: 10db026e-f22f-4b48-b96a-ba2bfeb4bee3
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column 'Item ID'
+		dataType: string
+		lineageTag: 1a260ff8-7618-47f2-b609-fa4ab08ed964
+		summarizeBy: none
+		sourceColumn: item_id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 50697f68-831c-4b81-88f8-5ca0fac1ac60
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Dataset Name'
+		dataType: string
+		lineageTag: 0dd33d2c-bade-40a8-b8cb-dc83517bc4e4
+		summarizeBy: none
+		sourceColumn: dataset_name
+
+	column 'Refresh ID'
+		dataType: string
+		lineageTag: 7a4af210-8527-45d7-bf79-62156e47fd2c
+		summarizeBy: none
+		sourceColumn: refresh_id
+
+	column 'Refresh Type'
+		dataType: string
+		lineageTag: 8e469bd5-54ea-4ff1-9c08-e74e734aa0b6
+		summarizeBy: none
+		sourceColumn: refresh_type
+
+	column Status
+		dataType: string
+		lineageTag: 5eff232d-4a68-44e6-b73f-80220dbe2d43
+		summarizeBy: none
+		sourceColumn: status
+
+	column 'Start Time UTC'
+		dataType: string
+		lineageTag: 49c36ef1-a656-40dc-9b98-a7286a439c3b
+		summarizeBy: none
+		sourceColumn: start_time_utc
+
+	column 'End Time UTC'
+		dataType: string
+		lineageTag: f8bd9658-34f3-4080-94d6-f3f210762f84
+		summarizeBy: none
+		sourceColumn: end_time_utc
+
+	column 'Duration Seconds'
+		dataType: double
+		lineageTag: 6e5ffccf-1d91-4c7f-b13b-a7ca9e629a78
+		summarizeBy: none
+		sourceColumn: duration_seconds
+
+	column 'Failure Code'
+		dataType: string
+		lineageTag: 58817784-46d1-47d4-b0c2-37a9dc224f60
+		summarizeBy: none
+		sourceColumn: failure_code
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: b427afd0-465e-455f-8e24-11660017df60
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Refresh History' = entity
+		mode: directLake
+		source
+			entityName: monitor_refresh_observations
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

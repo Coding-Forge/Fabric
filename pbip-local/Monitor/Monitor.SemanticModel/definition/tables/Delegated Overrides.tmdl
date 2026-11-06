@@ -1,0 +1,144 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Delegated Overrides'
+	lineageTag: c909a643-69dc-58d6-a27a-bfd521a2dce2
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 97497f2f-0371-4a54-9eb1-96081dfc1e0d
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 46998dce-d19e-45b7-9b59-d25ab97d65b2
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 61b84b6e-4005-438e-8637-84fa054114d3
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: ae607257-6a03-4de1-9f89-9aff94716b3b
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: ab455a5e-55f6-4eb4-b475-574ccbbb2a2f
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: cfc36d28-ebc0-441d-988c-41cf40ad7127
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: a50e735b-c570-40d0-a31c-7391784096f2
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: bf689245-05db-439f-b9da-e9fc11704971
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 5fa4f81a-1493-424b-bae9-4290161bd568
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: c480b1ba-5579-4a8a-975e-544915f9af39
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 9842cc84-78d6-4936-ae88-9d70b7f133e0
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Scope Type'
+		dataType: string
+		lineageTag: 5a8c7080-e8db-44c9-bde2-ffa33d582fd4
+		summarizeBy: none
+		sourceColumn: scope_type
+
+	column 'Entity ID'
+		dataType: string
+		lineageTag: d9e245f0-86ba-485a-8aca-1efbcaea0c78
+		summarizeBy: none
+		sourceColumn: entity_id
+
+	column 'Setting Name'
+		dataType: string
+		lineageTag: 2da57d1f-9abc-4f54-bbea-813b361bd378
+		summarizeBy: none
+		sourceColumn: setting_name
+
+	column Title
+		dataType: string
+		lineageTag: 9b0055e4-0321-454f-9437-6cda8e0f9935
+		summarizeBy: none
+		sourceColumn: title
+
+	column 'Setting Group'
+		dataType: string
+		lineageTag: cec0b473-749a-47bb-8e5e-e69b1363c09b
+		summarizeBy: none
+		sourceColumn: setting_group
+
+	column Enabled
+		dataType: boolean
+		lineageTag: fe29aaee-a09a-488a-a215-c6113434e465
+		summarizeBy: none
+		sourceColumn: enabled
+
+	column 'Delegated From'
+		dataType: string
+		lineageTag: 6bf9581e-39f6-44b4-8aea-1bfd41eaf30d
+		summarizeBy: none
+		sourceColumn: delegated_from
+
+	column 'Enabled Group Count'
+		dataType: int64
+		lineageTag: 91134dba-e920-4549-9e5c-811d0d9731c8
+		summarizeBy: none
+		sourceColumn: enabled_group_count
+
+	column 'Excluded Group Count'
+		dataType: int64
+		lineageTag: 5f024dee-8b4d-4060-b38d-2bf3af88ee60
+		summarizeBy: none
+		sourceColumn: excluded_group_count
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: bdcba365-873e-48a8-93f6-c3c976e357b4
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Delegated Overrides' = entity
+		mode: directLake
+		source
+			entityName: monitor_delegated_setting_overrides
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

@@ -844,7 +844,7 @@ expression NormalizeFabricPermissions = (values as list) as text => Text.Combine
 	annotation PBI_ResultType = Function
 
 /// Selects one immutable permission evidence folder; never combines scoped and tenant cycles.
-expression ItemPermissionMode = "Scoped" meta [IsParameterQuery=true, List={"Scoped", "Tenant"}, DefaultValue="Scoped", Type="Text", IsParameterQueryRequired=true]
+expression ItemPermissionMode = "Tenant" meta [IsParameterQuery=true, List={"Scoped", "Tenant"}, DefaultValue="Scoped", Type="Text", IsParameterQueryRequired=true]
 	lineageTag: 5ab0121f-7619-4dbe-938b-94cd1899650d
 
 	annotation PBI_ResultType = Text

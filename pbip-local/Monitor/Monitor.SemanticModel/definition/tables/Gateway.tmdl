@@ -1,0 +1,47 @@
+table Gateway
+	lineageTag: 34fdda86-fb84-595c-a1c0-f477501f4e5a
+
+	column 'Entity Key'
+		dataType: string
+		isHidden
+		lineageTag: 675cde1e-c25e-4783-918c-847eff229da2
+		summarizeBy: none
+		sourceColumn: entity_key
+
+	column 'Entity ID'
+		dataType: string
+		lineageTag: b0b04aa0-4e3d-4a2c-9976-20b12f679a6b
+		summarizeBy: none
+		sourceColumn: entity_id
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: 607eb395-2511-431e-9807-127b7a210160
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column Label
+		dataType: string
+		lineageTag: b1df328f-e687-4224-96f4-78f99f821682
+		summarizeBy: none
+		sourceColumn: label
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: c0bd2ab7-4091-430d-8bce-1be69d2a51b8
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Label Basis'
+		dataType: string
+		lineageTag: accfc36b-2b20-46f6-94c3-5252c007916d
+		summarizeBy: none
+		sourceColumn: label_basis
+
+	partition Gateway = entity
+		mode: directLake
+		source
+			entityName: monitor_report_gateway
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

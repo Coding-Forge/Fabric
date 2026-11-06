@@ -1,0 +1,108 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Gateway Inventory'
+	lineageTag: 4218b2c6-c33c-5a7b-a6df-2c8dabee6b9e
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: 22dca0d4-7e0f-494e-947c-2ff618c7bbb4
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: 55564b27-9adb-413c-a461-f830ff0d43be
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 8ad3eb20-f6da-456a-9868-708db22d6206
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 40b61860-68b6-41ca-b89e-485cdef6905c
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: df34603e-ccdd-448a-9e86-a97a01c4a969
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: eba00afb-53ea-45a3-a4d6-1b5d5375c233
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: 2a3f74a3-8ea5-4c55-a6fd-3f4e67fdf32a
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: 5efb6a66-6dcc-44d6-8a43-5a5f0a3e19a7
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: f2b12865-4b82-4365-b999-8bb587838ccd
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: d02c5d4d-8b29-4586-bba7-9b5dc49c9372
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: b8411d52-9d86-4a91-816d-1ea64c4f6c7f
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Gateway ID'
+		dataType: string
+		lineageTag: ddc4b055-115c-4226-9a35-64bb6094ced8
+		summarizeBy: none
+		sourceColumn: gateway_id
+
+	column 'Gateway Name'
+		dataType: string
+		lineageTag: ab4df04a-e9e8-4d38-924b-d45a6c7682ec
+		summarizeBy: none
+		sourceColumn: gateway_name
+
+	column 'Gateway Type'
+		dataType: string
+		lineageTag: effaba08-4c3c-420c-adb4-939537c359f3
+		summarizeBy: none
+		sourceColumn: gateway_type
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 70692923-2fe2-4bed-98d1-869cdda04239
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Gateway Inventory' = entity
+		mode: directLake
+		source
+			entityName: monitor_gateway_observations
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

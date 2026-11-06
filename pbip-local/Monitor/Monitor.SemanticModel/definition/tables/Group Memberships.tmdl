@@ -1,0 +1,114 @@
+/// Historical source observations. Counts are not automatically current inventory or effective policy.
+table 'Group Memberships'
+	lineageTag: a9924a5d-2233-5b66-9bf8-4f69aeef1ae3
+
+	column 'Schema Version'
+		dataType: int64
+		isHidden
+		lineageTag: cfc1b1a6-6cbb-43b1-a55f-3af0ac04de79
+		summarizeBy: none
+		sourceColumn: schema_version
+
+	column 'Observation ID'
+		dataType: string
+		isHidden
+		lineageTag: cea51fae-e353-4bbf-9cb4-43a624d2cd1b
+		summarizeBy: none
+		sourceColumn: observation_id
+
+	column 'Source Path'
+		dataType: string
+		isHidden
+		lineageTag: 3d239b4c-802d-458e-9dad-4df9d0bac6b4
+		summarizeBy: none
+		sourceColumn: source_path
+
+	column 'Source Sha256'
+		dataType: string
+		isHidden
+		lineageTag: fe828192-0b94-4b8f-8212-563638edc471
+		summarizeBy: none
+		sourceColumn: source_sha256
+
+	column 'Record Sha256'
+		dataType: string
+		isHidden
+		lineageTag: 359cbd64-25ed-4ea6-b8da-6b8dd5ae33b2
+		summarizeBy: none
+		sourceColumn: record_sha256
+
+	column 'Observed At UTC'
+		dataType: string
+		lineageTag: c865b21f-3578-4aa2-807e-0780f8523eae
+		summarizeBy: none
+		sourceColumn: observed_at_utc
+
+	column Module
+		dataType: string
+		lineageTag: dc2d295f-15a7-4551-b301-643a42313919
+		summarizeBy: none
+		sourceColumn: module
+
+	column Mode
+		dataType: string
+		lineageTag: f6a31ba5-1389-4f1b-a392-781afe54926f
+		summarizeBy: none
+		sourceColumn: mode
+
+	column 'Run ID'
+		dataType: string
+		isHidden
+		lineageTag: 7342668e-e7e6-4c6f-a315-bfed533018d4
+		summarizeBy: none
+		sourceColumn: run_id
+
+	column 'Cycle ID'
+		dataType: string
+		isHidden
+		lineageTag: 3ebe7add-7e9b-447e-9b30-d8e2e0e313c3
+		summarizeBy: none
+		sourceColumn: cycle_id
+
+	column 'Coverage Status'
+		dataType: string
+		lineageTag: 788ce34b-d01e-4d18-887d-7f89ae5b88e3
+		summarizeBy: none
+		sourceColumn: coverage_status
+
+	column 'Group ID'
+		dataType: string
+		lineageTag: 03763137-a0d1-4c46-b914-2f91b70dd2a5
+		summarizeBy: none
+		sourceColumn: group_id
+
+	column 'Principal ID'
+		dataType: string
+		lineageTag: 33e05a42-6d3c-45b5-bf72-22eebdce2554
+		summarizeBy: none
+		sourceColumn: principal_id
+
+	column 'Membership Kind'
+		dataType: string
+		lineageTag: 86b8df76-ef0d-47a0-9f08-5976a85e934e
+		summarizeBy: none
+		sourceColumn: membership_kind
+
+	column 'Is Audience Group'
+		dataType: boolean
+		lineageTag: 3b82f6bf-f7b8-437c-afe1-159170e44f89
+		summarizeBy: none
+		sourceColumn: is_audience_group
+
+	column 'Source Date'
+		dataType: string
+		lineageTag: 5f6288b4-21ff-4087-87c5-0e0fdf30e3e8
+		summarizeBy: none
+		sourceColumn: source_date
+
+	partition 'Group Memberships' = entity
+		mode: directLake
+		source
+			entityName: monitor_group_memberships
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

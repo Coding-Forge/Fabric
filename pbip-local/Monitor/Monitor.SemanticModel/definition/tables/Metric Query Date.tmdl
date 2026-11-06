@@ -1,0 +1,48 @@
+table 'Metric Query Date'
+	lineageTag: c3453bca-2c69-5f6e-84a8-e3e2c4ca83ac
+
+	column 'Date Key'
+		dataType: int64
+		isHidden
+		lineageTag: e68f27ec-3500-4642-ba69-65ade008de0a
+		summarizeBy: none
+		sourceColumn: date_key
+
+	column Date
+		dataType: dateTime
+		formatString: yyyy-MM-dd
+		lineageTag: 6bcbbe44-0783-4c63-8b8d-c046677f5361
+		summarizeBy: none
+		sourceColumn: date
+
+	column Year
+		dataType: int64
+		lineageTag: 4d09752f-f255-4d80-9d12-3ac4fd85dc6d
+		summarizeBy: none
+		sourceColumn: year
+
+	column 'Month Number'
+		dataType: int64
+		lineageTag: 522282a3-d620-43bf-99e3-a3f40f6e9ba8
+		summarizeBy: none
+		sourceColumn: month_number
+
+	column 'Year Month'
+		dataType: string
+		lineageTag: 3191500a-c40c-4248-a495-8d7b0013ee17
+		summarizeBy: none
+		sourceColumn: year_month
+
+	column 'Day Of Week'
+		dataType: string
+		lineageTag: f16a6f42-4fe3-4e2c-81dd-8f0f1ae8bbd0
+		summarizeBy: none
+		sourceColumn: day_of_week
+
+	partition 'Metric Query Date' = entity
+		mode: directLake
+		source
+			entityName: monitor_report_date
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+

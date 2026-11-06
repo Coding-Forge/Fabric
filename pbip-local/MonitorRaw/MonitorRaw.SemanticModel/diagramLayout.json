@@ -1,0 +1,230 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 50,
+            "y": 103.74014789777044
+          },
+          "nodeIndex": "Activity",
+          "nodeLineageTag": "7ddd21b5-19fe-4413-b994-26533ae1d0e9",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 334.202255104609,
+            "y": 77.507989809479682
+          },
+          "nodeIndex": "Calendar",
+          "nodeLineageTag": "ec45bfe4-cc18-484c-b5f3-f4eac56503b2",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 902.62216291713673,
+            "y": -34.378697769128337
+          },
+          "nodeIndex": "Capacities",
+          "nodeLineageTag": "01da021c-462f-4207-a10a-ac2dba88f2b4",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 618.41040181545577,
+            "y": -50
+          },
+          "nodeIndex": "Capacity Metrics",
+          "nodeLineageTag": "f07a7950-df97-4674-82de-c43e71e17d2c",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1136.6221629171366,
+            "y": 76.870073948885192
+          },
+          "nodeIndex": "Collection Status",
+          "nodeLineageTag": "f4a4127d-4e64-487c-b731-c5bcfe02897b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1420.6221629171366,
+            "y": 76.870073948885192
+          },
+          "nodeIndex": "Connections",
+          "nodeLineageTag": "69cfa4da-ae49-4e28-b8d8-12cffdc6f12a",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1704.6221629171366,
+            "y": 76.870073948885192
+          },
+          "nodeIndex": "Delegated Settings",
+          "nodeLineageTag": "84c167f2-a186-42b2-a5a1-e55a3e3512de",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 1988.6221629171366,
+            "y": 76.870073948885192
+          },
+          "nodeIndex": "Deployment Operations",
+          "nodeLineageTag": "d9ec82d1-1ef5-4aa7-b41d-2c376cbbd9db",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2272.6221629171368,
+            "y": 126.87007394888519
+          },
+          "nodeIndex": "Deployment Pipelines",
+          "nodeLineageTag": "5d27c348-4870-4fd7-970a-46ba16aa8261",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2556.6221629171368,
+            "y": 76.870073948885192
+          },
+          "nodeIndex": "Fabric Job History",
+          "nodeLineageTag": "a5bc49a5-333c-4cb1-b5c0-9f3cfc9d1c76",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2840.6221629171368,
+            "y": 102.87007394888519
+          },
+          "nodeIndex": "Fabric Job Scope",
+          "nodeLineageTag": "38316867-0829-44f3-b264-d130e3570067",
+          "size": {
+            "height": 248,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3124.6221629171368,
+            "y": 76.870073948885192
+          },
+          "nodeIndex": "Git Connections",
+          "nodeLineageTag": "60a13cd2-2778-44b0-bd7f-b28d8e681eae",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3408.6221629171368,
+            "y": 76.870073948885192
+          },
+          "nodeIndex": "Item Permission Scope",
+          "nodeLineageTag": "04f05c9f-d161-40f3-838b-cd2d84e75380",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3692.6221629171368,
+            "y": 76.870073948885192
+          },
+          "nodeIndex": "Item Permissions",
+          "nodeLineageTag": "c7eb7ea6-e6b6-4973-9984-15910b20b99b",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3976.6221629171368,
+            "y": 90.870073948885192
+          },
+          "nodeIndex": "Tags",
+          "nodeLineageTag": "cf10745f-db0a-4d5f-ae8d-f43f4c821548",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 4260.6221629171368,
+            "y": 76.870073948885192
+          },
+          "nodeIndex": "Widely Shared Links",
+          "nodeLineageTag": "55de7c97-4d14-4513-9d92-32bcc3c765d1",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

@@ -1,0 +1,140 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.15.0/schema.json",
+  "name": "92e5f9d1a60d722cb514",
+  "position": {
+    "x": 24.06801831262263,
+    "y": 384.04185742315241,
+    "z": 12,
+    "height": 115.10791366906476,
+    "width": 1081.4911706998039,
+    "tabOrder": 12
+  },
+  "visual": {
+    "visualType": "cardVisual",
+    "query": {
+      "queryState": {
+        "Data": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Estate Measures"
+                    }
+                  },
+                  "Property": "Items Observed"
+                }
+              },
+              "queryRef": "Estate Measures.Items Observed",
+              "nativeQueryRef": "Items Observed"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Estate Measures"
+                    }
+                  },
+                  "Property": "Permission Polls - Failed"
+                }
+              },
+              "queryRef": "Estate Measures.Permission Polls - Failed",
+              "nativeQueryRef": "Permission Polls - Failed"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Estate Measures"
+                    }
+                  },
+                  "Property": "Successful Empty Job Polls"
+                }
+              },
+              "queryRef": "Estate Measures.Successful Empty Job Polls",
+              "nativeQueryRef": "Successful Empty Job Polls"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Estate Measures"
+                    }
+                  },
+                  "Property": "Upstream Pairs Observed"
+                }
+              },
+              "queryRef": "Estate Measures.Upstream Pairs Observed",
+              "nativeQueryRef": "Upstream Pairs Observed"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "b5053f266dcd677db19b",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Estate Measures"
+              }
+            },
+            "Property": "Items Observed"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "02e45cc74a110e7aba9a",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Estate Measures"
+              }
+            },
+            "Property": "Permission Polls - Failed"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "88ce9ad05338425730bd",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Estate Measures"
+              }
+            },
+            "Property": "Successful Empty Job Polls"
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "b6e4c6cc890d3cd116d5",
+        "field": {
+          "Measure": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Estate Measures"
+              }
+            },
+            "Property": "Upstream Pairs Observed"
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  }
+}

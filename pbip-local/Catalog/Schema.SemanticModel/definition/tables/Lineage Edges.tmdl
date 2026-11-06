@@ -110,5 +110,5 @@ table 'Lineage Edges'
 						#"Relation Type" = nullable text, Resolution = nullable text, #"Observed At UTC" = nullable datetime,
 						#"Scan Id" = nullable text], MissingField.UseNull)
 
-	annotation PBI_ResultType = Table
+	annotation PBI_ResultType = Exception
 

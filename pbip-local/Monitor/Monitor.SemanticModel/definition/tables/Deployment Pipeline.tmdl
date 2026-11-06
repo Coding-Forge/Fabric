@@ -1,0 +1,47 @@
+table 'Deployment Pipeline'
+	lineageTag: ce914b04-7da4-5cf8-a6af-1d24f53034d3
+
+	column 'Entity Key'
+		dataType: string
+		isHidden
+		lineageTag: 1ceaa352-6fef-4964-9422-6a1d2f670822
+		summarizeBy: none
+		sourceColumn: entity_key
+
+	column 'Entity ID'
+		dataType: string
+		lineageTag: 8a8cfbb3-7247-4283-88b3-43be0086ed04
+		summarizeBy: none
+		sourceColumn: entity_id
+
+	column 'Workspace ID'
+		dataType: string
+		lineageTag: d9e01417-4357-4c2b-bc2a-a61144cde781
+		summarizeBy: none
+		sourceColumn: workspace_id
+
+	column Label
+		dataType: string
+		lineageTag: 73e4aa86-e825-4934-86ee-934918cbadc6
+		summarizeBy: none
+		sourceColumn: label
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 5e85fe10-7934-47b8-8572-52f876b36d2e
+		summarizeBy: none
+		sourceColumn: item_type
+
+	column 'Label Basis'
+		dataType: string
+		lineageTag: eb22f099-6a95-47ce-b468-e7b2aade7721
+		summarizeBy: none
+		sourceColumn: label_basis
+
+	partition 'Deployment Pipeline' = entity
+		mode: directLake
+		source
+			entityName: monitor_report_pipeline
+			schemaName: dbo
+			expressionSource: 'DirectLake - Fabric Estate'
+
