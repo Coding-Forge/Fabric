@@ -4,7 +4,8 @@ This guide explains the **21 numbered Monitor notebooks**: what their outputs
 mean, what you should learn from them, and how they relate to each other.
 It describes the implemented outputs, not a review of your latest live results.
 The older `activity.ipynb`, `catalog.ipynb`, `Deconstruct.ipynb` and `nbk.ipynb`
-are experiments, not additional steps in this suite.
+are preserved in [archive/](archive/). They are experiments, not additional steps
+in this suite.
 
 ## 1. The main idea: different views of the same estate
 

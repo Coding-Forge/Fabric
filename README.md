@@ -343,7 +343,8 @@ artifacts; do not edit their embedded implementation or use the legacy
 `environment.yml` as their Fabric runtime configuration.
 
 The older `activity.ipynb`, `catalog.ipynb`, `Deconstruct.ipynb` and `nbk.ipynb`
-are experiments, not prerequisites or replacements for the numbered suite.
+are preserved in [notebooks/archive/](notebooks/archive/). They are experiments,
+not prerequisites or replacements for the numbered suite.
 For running the Python collector from a notebook runtime, use the helper above
 or the [Synapse collector guide](docs/azure-synapse-notebooks.md).
 

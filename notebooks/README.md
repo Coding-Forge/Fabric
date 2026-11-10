@@ -7,7 +7,8 @@ upload the notebooks themselves, with no repository checkout, Python helper
 upload, credentials, `%run` dependency or package installation cell.
 
 Existing `activity.ipynb`, `catalog.ipynb`, `Deconstruct.ipynb` and `nbk.ipynb`
-are older experiments and are unchanged. They are not prerequisites for this suite.
+are older experiments preserved unchanged in [archive/](archive/). They are not
+prerequisites for this suite.
 
 ## Optional serial orchestrator
 
