@@ -1424,6 +1424,95 @@ class ValidationNotebookTests(unittest.TestCase):
 
 
 class UploadableNotebookTests(unittest.TestCase):
+    def orchestrator_namespace(self, run, names=None):
+        notebook = generated_notebooks()["nb_orchestrator.ipynb"]
+        namespace = {
+            "notebookutils": SimpleNamespace(notebook=SimpleNamespace(run=run)),
+            "spark": MagicMock(),
+            "display": MagicMock(),
+        }
+        config, execute = [
+            "".join(cell["source"])
+            for cell in notebook["cells"]
+            if cell["cell_type"] == "code"
+        ]
+        exec(compile(config, "orchestrator_parameters", "exec"), namespace)  # noqa: S102 - Trusted generated cell.
+        if names is not None:
+            namespace["NOTEBOOKS"] = names
+        return namespace, execute
+
+    def test_orchestrator_runs_all_writers_serially_with_preview_parameters(self):
+        run = MagicMock(return_value="")
+        namespace, execute = self.orchestrator_namespace(run)
+        writers = {
+            name.removesuffix(".ipynb")
+            for name in generated_notebooks()
+            if name[:2] not in {"05", "06"} and name != "nb_orchestrator.ipynb"
+        }
+        self.assertEqual(set(namespace["NOTEBOOKS"]), writers)
+        self.assertEqual(len(namespace["NOTEBOOKS"]), 19)
+        exec(compile(execute, "orchestrator_execution", "exec"), namespace)  # noqa: S102 - Trusted generated cell with mocked Fabric APIs.
+        self.assertEqual(
+            [call.args[0] for call in run.call_args_list], namespace["NOTEBOOKS"]
+        )
+        for call in run.call_args_list:
+            self.assertEqual(call.args[1], 3600)
+            self.assertEqual(
+                call.args[2],
+                {
+                    "RAW_ROOT": "/lakehouse/default/Files/monitor",
+                    "TABLE_PREFIX": "monitor_",
+                    "WRITE_TABLES": False,
+                    "PERMISSION_MODE": "Scoped",
+                },
+            )
+        self.assertTrue(
+            all(result["status"] == "Succeeded" for result in namespace["results"])
+        )
+        namespace["display"].assert_called_once()
+
+    def test_orchestrator_reports_named_failures_after_attempting_remaining_children(
+        self,
+    ):
+        run = MagicMock(
+            side_effect=[RuntimeError("first error"), "", ValueError("last error")]
+        )
+        namespace, execute = self.orchestrator_namespace(
+            run, ["first", "middle", "last"]
+        )
+        namespace.update(
+            RAW_ROOT="/lakehouse/default/Files/custom",
+            TABLE_PREFIX="monitor_custom_",
+            WRITE_TABLES=True,
+            PERMISSION_MODE="Tenant",
+            NOTEBOOK_TIMEOUT_SECONDS=120,
+        )
+        with self.assertRaisesRegex(RuntimeError, "Failed notebooks: first, last"):
+            exec(compile(execute, "orchestrator_execution", "exec"), namespace)  # noqa: S102 - Trusted generated cell with mocked Fabric APIs.
+        self.assertEqual(run.call_count, 3)
+        self.assertEqual(
+            namespace["results"],
+            [
+                {"notebook": "first", "status": "Failed", "error": "first error"},
+                {"notebook": "middle", "status": "Succeeded", "error": ""},
+                {"notebook": "last", "status": "Failed", "error": "last error"},
+            ],
+        )
+        self.assertEqual(run.call_args.args[1], 120)
+        self.assertEqual(run.call_args.args[2]["WRITE_TABLES"], True)
+        self.assertEqual(run.call_args.args[2]["PERMISSION_MODE"], "Tenant")
+        self.assertEqual(run.call_args.args[2]["TABLE_PREFIX"], "monitor_custom_")
+        namespace["display"].assert_called_once()
+
+    def test_orchestrator_rejects_invalid_selection_before_running_children(self):
+        for names in ([], ["same", "same"], ["valid", ""], ["valid", None], "name"):
+            with self.subTest(names=names):
+                run = MagicMock()
+                namespace, execute = self.orchestrator_namespace(run, names)
+                with self.assertRaisesRegex(ValueError, "NOTEBOOKS"):
+                    exec(compile(execute, "orchestrator_execution", "exec"), namespace)  # noqa: S102 - Trusted generated cell with mocked Fabric APIs.
+                run.assert_not_called()
+
     def test_generated_files_are_current_clear_and_python310_compatible(self):
         for name, notebook in generated_notebooks().items():
             with self.subTest(name=name):
@@ -1451,6 +1540,8 @@ class UploadableNotebookTests(unittest.TestCase):
                         for n in tree.body
                     ):
                         exec(compile(tree, name, "exec"), namespace)  # noqa: S102 - Trusted generated library cells only.
+                if name == "nb_orchestrator.ipynb":
+                    continue
                 self.assertIn("transform", namespace)
                 if name.startswith("06"):
                     self.assertEqual(

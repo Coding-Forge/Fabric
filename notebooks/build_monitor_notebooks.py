@@ -110,6 +110,51 @@ MODULE_SUBJECTS = {
         "deployments",
     ),
 }
+ORCHESTRATOR_RUN = """if (
+    not isinstance(NOTEBOOKS, list)
+    or not NOTEBOOKS
+    or any(not isinstance(name, str) or not name.strip() for name in NOTEBOOKS)
+    or len(set(NOTEBOOKS)) != len(NOTEBOOKS)
+):
+    raise ValueError("NOTEBOOKS must be a nonempty list of unique notebook names")
+if type(WRITE_TABLES) is not bool:
+    raise ValueError("WRITE_TABLES must be True or False")
+if PERMISSION_MODE not in {"Scoped", "Tenant"}:
+    raise ValueError("Choose Scoped or Tenant explicitly")
+if type(NOTEBOOK_TIMEOUT_SECONDS) is not int or NOTEBOOK_TIMEOUT_SECONDS <= 0:
+    raise ValueError("NOTEBOOK_TIMEOUT_SECONDS must be a positive integer")
+
+print("Publication enabled." if WRITE_TABLES else "PREVIEW ONLY: no Delta writes.")
+results = []
+for name in NOTEBOOKS:
+    print(f"Running {name}")
+    try:
+        notebookutils.notebook.run(
+            name,
+            NOTEBOOK_TIMEOUT_SECONDS,
+            {
+                "RAW_ROOT": RAW_ROOT,
+                "TABLE_PREFIX": TABLE_PREFIX,
+                "WRITE_TABLES": WRITE_TABLES,
+                "PERMISSION_MODE": PERMISSION_MODE,
+            },
+        )
+        results.append({"notebook": name, "status": "Succeeded", "error": ""})
+    except Exception as exc:  # noqa: BLE001 - Attempt every child, then fail overall.
+        results.append(
+            {
+                "notebook": name,
+                "status": "Failed",
+                "error": str(exc),
+            }
+        )
+
+display(spark.createDataFrame(results, "notebook string, status string, error string"))
+failed = [result["notebook"] for result in results if result["status"] == "Failed"]
+if failed:
+    raise RuntimeError("Failed notebooks: " + ", ".join(failed))
+print("All selected notebooks succeeded. Review collection coverage separately.")
+"""
 
 
 def cell(kind, source, index, *, parameters=False):
@@ -124,6 +169,63 @@ def cell(kind, source, index, *, parameters=False):
     if kind == "code":
         result.update(execution_count=None, outputs=[])
     return result
+
+
+def orchestrator_notebook():
+    orchestrator_config = (
+        "# Attach the SAME default Lakehouse as the child notebooks.\n"
+        'RAW_ROOT = "/lakehouse/default/Files/monitor"\n'
+        'TABLE_PREFIX = "monitor_"\n'
+        "WRITE_TABLES = False  # Preview first; set True to publish Delta tables.\n"
+        'PERMISSION_MODE = "Scoped"  # Choose "Scoped" or "Tenant".\n'
+        "NOTEBOOK_TIMEOUT_SECONDS = 3600\n"
+        "# Edit this list to match the imported notebook names in your workspace.\n"
+        "NOTEBOOKS = [\n"
+        + "".join(
+            f"    {json.dumps(name)},\n"
+            for name in (*SUBJECTS, *ESTATE_SUBJECTS, *MODULE_SUBJECTS)
+        )
+        + "]\n"
+    )
+    return notebook(
+        [
+            (
+                "markdown",
+                """# Monitor: serial notebook orchestrator
+
+Import this notebook as **nb_orchestrator** alongside the 19 transformation
+notebooks. Attach the same default Lakehouse (for example **lh_monitor**) to
+the orchestrator and every child. Match the names in NOTEBOOKS to the imported
+Fabric notebook names; remove entries for domains you do not want to process.
+Notebooks 05 (visualization) and 06 (controlled rerun validation) are excluded.
+
+Run manually with WRITE_TABLES=False first. After reviewing coverage, set it
+to True to publish. The executing identity needs raw-data read access and,
+for publication, curated-table write access. Shell credentials are not used.
+The child notebooks must retain their marked parameter cells.
+
+Execution is serial because concurrent same-prefix publication is unsupported
+and domain notebooks share estate_coverage. Each child is attempted even after
+another fails. The final summary identifies failures by notebook name; any
+failure raises after the summary so a calling pipeline is marked failed.
+Use Fabric's child-run snapshots for detailed diagnostics.
+
+Succeeded means execution succeeded, not that collection coverage is complete
+or fresh. Missing/failed collection may be reported without an exception.
+The orchestrator makes no collection API calls and does not save a separate
+status table. Review run outputs as potentially sensitive operational metadata.
+
+After manual acceptance, call this notebook from a scheduled pipeline and verify
+the pipeline execution identity. Run after collection has finished; avoid
+overlapping orchestrator runs or other writers to the same table prefix.
+Generated notebook: edit build_monitor_notebooks.py and regenerate, not these cells.
+""",
+                False,
+            ),
+            ("code", orchestrator_config, True),
+            ("code", ORCHESTRATOR_RUN, False),
+        ]
+    )
 
 
 def notebook(cells):
@@ -369,6 +471,7 @@ print(counts)
                 ),
             ]
         )
+    result["nb_orchestrator.ipynb"] = orchestrator_notebook()
     return result
 
 

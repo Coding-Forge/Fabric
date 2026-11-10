@@ -9,6 +9,21 @@ upload, credentials, `%run` dependency or package installation cell.
 Existing `activity.ipynb`, `catalog.ipynb`, `Deconstruct.ipynb` and `nbk.ipynb`
 are older experiments and are unchanged. They are not prerequisites for this suite.
 
+## Optional serial orchestrator
+
+Import [nb_orchestrator.ipynb](nb_orchestrator.ipynb) as **nb_orchestrator** to
+run all 19 transformation notebooks from one entry point. Attach the same default
+Lakehouse to it and its children. Its parameter cell lets you select notebook
+names, raw root, table prefix, permission mode, timeout and `WRITE_TABLES`
+(False by default). Preview manually, then enable writes when ready.
+
+It attempts every selected notebook serially, displays a named success/failure
+summary and raises if any failed so a calling pipeline fails too. Collection
+coverage warnings are separate from execution failures; inspect child-run
+outputs. Notebooks 05 and 06 are intentionally excluded. Avoid overlapping runs
+and other writers to the same prefix. After manual acceptance, test it through
+a pipeline under the intended execution identity before scheduling.
+
 ## Choose a guide
 
 | Need | Read |
