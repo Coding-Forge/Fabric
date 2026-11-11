@@ -13,6 +13,7 @@ from env.modules import (
     Capacity,
     CapacityMetrics,
     Catalog,
+    ControlPlane,
     DelegatedSettings,
     Domains,
     FabricConnections,
@@ -24,6 +25,7 @@ from env.modules import (
     Gateway,
     GitConnections,
     Graph,
+    ItemJobs,
     Refreshables,
     RefreshHistory,
     Roles,
@@ -36,6 +38,7 @@ from env.utility.file_management import File_Management
 
 content = None
 FABRIC_ONLY_MODULES = frozenset({
+    "ItemJobs", "ControlPlane",
     "Domains", "FabricItems", "Tenant", "Roles", "Workspaces",
     "GitConnections", "Tags", "DelegatedSettings", "FabricConnections",
     "FabricDeploymentPipelineOperations", "FabricItemAccessPermissions",
@@ -50,6 +53,7 @@ _MODULES = frozenset(
         "Capacity": Capacity,
         "CapacityMetrics": CapacityMetrics,
         "Catalog": Catalog,
+        "ControlPlane": ControlPlane,
         "DelegatedSettings": DelegatedSettings,
         "Domains": Domains,
         "FabricConnections": FabricConnections,
@@ -61,6 +65,7 @@ _MODULES = frozenset(
         "Gateway": Gateway,
         "GitConnections": GitConnections,
         "Graph": Graph,
+        "ItemJobs": ItemJobs,
         "Refreshables": Refreshables,
         "RefreshHistory": RefreshHistory,
         "Roles": Roles,
@@ -336,6 +341,8 @@ class Audits:
             "roles": {"lastRun": state_now},
             "domains": {"lastRun": state_now},
             "fabricitems": {"lastRun": state_now},
+            "itemjobs": {"lastRun": state_now},
+            "controlplane": {"lastRun": state_now},
             "workspaces": {"lastRun": state_now},
             "gitconnections": {"lastRun": state_now},
             "tags": {"lastRun": state_now},
@@ -355,6 +362,21 @@ class Audits:
 
     def set_all_workspaces(self, get_all_workspaces: bool):
         return self.context.set_all_workspaces(get_all_workspaces)
+
+    def set_include_workspace_ids(self, workspace_ids):
+        self.context.set_include_workspace_ids(workspace_ids)
+
+    def set_exclude_workspace_ids(self, workspace_ids):
+        self.context.set_exclude_workspace_ids(workspace_ids)
+
+    def set_http_max_retries(self, value):
+        self.context.set_http_max_retries(value)
+
+    def set_scan_status_poll_seconds(self, value):
+        self.context.set_scan_status_poll_seconds(value)
+
+    def set_itemjobs_concurrency(self, value):
+        self.context.set_itemjobs_concurrency(value)
 
     def set_WorkspaceName(self, WorkspaceName):
         self.context.set_WorkspaceName(WorkspaceName)
@@ -437,6 +459,9 @@ class Audits:
 
     def set_FabricItems_cron(self, FabricItems_cron):
         self.context.set_FabricItems_cron(FabricItems_cron)
+
+    def set_ItemJobs_cron(self, ItemJobs_cron):
+        self.context.set_ItemJobs_cron(ItemJobs_cron)
 
     def set_Workspaces_cron(self, Workspaces_cron):
         self.context.set_Workspaces_cron(Workspaces_cron)

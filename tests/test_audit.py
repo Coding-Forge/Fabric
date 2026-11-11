@@ -152,6 +152,7 @@ class AuditRunTests(unittest.IsolatedAsyncioTestCase):
             "FabricItemDefinitions", "FabricItemAccessPermissions", "FabricItemJobHistory",
             "FabricConnections", "FabricDeploymentPipelineOperations", "GitConnections",
             "Tags", "DelegatedSettings", "Domains", "FabricItems", "Tenant", "Roles", "Workspaces",
+            "ItemJobs", "ControlPlane",
         ]
         for cloud in ("Gcc", "GccHigh", "Dod"):
             with self.subTest(cloud=cloud):
@@ -169,6 +170,19 @@ class AuditRunTests(unittest.IsolatedAsyncioTestCase):
                     self.assertEqual(state[name.lower()]["lastRun"], old)
                 self.assertEqual(modules["Activity"].calls, 1)
                 self.assertEqual(modules["WidelySharedLinks"].calls, 1)
+
+    async def test_supplementary_modules_dispatch_with_independent_checkpoints(self):
+        old = _ts(3)
+        state = {"itemjobs": {"lastRun": old}, "controlplane": {"lastRun": old}}
+        jobs = _module("ItemJobs", True)
+        reporting = _module("ControlPlane", False)
+        a = self._audit(["ItemJobs", "ControlPlane"], state)
+
+        self.assertIs(await self._run(a, ItemJobs=jobs, ControlPlane=reporting), False)
+
+        self.assertEqual((jobs.calls, reporting.calls), (1, 1))
+        self.assertNotEqual(state["itemjobs"]["lastRun"], old)
+        self.assertEqual(state["controlplane"]["lastRun"], old)
 
     async def test_exception_in_one_module_does_not_stop_others(self):
         old = _ts(2)

@@ -361,11 +361,36 @@ You can also use the FabricMonitor and provide the name of the Storage account a
 
 A third option is the Power BI Project in [pbip-local/MonitorRaw/](pbip-local/MonitorRaw/README.md). It reads the raw JSON output directly, from a local folder (`LOCAL_OUTPUT_PATH`) or from Blob Storage, and includes the four optional Fabric collectors. Basic Desktop checks and Scoped/Tenant permission views have been verified; detailed fixture checks and Local/Blob parity remain unconfirmed. Read its README for validation status, historical warnings and the acceptance checklist.
 
+## Optional audit and Splunk reporting
+
+The PR's `ItemJobs` and `ControlPlane` modules are opt-in, mixed Admin/non-Admin
+collectors. They require workspace/item access beyond Admin API authorization;
+their coverage is limited to accessible, supported items. See the
+[configuration and API boundaries](docs/configuration-reference.md#optional-audit-reporting-modules)
+before enabling them. Run Activity, Graph and Catalog first, then ItemJobs, then
+ControlPlane in separate invocations: the module runner is concurrent, not
+dependency-ordered.
+
+[audit_events_splunk.ipynb](notebooks/audit_events_splunk.ipynb) consolidates
+saved module JSON into `audit_events_splunk` and a JSONL export.
+Enable `CATALOG_LINEAGE_ENABLED=true` for lineage enrichment. The notebook
+accepts the current Scanner snapshot envelope and legacy flat edge files.
+FabricItems remains Admin inventory only; it does not call the beta relations
+API. Retained lineage is observed evidence, not a complete current estate or
+event-time dependency graph.
+[jsonl_to_delta.ipynb](notebooks/jsonl_to_delta.ipynb) optionally materializes
+the export into the separate `audit_events_splunk_jsonl` table. These supplementary
+notebooks do not replace the numbered suite; live Fabric execution of the merged
+reporting path has not been validated.
+
 # Build and Test
 Run the unit tests from the repository root:
 ```
 python3 -m unittest discover -s tests -t .
 ```
+
+The supplementary audit/reporting tests also require pytest:
+`python3 -m pytest -q tests`.
 
 See [docs/changelog.md](docs/changelog.md) for recent bug fixes (B1–B16), behaviour notes (state/`lastRun`, 7-day first run, 30-day Activity limit, catalog polling caps) and known gaps, the opt-in E5 modules (`GitConnections`, `Tags`, `DelegatedSettings`, `WidelySharedLinks`), and [docs/configuration-reference.md](docs/configuration-reference.md) for environment variables.
 

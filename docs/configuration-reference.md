@@ -131,6 +131,11 @@ These are parameters of `infra/main.bicep`, not app settings. Both features are 
 |---|---|---|
 | `DRY_RUN` | `false` | When `true`, prints what would be written to blob instead of writing it. Useful for local testing. |
 | `ALL_WORKSPACES` | `false` | Catalog Scanner discovery only: omit the modification-date filter. Personal/inactive filters still apply. Does not limit FabricItems, Workspaces or permission scope. |
+| `INCLUDE_WORKSPACE_IDS` | _(none)_ | Comma-separated workspace GUID allowlist for Catalog, FabricItems, ItemJobs and ControlPlane only. Catalog scans these IDs directly rather than discovering modified workspaces. |
+| `EXCLUDE_WORKSPACE_IDS` | _(none)_ | Workspace GUID denylist for those four modules; exclusions take precedence. Not a tenant-wide authorization boundary. |
+| `HTTP_MAX_RETRIES` | `6` | Retries for ItemJobs/ControlPlane's separate synchronous helper: 429, 5xx and network failures, with server delays capped at one hour. Does not replace or configure the existing `API_MAX_*` transport. |
+| `SCAN_STATUS_POLL_SECONDS` | `15` | Seconds between Catalog status polls; minimum 1. The existing 120-poll and five-consecutive-error caps remain. |
+| `ITEMJOBS_CONCURRENCY` | `3` | Per-item concurrency for ItemJobs and ControlPlane; minimum 1. Separate from `API_MAX_CONCURRENCY`. |
 | `EXCLUDE_PERSONAL_WORKSPACES` | `true` | Excludes personal workspaces from modified-workspace catalog scans. |
 | `EXCLUDE_INACTIVE_WORKSPACES` | `true` | Excludes inactive workspaces from modified-workspace catalog scans. |
 | `IMPERSONATED_USER_NAME` | _(none)_ | UPN of a user to impersonate for API calls. |
@@ -264,6 +269,7 @@ Each module runs on the global timer schedule (`0 0 2 * * *` — daily at 02:00 
 | `CATALOG_CRON` | Catalog Scans |
 | `DOMAINS_CRON` | Domains |
 | `FABRICITEMS_CRON` | Fabric Items |
+| `ITEMJOBS_CRON` | ItemJobs and ControlPlane eligibility (each retains its own checkpoint) |
 | `FABRICITEMACCESSPERMISSIONS_CRON` | Fabric Item Access Permissions |
 | `FABRICITEMJOBHISTORY_CRON` | Fabric Item Job History |
 | `FABRICCONNECTIONS_CRON` | Fabric Connections |
@@ -311,6 +317,8 @@ All available module names for `APPLICATION_MODULES`:
 | `DelegatedSettings` | Delegated tenant-setting overrides for capacities, domains and workspaces (opt-in) |
 | `Domains` | Fabric domains |
 | `FabricItems` | All Fabric items across the tenant |
+| `ItemJobs` | Opt-in mixed Admin discovery/non-Admin item jobs, selected definitions, shortcuts and topology |
+| `ControlPlane` | Opt-in mixed Admin inventory/access and non-Admin item details/OneLake volume, enriched from saved outputs |
 | `FabricItemAccessPermissions` | Preview Admin item access observations: explicit scopes by default, opt-in tenant-wide discovery |
 | `FabricItemJobHistory` | Non-Admin recent jobs for explicitly scoped supported Fabric items (opt-in) |
 | `FabricItemDefinitions` | Admin discovery followed by non-Admin notebook/pipeline definition exports and static references (opt-in) |
@@ -326,6 +334,49 @@ All available module names for `APPLICATION_MODULES`:
 | `Tenant` | Tenant settings |
 | `WidelySharedLinks` | Links shared to the whole organization and published to web (opt-in) |
 | `Workspaces` | Workspace metadata |
+
+### Optional audit reporting modules
+
+`ItemJobs` and `ControlPlane` are supplementary, **opt-in mixed Admin/non-Admin**
+modules. They are separate from `FabricItemJobHistory`, `FabricItemDefinitions`
+and the durable scoped collectors; those collectors' gates, quotas, sanitized
+outputs and resume guarantees do not apply to these modules.
+
+| Module | Collection and permissions |
+|---|---|
+| `ItemJobs` | Uses Admin item discovery, then non-Admin job instances for supported job-capable items, selected item definition exports, Lakehouse shortcuts, Eventstream topology and pipeline activity-run queries. Requires access to every targeted item and the relevant endpoint's permissions. Definition exports require item read/write access (normally workspace Contributor or higher); Admin discovery alone is insufficient. Supported type lists live in `env/modules/itemjobs.py`. Reads metadata/definitions; never runs a job. |
+| `ControlPlane` | Reads saved Catalog/ItemJobs/Activity/Graph outputs, Admin workspace/item access observations and inventory, non-Admin type-specific item properties, and selected Lakehouse table `_delta_log` files through OneLake. Admin access calls require their own Admin authorization; item details and Delta logs require separate item/storage read access. It does not grant itself access or calculate effective permissions. |
+
+`INCLUDE_WORKSPACE_IDS` and `EXCLUDE_WORKSPACE_IDS` apply **only** to Catalog,
+FabricItems, ItemJobs and ControlPlane. They do not scope Activity, Graph, the
+durable Fabric collectors, or other modules. Except for Catalog's explicit-ID
+scan and ControlPlane's filtered discovery, discovery can still enumerate the
+tenant before filtering. Related metadata may name dependencies outside the
+selected workspace scope. Exclusions win. Invalid configured GUIDs fail startup.
+Use a separate output root and `state.yaml` for each scope; do not reuse scoped
+checkpoints for a wider tenant collection.
+
+Run prerequisites in separate invocations: Activity/Graph/Catalog first,
+ItemJobs next, ControlPlane last. Listing them in `APPLICATION_MODULES` together
+does **not** order them. `ITEMJOBS_CRON` controls eligibility for both added
+modules, but each has its own checkpoint.
+
+FabricItems remains Admin inventory only and does not call beta item relations.
+Catalog retains the opt-in Scanner snapshot format described above; ControlPlane
+can derive Scanner edges from saved raw scans when legacy flat edge files are
+absent. Its newest available scan day is limited to a three-day lookback, not a
+full current tenant graph. Jobs are limited to history exposed by the API;
+unsupported or inaccessible endpoints leave gaps. Copy-job volume inferred from
+Delta commits is bounded and approximate, not an authoritative per-run meter.
+Saved output may contain user principals, item properties, source/destination
+locations and failure details: restrict access to it.
+
+The supplementary modules use the PR's separate HTTP helper, controlled by
+`HTTP_MAX_RETRIES`, for per-item calls. It retains static headers and caps
+`Retry-After` at one hour; it does not share the existing `API_MAX_*` cooldowns,
+token-renewal behavior or durable collector gates. Admin discovery through
+`Context.invokeAPI` still uses the existing transport. Live Fabric execution of
+the merged supplementary reporting path has not been validated.
 
 ### API scope and authorization boundaries
 
@@ -345,6 +396,7 @@ Admin authorization is endpoint-specific, not one universal permission.
 |---|---|---|
 | **Admin APIs:** `Activity`, `Apps`, `Capacity`, `Catalog`, `DelegatedSettings`, `Domains`, `FabricItems`, `FabricItemAccessPermissions`, `GitConnections`, `Refreshables`, `Roles`, `Tags`, `Tenant`, `WidelySharedLinks`, `Workspaces` | Power BI/Fabric `/admin/...` routes. Catalog uses `admin/workspaces/modified`, `getInfo`, `scanStatus` and `scanResult`; optional Scanner lineage reuses those responses without extra calls. | Appropriate admin API authorization and tenant settings, including the read-only admin API service-principal allowlist where required. No workspace role is added by Monitor. `FabricItemAccessPermissions` defaults to explicit item scopes, with a separate opt-in tenant discovery mode; neither mode expands groups or establishes effective access. Scanner metadata is not notebook/pipeline definition export. |
 | **Mixed Admin / non-Admin:** `FabricItemDefinitions` | Fabric `GET admin/items` discovery, then `POST workspaces/{workspaceId}/notebooks/{notebookId}/getDefinition?format=ipynb` or `.../dataPipelines/{pipelineId}/getDefinition`, plus `GET operations/{operationId}` and `/result` for asynchronous exports. Selects **all discovered active Notebook/DataPipeline items across the tenant**, not a configured workspace/item allowlist. | Opt-in through `APPLICATION_MODULES`. Exports require **item read/write access**; Contributor is the least workspace role supplying it. Member/Admin also work; Viewer does not. No documented public Admin definition-export equivalent. Encrypted labels can add restrictions. Raw source/definitions may contain sensitive values; exports do not execute or update workloads. See [full scope and quotas](#notebook-and-data-pipeline-definitions). |
+| **Mixed Admin / non-Admin:** `ItemJobs`, `ControlPlane` | Admin item discovery/access plus workspace-level jobs, definition exports, shortcuts, topology, item details and OneLake Delta-log reads, limited to supported items and the optional workspace filters. | Optional supplementary reporting, not the durable scoped collectors. Admin access does not grant item/job/definition/storage access. See [permissions, scope and limitations](#optional-audit-reporting-modules). |
 | **Non-Admin Fabric:** `FabricItemJobHistory` | `GET workspaces/{workspaceId}/items/{itemId}/jobs/instances`, only the 1-100 configured `FABRIC_ITEM_JOB_SCOPE` entries of type Notebook, DataPipeline or SparkJobDefinition. | Opt-in; actual item/job-history access is required, not just admin visibility. Observes recent job metadata, never starts/cancels a job. Most items expose 100 recently completed jobs plus active jobs; polling is not an unlimited historical archive. |
 | **Non-Admin Fabric:** `FabricConnections` | `GET connections`, paginated caller-visible connections, with no configured connection allowlist. | Opt-in; caller must have connection permission. This is not a tenant-complete inventory and does not imply a workspace role requirement. Saves only allowlisted metadata; credentials and connection paths/strings are excluded. No credential or connection-permissions API is called. |
 | **Non-Admin Fabric:** `FabricDeploymentPipelineOperations` | `GET deploymentPipelines`, then `GET deploymentPipelines/{deploymentPipelineId}/operations`, for caller-visible deployment pipelines; no configured pipeline allowlist. | Opt-in; operation history requires **deployment-pipeline Admin**, distinct from workspace Admin. Up to 20 recent deployments per pipeline; gaps can age out. No deployment, stage assignment or other mutation is requested. These are deployment pipelines, not Data Factory pipeline definitions. |

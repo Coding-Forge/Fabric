@@ -10,6 +10,7 @@ from datetime import timedelta
 
 from env.context import Context, utc_now, utc_stamp
 from env.utility.lineage_edges import scan_snapshot
+from env.utility.workspace_filter import filter_workspace_records, log_workspace_filter_counts
 # from env.utility.helps import Bob
 
 ####### CATALOG PRECONFIGURATION #######
@@ -99,9 +100,11 @@ async def main(context: Context | None = None) -> bool:
         rest_api = f"admin/workspaces/modified?modifiedSince={LastRun}T00:00:00.0000000Z&{getModifiedWorkspacesParams}"
 
 
-    print(f"using the following url: {rest_api}")
-
-    result = await context.invokeAPI(rest_api=rest_api, headers=headers)
+    if context.include_workspace_ids:
+        result = {"value": [{"id": value} for value in sorted(context.include_workspace_ids)]}
+    else:
+        print(f"using the following url: {rest_api}")
+        result = await context.invokeAPI(rest_api=rest_api, headers=headers)
 
     workspaces: list[str] = list()
 
@@ -133,7 +136,14 @@ async def main(context: Context | None = None) -> bool:
             return False
         workspaces.append(workspace["id"])
 
+    workspaces, workspace_counts = filter_workspace_records(
+        workspaces,
+        context.include_workspace_ids,
+        context.exclude_workspace_ids,
+        get_workspace_id=lambda workspace_id: workspace_id,
+    )
     if not workspaces:
+        log_workspace_filter_counts(context.logger, "Catalog", workspace_counts, processed=0)
         context.logger.info("No modified workspaces found for the time period searched")
         return True
     # The first thing is to get all the workspaces that have been modified
@@ -222,7 +232,7 @@ async def main(context: Context | None = None) -> bool:
                 return False
             attempts += 1
 
-            await asyncio.sleep(scanStatusSleepSeconds)
+            await asyncio.sleep(context.scan_status_poll_seconds)
 
             statusResult = await context.invokeAPI(rest_api=f"admin/workspaces/scanStatus/{scanId}", headers=headers)
 
@@ -275,6 +285,7 @@ async def main(context: Context | None = None) -> bool:
     failures = 0
     counter = int()
     batch_number = int()
+    processed_workspaces = 0
     for i in range(0, len(groups), 16):
         batch_number += 1
         print(f"Processing batch number {batch_number} of {-(-len(groups)//16)} batches")
@@ -296,12 +307,16 @@ async def main(context: Context | None = None) -> bool:
                 context.logger.error(f"Scan group raised: {outcome}")
             if outcome is not True:
                 failures += 1
+        processed_workspaces += sum(
+            len(item) for item, outcome in zip(batch, outcomes) if outcome is True
+        )
 
         # pause between batches to avoid throttling, without blocking the event loop;
         # no pause is needed after the final batch
         if i + 16 < len(groups):
             await asyncio.sleep(30)
 
+    log_workspace_filter_counts(context.logger, "Catalog", workspace_counts, processed_workspaces)
     if failures:
         context.logger.error(f"Catalog finished with {failures} failed scan group(s); lastFullScan not updated")
         return False

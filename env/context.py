@@ -17,6 +17,7 @@ import aiohttp
 from env.cloud import get_cloud_profile
 from env.utility import http_retry
 from env.utility.file_management import File_Management
+from env.utility.workspace_filter import parse_workspace_ids
 
 # Format of the timestamps stored in state.yaml; the values are always UTC
 STATE_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -189,6 +190,7 @@ class Context:
         self.Catalog_cron = None
         self.Domains_cron = None
         self.FabricItems_cron = None
+        self.ItemJobs_cron = None
         self.Gateway_cron = None
         self.Graph_cron = None
         self.Refreshables_cron = None
@@ -227,6 +229,11 @@ class Context:
         self.logging_level = logging.ERROR
         self.logger = logging.getLogger(__name__)
         self.all_workspaces = False
+        self.include_workspace_ids = frozenset()
+        self.exclude_workspace_ids = frozenset()
+        self.http_max_retries = 6
+        self.scan_status_poll_seconds = 15
+        self.itemjobs_concurrency = 3
         self.exclude_personal_workspaces = True
         self.exclude_inactive_workspaces = True
         self.on_fabric = True
@@ -283,6 +290,30 @@ class Context:
 
     def set_current_state(self, current_state):
         self.current_state = current_state
+
+    def set_include_workspace_ids(self, workspace_ids):
+        self.include_workspace_ids = parse_workspace_ids(workspace_ids)
+
+    def set_exclude_workspace_ids(self, workspace_ids):
+        self.exclude_workspace_ids = parse_workspace_ids(workspace_ids)
+
+    def set_http_max_retries(self, value):
+        value = int(value)
+        if value < 0:
+            raise ValueError("HTTP_MAX_RETRIES must be >= 0")
+        self.http_max_retries = value
+
+    def set_scan_status_poll_seconds(self, value):
+        value = int(value)
+        if value < 1:
+            raise ValueError("SCAN_STATUS_POLL_SECONDS must be >= 1")
+        self.scan_status_poll_seconds = value
+
+    def set_itemjobs_concurrency(self, value):
+        value = int(value)
+        if value < 1:
+            raise ValueError("ITEMJOBS_CONCURRENCY must be >= 1")
+        self.itemjobs_concurrency = value
 
     def set_FileManagement(self, fm):
         self.fm = fm
@@ -344,6 +375,9 @@ class Context:
 
     def set_FabricItems_cron(self, FabricItems_cron):
         self.FabricItems_cron = FabricItems_cron
+
+    def set_ItemJobs_cron(self, ItemJobs_cron):
+        self.ItemJobs_cron = ItemJobs_cron
 
     def set_Workspaces_cron(self, Workspaces_cron):
         self.Workspaces_cron = Workspaces_cron
@@ -468,6 +502,8 @@ class Context:
             return self.Domains_cron
         elif cron_name == "FabricItems":
             return self.FabricItems_cron
+        elif cron_name in ("ItemJobs", "ControlPlane"):
+            return self.ItemJobs_cron
         elif cron_name == "Workspaces":
             return self.Workspaces_cron
         elif cron_name == "CapacityMetrics":

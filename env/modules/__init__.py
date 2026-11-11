@@ -14,6 +14,8 @@ from .fabricitemdefinitions import main as FabricItemDefinitions
 from .fabricitemjobhistory import main as FabricItemJobHistory
 from .fabricitems import main as FabricItems
 from .gateway import main as Gateway
+from .itemjobs import main as ItemJobs
+from .controlplane import main as ControlPlane
 from .gitconnections import main as GitConnections
 from .graph import main as Graph
 from .refreshables import main as Refreshables

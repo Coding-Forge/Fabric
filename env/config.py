@@ -129,6 +129,25 @@ def build_audit(
     audit.set_all_workspaces(
         _get_bool(settings, "ALL_WORKSPACES", "Base", default=False)
     )
+    _set_if_present(
+        settings, ("INCLUDE_WORKSPACE_IDS", "IncludeWorkspaceIds"),
+        audit.set_include_workspace_ids,
+    )
+    _set_if_present(
+        settings, ("EXCLUDE_WORKSPACE_IDS", "ExcludeWorkspaceIds"),
+        audit.set_exclude_workspace_ids,
+    )
+    _set_if_present(
+        settings, ("HTTP_MAX_RETRIES", "HttpMaxRetries"), audit.set_http_max_retries,
+    )
+    _set_if_present(
+        settings, ("SCAN_STATUS_POLL_SECONDS", "ScanStatusPollSeconds"),
+        audit.set_scan_status_poll_seconds,
+    )
+    _set_if_present(
+        settings, ("ITEMJOBS_CONCURRENCY", "ItemJobsConcurrency"),
+        audit.set_itemjobs_concurrency,
+    )
     if (
         _get_value(settings, "EXCLUDE_PERSONAL_WORKSPACES", "ExcludePersonalWorkspaces")
         is not None
@@ -234,6 +253,7 @@ def build_audit(
         ("CATALOG_CRON", "Catalog_cron"): audit.set_Catalog_cron,
         ("DOMAINS_CRON", "Domains_cron"): audit.set_Domains_cron,
         ("FABRICITEMS_CRON", "FabricItems_cron"): audit.set_FabricItems_cron,
+        ("ITEMJOBS_CRON", "ItemJobs_cron"): audit.set_ItemJobs_cron,
         ("GATEWAY_CRON", "Gateway_cron"): audit.set_Gateway_cron,
         ("GRAPH_CRON", "Graph_cron"): audit.set_Graph_cron,
         ("REFRESHABLES_CRON", "Refreshables_cron"): audit.set_Refreshables_cron,
