@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "lin_unresolved_count",
+  "position": {
+    "x": 910,
+    "y": 340,
+    "z": 9000,
+    "height": 100,
+    "width": 280,
+    "tabOrder": 9000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Lineage Edges"
+                    }
+                  },
+                  "Property": "Unresolved References"
+                }
+              },
+              "queryRef": "Lineage Edges.Unresolved References",
+              "nativeQueryRef": "Unresolved References"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

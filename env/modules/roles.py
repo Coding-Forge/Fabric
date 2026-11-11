@@ -1,8 +1,26 @@
 import asyncio
+from urllib.parse import quote
 
-from datetime import datetime, timedelta
+from env.context import utc_now
 
-from env.utility.http import async_request_with_retry
+WORKSPACES_URL = "https://api.fabric.microsoft.com/v1/admin/workspaces"
+
+
+async def _get_with_retry(context, rest_api, headers):
+    """Delegate all retry timing/budgets to the shared transport.
+
+    :param context: The application context.
+    :param rest_api: Relative or absolute API URL.
+    :param headers: Request headers.
+    :return: The decoded JSON response.
+    :raises RuntimeError: If the shared transport returns a failure.
+    """
+    result = await context.invokeAPI(rest_api=rest_api, headers=headers)
+    if isinstance(result, dict) and "ERROR" not in result and "error" not in result:
+        return result
+    status = result.get("status") if isinstance(result, dict) else None
+    context.logger.error("Roles request failed after shared retries: HTTP %s", status)
+    raise RuntimeError("Roles request failed after shared retries")
 
 
 async def main(context=None):
@@ -13,87 +31,40 @@ async def main(context=None):
         raise RuntimeError("Context is None")
 
 
-    headers =  context.clients['tenant'].get_headers()
+    headers = context.clients["tenant"].get_headers
+    powerbi_headers = context.clients["pbi"].get_headers
 
 
     items = set()
-    continuationToken = None
-    while True:
+    workspaces_url = context.get_fabric_url("v1/admin/workspaces")
+    next_url = workspaces_url
+    while next_url:
+        results = await _get_with_retry(context, next_url, headers)
 
-        if continuationToken == None:
-            response = await async_request_with_retry(
-                "GET",
-                context.get_fabric_url("v1/admin/workspaces"),
-                headers=headers,
-                timeout=120,
-                max_retries=context.http_max_retries,
-                logger=context.logger,
-            )
-        else:
-            response = await async_request_with_retry(
-                "GET",
-                context.get_fabric_url(
-                    f"v1/admin/workspaces?continuationToken='{continuationToken}'"
-                ),
-                headers=headers,
-                timeout=120,
-                max_retries=context.http_max_retries,
-                logger=context.logger,
-            )
+        for item in results.get("workspaces") or []:
+            items.add(item["id"])
 
-        if response.ok:
-            results = response.json()
-
-            workspace = results.get("workspaces")
-
-            for item in workspace:
-                items.add(item["id"])
-
-            continuationToken =  results.get("continuationToken",[])
-
-            if continuationToken == None:
-                break
-        else:
-            raise RuntimeError(
-                f"Roles workspace request failed: HTTP {response.status_code} "
-                f"{response.text[:500]}"
-            )
+        continuationToken = results.get("continuationToken")
+        next_url = f"{workspaces_url}?continuationToken={quote(continuationToken)}" if continuationToken else None
 
     ceiling = len(items)
     cnt = 0
 
-    pbi_headers = context.clients['pbi'].get_headers()
-    base_url = context.get_powerbi_url('admin/groups?$expand=users&$top=5000')
+    base_url = 'admin/groups?$expand=users&$top=5000'
 
     all_groups = []
     for i in range(0, ceiling, 5000):
-        url = f'{base_url}&$skip={i}'
-        response = await async_request_with_retry(
-            "GET",
-            url,
-            headers=pbi_headers,
-            timeout=120,
-            max_retries=context.http_max_retries,
-            logger=context.logger,
-        )
-        if response.status_code == 200:
-            groups = response.json().get('value', [])
-            all_groups.extend(groups)
-        else:
-            raise RuntimeError(
-                f"Roles groups request failed: HTTP {response.status_code} "
-                f"{response.text[:500]}"
-            )
-
+        results = await _get_with_retry(context, f'{base_url}&$skip={i}', powerbi_headers)
+        all_groups.extend(results.get('value', []))
     print(f'Total groups retrieved: {len(all_groups)}')
-    
-    
-    pivotDate = datetime.now()
+
+
+    pivotDate = utc_now()
     content = all_groups
     index = str(cnt).zfill(5)
 
     Path = f"roles/{pivotDate.strftime('%Y')}/{pivotDate.strftime('%m')}/{pivotDate.strftime('%d')}/"
-    await context.fm.save(path=Path, file_name=f"{datetime.now().strftime('%Y%m%d')}_{index}.roles.json",content=content)
+    await context.fm.save(path=Path, file_name=f"{pivotDate.strftime('%Y%m%d')}_{index}.roles.json",content=content)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,232 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "rh_table_changes",
+  "position": {
+    "x": 35,
+    "y": 820,
+    "z": 40,
+    "height": 245,
+    "width": 1810
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "activity"
+                    }
+                  },
+                  "Property": "Event Time Local"
+                }
+              },
+              "queryRef": "activity.Event Time Local",
+              "nativeQueryRef": "Event Time Local"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "activity"
+                    }
+                  },
+                  "Property": "UserId"
+                }
+              },
+              "queryRef": "activity.UserId",
+              "nativeQueryRef": "UserId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "activity"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "activity.DatasetName",
+              "nativeQueryRef": "DatasetName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "activity"
+                    }
+                  },
+                  "Property": "Effective Activity"
+                }
+              },
+              "queryRef": "activity.Effective Activity",
+              "nativeQueryRef": "Effective Activity"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "activity"
+                    }
+                  },
+                  "Property": "WorkSpaceName"
+                }
+              },
+              "queryRef": "activity.WorkSpaceName",
+              "nativeQueryRef": "WorkSpaceName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "activity"
+                    }
+                  },
+                  "Property": "IsSuccess"
+                }
+              },
+              "queryRef": "activity.IsSuccess",
+              "nativeQueryRef": "IsSuccess"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "activity"
+                  }
+                },
+                "Property": "Event Time Local"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Credential and parameter changes (local time, newest first)'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "rh_config_changes",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "activity"
+              }
+            },
+            "Property": "Effective Activity"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "a",
+              "Entity": "activity",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "a"
+                          }
+                        },
+                        "Property": "Effective Activity"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'UpdateDatasourceCredentials'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'UpdateDatasetParameters'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}

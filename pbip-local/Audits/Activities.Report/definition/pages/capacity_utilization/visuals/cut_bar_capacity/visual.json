@@ -1,0 +1,128 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "cut_bar_capacity",
+  "position": {
+    "x": 35,
+    "y": 635,
+    "z": 30,
+    "height": 405,
+    "width": 700,
+    "tabOrder": 30
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Capacities"
+                    }
+                  },
+                  "Property": "Capacity Name"
+                }
+              },
+              "queryRef": "Capacities.Capacity Name",
+              "nativeQueryRef": "Capacity Name",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Avg Background Billable %"
+                }
+              },
+              "queryRef": "CapacityMetrics.Avg Background Billable %",
+              "nativeQueryRef": "Avg Background Billable %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Avg Interactive Billable %"
+                }
+              },
+              "queryRef": "CapacityMetrics.Avg Interactive Billable %",
+              "nativeQueryRef": "Avg Interactive Billable %"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "categoryAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "valueAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Background vs interactive by capacity'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,33 @@
+table RefreshInfo
+	isHidden
+	lineageTag: f7cdd8a2-51e9-4854-b602-a29d10a0002c
+
+	column AsOfDate
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9df4efcb-759a-4c84-bd2a-d942eaec20b2
+		summarizeBy: none
+		sourceColumn: AsOfDate
+
+		variation Variation
+			isDefault
+			relationship: d352459d-8042-4875-ac31-21de32653e45
+			defaultHierarchy: LocalDateTable_e1591d7f-74dd-4571-8692-43d91e0b7b5f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	partition RefreshInfo = m
+		mode: import
+		source =
+				let
+				    Source = Folder.Files(CatalogOutputPath & "\catalog\scans"),
+				    #"Filtered Hidden Files" = Table.SelectRows(Source, each [Attributes]?[Hidden]? <> true),
+				    MaxDate = List.Max(#"Filtered Hidden Files"[Date modified]),
+				    #"Converted to Table" = #table(type table [AsOfDate = datetime], {{MaxDate}})
+				in
+				    #"Converted to Table"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

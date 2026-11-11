@@ -1,97 +1,196 @@
-"""Flatten a Scanner API result into one row per lineage edge (both directions)."""
+"""Normalize item-level dependencies from an existing Scanner API response."""
 
-ITEM_TYPE_KEYS = {
-    "reports": "Report",
-    "dashboards": "Dashboard",
-    "datasets": "SemanticModel",
-    "dataflows": "Dataflow",
-    "datamarts": "Datamart",
-}
-NON_ITEM_KEYS = {"id", "name", "type", "state", "isOnDedicatedCapacity", "capacityId",
-                 "defaultDatasetStorageFormat", "domainId"}
+import re
+
+ITEM_TYPES = {"reports": "Report", "datasets": "SemanticModel", "dataflows": "Dataflow"}
 
 
-def _lc(value):
-    return value.lower() if isinstance(value, str) else None
+def _text(value, field, required=False):
+    if value is None and not required:
+        return None
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"Invalid lineage field: {field}")
+    return value.strip()
 
 
-def _datasource_label(instance):
-    details = instance.get("connectionDetails") or {}
-    parts = [details.get(k) for k in ("server", "database", "url", "path", "extensionDataSourcePath") if details.get(k)]
-    return f"{instance.get('datasourceType')}: {' / '.join(parts)}" if parts else str(instance.get("datasourceType"))
+def _identifier(value, field, required=False):
+    text = _text(value, field, required)
+    return text.lower() if text else None
 
 
-def flatten_scan(scan):
-    workspaces = scan.get("workspaces") or []
-    instances = {_lc(i.get("datasourceId")): i for i in scan.get("datasourceInstances") or []}
+def _records(parent, field, required=False):
+    value = parent.get(field)
+    if value is None and not required:
+        return []
+    if not isinstance(value, list) or any(not isinstance(row, dict) for row in value):
+        raise ValueError(f"Invalid lineage collection: {field}")
+    return value
 
+
+def scan_snapshot(
+    scan, scan_id, requested_workspace_ids, observed_at_utc, full_scan=False
+):
+    """Build a batch observation, not an exhaustive or historical tenant graph.
+
+    Unknown fields are ignored. Malformed recognized fields raise ``ValueError``
+    rather than becoming successful empty observations. Missing optional
+    metadata and references outside this batch remain unresolved.
+    """
+    if not isinstance(scan_id, str) or not re.fullmatch(
+        r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", scan_id
+    ):
+        raise ValueError("Invalid lineage scan ID")
+    if not isinstance(scan, dict) or any(key in scan for key in ("ERROR", "error")):
+        raise ValueError("Invalid lineage scan response")
+    requested = sorted(
+        {
+            _identifier(value, "requestedWorkspaceId", required=True)
+            for value in requested_workspace_ids
+        }
+    )
+    workspaces = _records(scan, "workspaces", required=True)
+    returned = set()
     items = {}
-    for ws in workspaces:
-        for key, value in ws.items():
-            if key in NON_ITEM_KEYS or not isinstance(value, list):
-                continue
-            item_type = ITEM_TYPE_KEYS.get(key, key)
-            for it in value:
-                if isinstance(it, dict) and it.get("id"):
-                    items[_lc(it["id"])] = {
-                        "id": it["id"], "name": it.get("name") or it.get("displayName"),
-                        "type": item_type, "workspaceId": ws.get("id"), "workspaceName": ws.get("name"),
-                        "raw": it, "key": key,
-                    }
+    raw_items = {}
+    for workspace in workspaces:
+        ws_id = _identifier(workspace.get("id"), "workspace.id", required=True)
+        if ws_id in returned or ws_id not in requested:
+            raise ValueError("Duplicate or unexpected lineage workspace")
+        if any(key in workspace for key in ("ERROR", "error", "scanError")):
+            raise ValueError("Failed lineage workspace")
+        returned.add(ws_id)
+        for key, kind in ITEM_TYPES.items():
+            for raw in _records(workspace, key):
+                item_id = _identifier(
+                    raw.get("objectId") if key == "dataflows" else raw.get("id"),
+                    f"{key}.id",
+                    required=True,
+                )
+                if item_id in items:
+                    raise ValueError("Duplicate lineage item")
+                items[item_id] = {
+                    "id": item_id,
+                    "name": _text(raw.get("name"), f"{key}.name"),
+                    "type": kind,
+                    "workspaceId": ws_id,
+                }
+                raw_items[item_id] = raw
 
-    upstream = set()
     datasources = {}
+    for raw in _records(scan, "datasourceInstances"):
+        source_id = _identifier(raw.get("datasourceId"), "datasourceId", required=True)
+        if source_id in datasources:
+            raise ValueError("Duplicate lineage datasource")
+        kind = _text(raw.get("datasourceType"), "datasourceType")
+        details = raw.get("connectionDetails")
+        if details is not None and not isinstance(details, dict):
+            raise ValueError("Invalid lineage connectionDetails")
+        # Do not export arbitrary connection strings, URLs or expression payloads.
+        labels = [
+            _text((details or {}).get(key), f"connectionDetails.{key}")
+            for key in ("server", "database")
+        ]
+        label = " / ".join(part for part in labels if part)
+        datasources[source_id] = {
+            "id": source_id,
+            "name": f"{kind}: {label}" if kind and label else (kind or label or None),
+            "type": "DataSource",
+            "workspaceId": None,
+        }
 
-    def add(item_id, related_id, relation, related_override=None):
-        if item_id and (related_id or related_override):
-            upstream.add((_lc(item_id), _lc(related_id) if related_id else None, relation))
-            if related_override:
-                datasources[_lc(related_id)] = related_override
+    edges = {}
 
-    for it in items.values():
-        raw = it["raw"]
-        for rel in raw.get("relations") or []:
-            add(it["id"], rel.get("dependentOnArtifactId"), rel.get("relationType") or "Relation")
-        if it["key"] == "reports" and raw.get("datasetId"):
-            add(it["id"], raw["datasetId"], "ReportModel")
-        for up in raw.get("upstreamDatasets") or []:
-            add(it["id"], up.get("targetDatasetId"), "UpstreamDataset")
-        for up in raw.get("upstreamDataflows") or []:
-            add(it["id"], up.get("targetDataflowId"), "UpstreamDataflow")
-        for use in raw.get("datasourceUsages") or []:
-            ds_id = use.get("datasourceInstanceId")
-            inst = instances.get(_lc(ds_id))
-            if inst:
-                add(it["id"], ds_id, "DataSource", {"name": _datasource_label(inst), "type": "DataSource"})
+    def add(query_id, related_id, relation, related_type=None, related_ws=None):
+        query = items[query_id]
+        related = (
+            datasources.get(related_id)
+            if related_type == "DataSource"
+            else items.get(related_id)
+        )
+        if related is None:
+            related = {
+                "id": related_id,
+                "name": None,
+                "type": related_type,
+                "workspaceId": related_ws,
+            }
 
-    def describe(item_id):
-        if item_id in items:
-            i = items[item_id]
-            return i["name"], i["type"], i["workspaceId"], i["workspaceName"]
-        d = datasources.get(item_id)
-        return (d["name"], d["type"], None, None) if d else (None, None, None, None)
-
-    rows = []
-    for item_id, related_id, relation in upstream:
-        if not related_id:
-            continue
-        for query_id, other_id, direction in ((item_id, related_id, "upstream"), (related_id, item_id, "downstream")):
-            if query_id not in items:
-                continue
-            q = items[query_id]
-            name, kind, ws_id, ws_name = describe(other_id)
-            rows.append({
-                "QueryItemId": q["id"],
-                "QueryItemName": q["name"],
-                "QueryItemType": q["type"],
-                "QueryWorkspaceId": q["workspaceId"],
+        def emit(source, target, direction):
+            row = {
+                "QueryItemId": source["id"],
+                "QueryItemName": source["name"],
+                "QueryItemType": source["type"],
+                "QueryWorkspaceId": source["workspaceId"],
                 "Direction": direction,
-                "RelatedItemId": items[other_id]["id"] if other_id in items else other_id,
-                "RelatedItemName": name,
-                "RelatedItemType": kind,
-                "RelatedWorkspaceId": ws_id,
-                "RelatedWorkspaceName": ws_name,
+                "RelatedItemId": target["id"],
+                "RelatedItemName": target["name"],
+                "RelatedItemType": target["type"],
+                "RelatedWorkspaceId": target["workspaceId"],
                 "RelationType": relation,
                 "Source": "Scanner",
-            })
-    return rows
+            }
+            key = (source["id"], direction, target["id"], relation)
+            existing = edges.get(key)
+            if existing is not None:
+                for field, value in row.items():
+                    if existing[field] is None:
+                        existing[field] = value
+                    elif value is not None and existing[field] != value:
+                        raise ValueError("Conflicting lineage reference metadata")
+            else:
+                edges[key] = row
+
+        emit(query, related, "upstream")
+        if related_type != "DataSource" and related_id in items:
+            emit(related, query, "downstream")
+
+    for item_id, raw in raw_items.items():
+        if items[item_id]["type"] == "Report" and raw.get("datasetId") is not None:
+            add(
+                item_id,
+                _identifier(raw["datasetId"], "datasetId", True),
+                "ReportModel",
+                "SemanticModel",
+            )
+        for field, target, relation, kind in (
+            ("upstreamDatasets", "targetDatasetId", "UpstreamDataset", "SemanticModel"),
+            ("upstreamDataflows", "targetDataflowId", "UpstreamDataflow", "Dataflow"),
+        ):
+            for ref in _records(raw, field):
+                add(
+                    item_id,
+                    _identifier(ref.get(target), target, True),
+                    relation,
+                    kind,
+                    _identifier(ref.get("groupId"), "groupId"),
+                )
+        for ref in _records(raw, "relations"):
+            add(
+                item_id,
+                _identifier(
+                    ref.get("dependentOnArtifactId"), "dependentOnArtifactId", True
+                ),
+                _text(ref.get("relationType"), "relationType") or "Relation",
+            )
+        for ref in _records(raw, "datasourceUsages"):
+            add(
+                item_id,
+                _identifier(
+                    ref.get("datasourceInstanceId"), "datasourceInstanceId", True
+                ),
+                "DataSource",
+                "DataSource",
+            )
+
+    return {
+        "schemaVersion": 1,
+        "source": "Scanner",
+        "scanId": scan_id,
+        "observedAtUtc": observed_at_utc,
+        "scanMode": "full" if full_scan else "incremental",
+        "requestedWorkspaceIds": requested,
+        "returnedWorkspaceIds": sorted(returned),
+        "items": [items[key] for key in sorted(items)],
+        "complete": True,
+        "edges": [edges[key] for key in sorted(edges)],
+    }

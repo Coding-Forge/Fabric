@@ -1,0 +1,178 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "smi_columns_table",
+  "position": {
+    "x": 40,
+    "y": 610,
+    "z": 10000,
+    "height": 405,
+    "width": 895,
+    "tabOrder": 10000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Columns"
+                    }
+                  },
+                  "Property": "ColumnName"
+                }
+              },
+              "queryRef": "Columns.ColumnName",
+              "nativeQueryRef": "ColumnName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Columns"
+                    }
+                  },
+                  "Property": "DataType"
+                }
+              },
+              "queryRef": "Columns.DataType",
+              "nativeQueryRef": "DataType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Columns"
+                    }
+                  },
+                  "Property": "ColumnType"
+                }
+              },
+              "queryRef": "Columns.ColumnType",
+              "nativeQueryRef": "ColumnType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Columns"
+                    }
+                  },
+                  "Property": "IsHidden"
+                }
+              },
+              "queryRef": "Columns.IsHidden",
+              "nativeQueryRef": "IsHidden"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Column catalog'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "fa99358c00bd243be36e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Columns"
+              }
+            },
+            "Property": "ColumnName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "44ac89507a0795bb44ae",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Columns"
+              }
+            },
+            "Property": "DataType"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "f0e03fd17c1d5e63a140",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Columns"
+              }
+            },
+            "Property": "ColumnType"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "acb24944701d74b4e2ac",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Columns"
+              }
+            },
+            "Property": "IsHidden"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

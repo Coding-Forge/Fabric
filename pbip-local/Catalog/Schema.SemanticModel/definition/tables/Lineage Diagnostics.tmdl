@@ -1,0 +1,65 @@
+/// Disconnected file diagnostics must remain visible when workspace/items have no rows.
+table 'Lineage Diagnostics'
+	lineageTag: 9cc885f2-638b-4ccd-aad7-f2748ee59d06
+
+	measure 'Snapshot Load Errors' = COALESCE(CALCULATE(SUM('Lineage Diagnostics'[Load Errors]), REMOVEFILTERS()), 0)
+		formatString: #,0
+		lineageTag: c6760c67-c2ab-48a6-a94f-6cdd748944e6
+
+	measure 'Lineage Health' =
+			SWITCH(TRUE(),
+				[Snapshot Load Errors] > 0, "WARNING: lineage files/folder could not be loaded. Selected observations may be stale; inspect file diagnostics.",
+				'Lineage Workspaces'[Selected Snapshot Workspaces] = 0, "NO RETURNED WORKSPACE OBSERVATIONS. Missing data is not evidence of no dependencies.",
+				"SCANNER COVERAGE ONLY. Latest complete observation per returned workspace; not a full tenant graph. See observation times and requested-not-returned counts.")
+		lineageTag: 2c58363f-dfe9-4b8d-af1b-bc9e1cf2344d
+
+	column File
+		dataType: string
+		lineageTag: f8a93af3-4ffa-4682-8a3a-a0299f10fa64
+		summarizeBy: none
+		sourceColumn: File
+
+	column Status
+		dataType: string
+		lineageTag: 19ef2582-6866-4df9-848b-9286e899fa48
+		summarizeBy: none
+		sourceColumn: Status
+
+	column 'Load Errors'
+		dataType: double
+		formatString: #,0
+		lineageTag: 8f9d8a4e-9ce2-45b3-9c65-5a049fa97326
+		summarizeBy: sum
+		sourceColumn: Load Errors
+
+	column 'Selected Workspaces'
+		dataType: double
+		formatString: #,0
+		lineageTag: a8faf6e0-4bd6-4313-ba91-3b7308cbb2dd
+		summarizeBy: sum
+		sourceColumn: Selected Workspaces
+
+	column 'Requested Not Returned'
+		dataType: double
+		formatString: #,0
+		lineageTag: 1ba8a8f5-b534-4a53-a3e9-72dcf3772a96
+		summarizeBy: sum
+		sourceColumn: Requested Not Returned
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: eec97eb8-8fd9-47b5-b875-fc71464d4b27
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	partition 'Lineage Diagnostics' = m
+		mode: import
+		source =
+				Table.FromRecords(LineageData[Diagnostics],
+					type table [File = nullable text, Status = nullable text, #"Load Errors" = nullable number,
+						#"Selected Workspaces" = nullable number, #"Requested Not Returned" = nullable number,
+						#"Observed At UTC" = nullable datetime], MissingField.UseNull)
+
+	annotation PBI_ResultType = Table
+

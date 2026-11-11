@@ -1,0 +1,109 @@
+/// Known targets in the selected cycle: successful-empty, failed, deferred and unvisited remain distinct. Unknown identities are counted only in disconnected collection status.
+table 'Item Permission Scope'
+	lineageTag: 04f05c9f-d161-40f3-838b-cd2d84e75380
+
+	measure 'Items In Complete Permission Cycle' =
+			IF(
+				CALCULATE(COUNTROWS('Item Permission Scope'), REMOVEFILTERS('Item Permission Scope'), 'Item Permission Scope'[In Complete Cycle] = TRUE()) > 0,
+				COALESCE(CALCULATE(COUNTROWS('Item Permission Scope'), KEEPFILTERS('Item Permission Scope'[In Complete Cycle] = TRUE())), 0)
+			)
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: bdd2c3c5-41ed-4f31-b432-cf0cb3771f91
+
+	column 'Workspace Id'
+		dataType: string
+		lineageTag: c591a1f1-fdad-46d7-97c6-15dfd35e05b3
+		summarizeBy: none
+		sourceColumn: Workspace Id
+
+	column 'Item Id'
+		dataType: string
+		lineageTag: 2e4c984c-1136-4da1-9743-a311d58c7d7b
+		summarizeBy: none
+		sourceColumn: Item Id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: c69dc93d-f74d-44ce-a501-c45c41526a88
+		summarizeBy: none
+		sourceColumn: Item Type
+
+	column Coverage
+		dataType: string
+		lineageTag: 78a56ca3-47d6-49a1-b3b4-084b714f866d
+		summarizeBy: none
+		sourceColumn: Coverage
+
+	column 'Returned Access Details'
+		dataType: double
+		formatString: #,0
+		lineageTag: 0ae19f14-1928-438c-940c-19ec5b92d9d9
+		summarizeBy: sum
+		sourceColumn: Returned Access Details
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 64f766fd-4c2d-4db5-a2d7-e27510580148
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	column 'In Complete Cycle'
+		dataType: boolean
+		lineageTag: 42f22981-f3db-49ab-a127-5f1f70c99a15
+		summarizeBy: none
+		sourceColumn: In Complete Cycle
+
+	column 'Run Id'
+		dataType: string
+		isHidden
+		lineageTag: f9d34661-ea4f-47ed-ae8e-2baa05548bb0
+		summarizeBy: none
+		sourceColumn: Run Id
+
+	column 'Collection Outcome'
+		dataType: string
+		lineageTag: f54151dd-b9ac-4299-ab61-f301005abd7f
+		summarizeBy: none
+		sourceColumn: Collection Outcome
+
+	column 'HTTP Status'
+		dataType: double
+		formatString: 0
+		lineageTag: e27b52b7-cfc6-4502-9d6d-cb2cd3d4a7d1
+		summarizeBy: sum
+		sourceColumn: HTTP Status
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Cycle Id'
+		dataType: string
+		lineageTag: fd27ec47-459c-4bfb-9eed-8ab5fee2b426
+		summarizeBy: none
+		sourceColumn: Cycle Id
+
+	partition 'Item Permission Scope' = m
+		mode: import
+		source =
+				let
+					Data = FabricItemPermissionsData,
+					Targets = Table.FromRecords(Data[PermissionScope],
+						type table [#"Workspace Id" = text, #"Item Id" = text, #"Item Type" = text,
+							#"Collection Outcome" = text, #"HTTP Status" = nullable number,
+							#"Returned Access Details" = nullable number, #"Observed At UTC" = nullable datetime,
+							#"Run Id" = nullable text, #"Cycle Id" = nullable text]),
+					Rows = AddColumns(Targets, {
+						{"Coverage", each
+							(if Data[ScopeComplete] then
+								if Data[ScopeCurrent] then "Complete healthy cycle" else "PARTIAL COVERAGE; stale complete healthy basis; previous scope may differ"
+							else "PARTIAL COVERAGE")
+							& "; " & [Collection Outcome]
+							& (if [HTTP Status] = null then "" else "; HTTP " & Text.From([HTTP Status], "en-US")), type text},
+						{"In Complete Cycle", each Data[ScopeComplete], type logical}
+					})
+				in
+					Rows
+
+	annotation PBI_ResultType = Table
+

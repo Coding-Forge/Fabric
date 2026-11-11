@@ -1,0 +1,167 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "smi_tables_by_dataset",
+  "position": {
+    "x": 40,
+    "y": 270,
+    "z": 7000,
+    "height": 300,
+    "width": 590,
+    "tabOrder": 7000
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tables"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "Tables.DatasetName",
+              "nativeQueryRef": "DatasetName",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Tables"
+                        }
+                      },
+                      "Property": "DatasetTableKey"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(Tables.DatasetTableKey)",
+              "nativeQueryRef": "Count of DatasetTableKey"
+            }
+          ]
+        },
+        "Drillthrough": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tables"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "Tables.DatasetName",
+              "nativeQueryRef": "DatasetName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tables"
+                    }
+                  },
+                  "Property": "DatasetId"
+                }
+              },
+              "queryRef": "Tables.DatasetId",
+              "nativeQueryRef": "DatasetId"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "Tables"
+                      }
+                    },
+                    "Property": "DatasetTableKey"
+                  }
+                },
+                "Function": 2
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "categoryAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "valueAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Tables by dataset'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

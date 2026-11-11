@@ -1,0 +1,208 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "dd_tables_columns",
+  "position": {
+    "x": 40,
+    "y": 405,
+    "z": 3000,
+    "height": 275,
+    "width": 895,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Columns"
+                    }
+                  },
+                  "Property": "ColumnName"
+                }
+              },
+              "queryRef": "Columns.ColumnName",
+              "nativeQueryRef": "ColumnName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Columns"
+                    }
+                  },
+                  "Property": "DataType"
+                }
+              },
+              "queryRef": "Columns.DataType",
+              "nativeQueryRef": "DataType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Columns"
+                    }
+                  },
+                  "Property": "ColumnType"
+                }
+              },
+              "queryRef": "Columns.ColumnType",
+              "nativeQueryRef": "ColumnType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Columns"
+                    }
+                  },
+                  "Property": "IsHidden"
+                }
+              },
+              "queryRef": "Columns.IsHidden",
+              "nativeQueryRef": "IsHidden"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Tables and columns'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "674a3d83a84554a00873",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Tables"
+              }
+            },
+            "Property": "TableName"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "603f9bcddc7ed00790a5",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Tables"
+              }
+            },
+            "Property": "StorageMode"
+          }
+        },
+        "type": "Categorical",
+        "howCreated": "User"
+      },
+      {
+        "name": "94f3b1da5278339d4a8d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Columns"
+              }
+            },
+            "Property": "ColumnName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "5ccf1ce38b6176223323",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Columns"
+              }
+            },
+            "Property": "DataType"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "506a2933e70270665269",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Columns"
+              }
+            },
+            "Property": "ColumnType"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "6fae5d5ec373ca6edd8e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Columns"
+              }
+            },
+            "Property": "IsHidden"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

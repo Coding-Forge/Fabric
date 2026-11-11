@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Fabric Monitor | Episode 5: analytics and Delta publication</title>
+  <link rel="stylesheet" href="slides.css">
+  <script src="slides.js" defer></script>
+</head>
+<body>
+  <main class="stage" aria-label="Episode 5 slide deck">
+    <section class="slide" aria-labelledby="slide-1">
+      <p class="eyebrow">Fabric Monitor / Episode 05</p>
+      <h1 id="slide-1">Preview the evidence.<br>Publish with context.</h1>
+      <p class="lead muted">Analytics notebooks, curated Delta tables and controlled rerun validation.</p>
+      <div class="callout">Existing collection is the input. No API calls, notebook runs or table writes are performed for this deck.</div>
+      <template class="speaker-notes">The previous episodes covered collection locally, in a Function App, or in a notebook. This episode begins after the required evidence is available in Lakehouse Files.
+
+We will prepare the analytics notebooks, inspect preview coverage, approve serial Delta publication, and explain the controlled rerun experiment.
+
+These are illustrative parameters and operating steps, not recorded execution results. No notebooks are run, tables written, or validation baselines created for this deck.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-2">
+      <p class="eyebrow">Prepare the analytics runtime</p>
+      <h2 id="slide-2">Import the generated notebook files.</h2>
+      <div class="cards">
+        <article class="card"><h3>Self-contained artifacts</h3><p>Import the numbered .ipynb files. Their helpers are embedded; no repository checkout, helper upload or collector credentials are required.</p></article>
+        <article class="card"><h3>Default Lakehouse</h3><p>Attach the intended default Lakehouse to each notebook. Verify the raw evidence root and execution identity.</p></article>
+        <article class="card"><h3>Supported runtime</h3><p>Fabric PySpark with Spark, Delta, pandas and matplotlib. Validate capacity, network and data access in the actual workspace.</p></article>
+      </div>
+      <div class="callout">A supported local test result is not proof of Fabric runtime acceptance.</div>
+      <template class="speaker-notes">Import the generated notebook files into Fabric. They embed their transformation helpers, so this layer does not need the collector repository or API credentials.
+
+Attach the intended default Lakehouse to each notebook, use a supported Fabric PySpark runtime, and verify that the executing identity can read raw files and write the approved destination.
+
+Keep required capacity available. Local tests do not establish Fabric mounting, Spark integration, network reachability or scheduled-identity acceptance.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-3">
+      <p class="eyebrow">Choose the domains you need</p>
+      <h2 id="slide-3">Nineteen writers. Forty-eight managed datasets.</h2>
+      <div class="cards">
+        <article class="card"><h3>01-04: core evidence</h3><p>Inventory and health, observed permissions, item job history, and Scanner/static lineage.</p></article>
+        <article class="card"><h3>07-21: domain evidence</h3><p>Activity, catalog/schema, connections, gateways, refreshes and the remaining supported domains.</p></article>
+        <article class="card"><h3>06: controlled validation</h3><p>Validate the chosen published scope after its writers finish. Notebook 05 is not a transformation writer.</p></article>
+      </div>
+      <div class="callout">Numbering organizes the suite; it is not a requirement to execute 06 before 07-21.</div>
+      <template class="speaker-notes">The suite has twenty-one numbered notebooks. Nineteen transformation notebooks define forty-eight managed datasets.
+
+Start with the core domains in one through four, then adopt the domain notebooks you need. Domain writers read their own collected sources rather than depending on another domain notebook's tables.
+
+Notebook six validates a chosen published scope. Run that experiment after the relevant writers have published, not simply when you reach its number. Notebook five is not a writer and is outside this transformation walkthrough.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-4">
+      <p class="eyebrow">Preview parameters</p>
+      <h2 id="slide-4">Confirm the destination before publication.</h2>
+      <pre><code>RAW_ROOT = "/lakehouse/default/Files/monitor"
+TABLE_PREFIX = "monitor_"
+WRITE_TABLES = False
+PERMISSION_MODE = "Scoped"</code></pre>
+      <div class="callout">Example root and prefix. Choose Scoped or Tenant explicitly; the evidence is not merged or used as fallback.</div>
+      <template class="speaker-notes">Review the marked parameter cell. Confirm the raw root, table prefix and permission mode, then keep writes disabled for the first preview.
+
+Scoped and Tenant permission evidence remain separate. Choosing one does not grant new access or expand the underlying collection.
+
+Preview inspects transformed observations and coverage without creating Delta tables. It still checks existing table ownership, schema and contents where present. It is not a way to bypass safeguards or a promise that missing input becomes usable data.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-5">
+      <p class="eyebrow">Read coverage alongside counts</p>
+      <h2 id="slide-5">Missing, empty and failed are different.</h2>
+      <div class="cards">
+        <article class="card"><h3>Successful empty</h3><p>A valid resource observation can explicitly report no returned records.</p></article>
+        <article class="card"><h3>Failed or uncollected</h3><p>Unknown, not zero. Check source outcomes, enabled modules and authorization.</p></article>
+        <article class="card"><h3>Legacy observations</h3><p>A folder date may not be an exact collection time. Retained files do not establish a complete current snapshot.</p></article>
+      </div>
+      <div class="callout">Notebook execution can succeed while reporting incomplete, invalid or stale collection.</div>
+      <template class="speaker-notes">Read coverage before interpreting counts. A successful empty resource is different from a failed poll or an uncollected domain.
+
+Legacy evidence may lack immutable completion metadata or trustworthy observation timestamps. Keep that uncertainty rather than inventing an exact collection time.
+
+The readers are also bounded. Documented defaults limit supported raw files, total bytes and per-file size. Review these limits as evidence grows; a successful small test is not a scalability guarantee. Preserve warnings and investigate the source instead of hiding them for a presentation.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-6">
+      <p class="eyebrow">Approve the write phase</p>
+      <h2 id="slide-6">Publish historical observations, not replacement snapshots.</h2>
+      <pre><code>WRITE_TABLES = True</code></pre>
+      <div class="cards two">
+        <article class="card"><h3>Insert-only Delta publication</h3><p>Deterministic observation identities prevent duplicate inserts for unchanged evidence. Existing ownership, schema and content hashes are checked.</p></article>
+        <article class="card"><h3>Preserve the grain</h3><p>Rows represent retained observations, outcomes or relationships. Do not count repeated historical observations as unique current resources.</p></article>
+      </div>
+      <div class="callout">No automatic drops, truncation or vacuum. Publication across tables is not one transaction.</div>
+      <template class="speaker-notes">After accepting preview and destination, explicitly enable publication. The implementation uses insert-only Delta merges keyed by deterministic observation identity.
+
+Unchanged evidence does not add duplicate observations. Old successful history is not deleted because a later resource fails or disappears from scope. Existing ownership, schema and hashes protect committed observations.
+
+Writes across multiple tables are not transactional. After partial failure, investigate and rerun unchanged input and prefix to complete missing inserts. Do not drop tables, alter hashes or weaken safeguards to force success.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-7">
+      <p class="eyebrow">Optional analytics orchestrator</p>
+      <h2 id="slide-7">One entry point. Serial publication.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Match the configuration</h3><p>Notebook names, default Lakehouse, raw root, prefix, permission mode, write setting and child timeout.</p></article>
+        <article class="card"><h3>Understand the outcome</h3><p>Each selected child is attempted. Named results are summarized. Any child failure raises after the summary.</p></article>
+      </div>
+      <div class="callout">No overlapping same-prefix writers. Shared estate_coverage makes concurrent domain publication unsupported.</div>
+      <template class="speaker-notes">The optional analytics orchestrator runs selected transformation notebooks serially. Match imported notebook names and shared parameters, and attach the same default Lakehouse to parent and children.
+
+It attempts every selected child, reports named outcomes, and raises after the summary if any child failed. It excludes notebooks five and six and does not collect API data.
+
+Prevent overlapping orchestrators or other writers targeting the same prefix. An orchestrator success still requires a separate coverage review. Test the actual pipeline identity before scheduling.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-8">
+      <p class="eyebrow">Notebook 06 / choose the validation scope</p>
+      <h2 id="slide-8">Validate the tables you actually published.</h2>
+      <div class="cards">
+        <article class="card"><h3>10 tables</h3><p>Publish 01-04.<br>Both inclusion flags remain False.</p></article>
+        <article class="card"><h3>25 tables</h3><p>Publish 01-04 and 07-11.<br>INCLUDE_ESTATE_TABLES = True<br>Module flag remains False.</p></article>
+        <article class="card"><h3>48 tables</h3><p>Publish 01-04 and 07-21.<br>INCLUDE_MODULE_TABLES = True<br>Includes the estate tables.</p></article>
+      </div>
+      <div class="callout">Choose a new, unused baseline name for a new experiment or scope.</div>
+      <template class="speaker-notes">Choose a validation scope that matches the tables already published. The default experiment covers ten core tables.
+
+The estate inclusion flag expands it to twenty-five tables after the corresponding domain writers have published. The module inclusion flag selects all forty-eight tables and implies estate inclusion.
+
+Use the same raw root, prefix and permission mode, and choose a new baseline name. Do not request a full-scope comparison against tables that have not been published.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-9">
+      <p class="eyebrow">A controlled experiment, not routine collection</p>
+      <h2 id="slide-9">Capture. Rerun unchanged writers. Compare.</h2>
+      <div class="cards">
+        <article class="card"><h3>1 / Capture</h3><p>Keep collectors and other writers idle. VALIDATION_ACTION = "capture" saves a new metadata baseline outside raw evidence.</p></article>
+        <article class="card"><h3>2 / Rerun</h3><p>Same evidence, settings and scope. Rerun selected transformation writers serially with publication enabled.</p></article>
+        <article class="card"><h3>3 / Compare</h3><p>VALIDATION_ACTION = "compare" uses the same baseline and retained Delta versions to check exact curated contents.</p></article>
+      </div>
+      <div class="callout">Baselines are never overwritten. Retain Delta history; do not vacuum or change retention during the experiment.</div>
+      <template class="speaker-notes">First keep collectors and other writers idle. Capture a new metadata-only baseline outside the raw evidence folder. Existing baselines are never overwritten.
+
+Next rerun the chosen transformation writers against unchanged evidence and settings, serially, with publication enabled. Then compare using the same baseline.
+
+The comparison requires retained Delta versions and checks exact curated contents, not only row counts. Do not vacuum, alter retention or modify evidence to obtain a pass. This slide describes the experiment; no baseline is created here.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-10">
+      <p class="eyebrow">Interpret validation precisely</p>
+      <h2 id="slide-10">A rerun pass has a specific meaning.</h2>
+      <div class="cards">
+        <article class="card"><h3>PASS</h3><p>Exact rerun stability for the unchanged-input experiment. Not proof of freshness or collection completeness.</p></article>
+        <article class="card"><h3>NOT_COMPARABLE</h3><p>Evidence, settings or selected scope changed. Not a rerun pass or failure.</p></article>
+        <article class="card"><h3>UNVERIFIED</h3><p>Required historic Delta data is unavailable. Do not reinterpret missing evidence as a pass.</p></article>
+      </div>
+      <div class="callout">Investigate an actual same-input content mismatch. Do not rewrite evidence or baselines to conceal it.</div>
+      <template class="speaker-notes">A pass establishes exact rerun stability for the controlled experiment. It does not establish current completeness, API authorization, private networking or end-to-end production acceptance.
+
+When raw evidence, settings or scope changes, the comparison is not comparable rather than a rerun pass or failure. If required historical Delta data is unavailable, the result is unverified.
+
+An actual comparable content mismatch needs investigation. Preserve the evidence and baseline. Review separate freshness and coverage reports instead of treating validation as a universal health badge.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-11">
+      <p class="eyebrow">Continue the series</p>
+      <h2 id="slide-11">Next: define the semantic-model foundation.</h2>
+      <div class="cards two">
+        <article class="card"><h3>What you now know</h3><p>Import, preview, serial publication, evidence grain and controlled rerun validation.</p></article>
+        <article class="card"><h3>Episode 6</h3><p>Sources, observation selection, keys, relationships and measures without losing coverage context.</p></article>
+      </div>
+      <div class="callout">Curated Delta tables are the model's input, not an automatically deployed semantic model.</div>
+      <template class="speaker-notes">You now have the analytics workflow: prepare the self-contained notebooks, inspect preview coverage, approve serial publication and validate unchanged-input reruns.
+
+The result is a structured historical evidence foundation. It is not automatically a current-state view or a deployed semantic model.
+
+Continue to Episode Six to consider model sources, grain, relationships and measures while preserving coverage and uncertainty. Dashboarding and report visuals remain outside this series.</template>
+    </section>
+    <div class="footer"><span>FABRIC MONITOR / ANALYTICS AND DELTA PUBLICATION</span><span id="counter">01 / 11</span></div>
+  </main>
+  <nav class="controls" aria-label="Slide navigation">
+    <button id="previous" type="button" disabled>Previous</button>
+    <button id="next" type="button">Next</button>
+    <button id="toggle-notes" type="button" aria-expanded="false" aria-controls="notes">Speaker notes</button>
+    <span id="announcement" role="status" aria-live="polite">Slide 1 of 11</span>
+  </nav>
+  <aside class="review">
+    <h2>Episode 5 review draft</h2>
+    <p>Illustrative analytics workflow only. No notebook was run, Delta table written, baseline created or retention changed. Speaker notes contain draft narration, not synchronized audio or a finished video. Validation status labels are explanations, not claimed execution results.</p>
+    <div id="notes" class="notes" hidden></div>
+    <p><a href="episode-04.html">Previous: notebook collection and orchestration</a> /
+      <a href="../../notebooks/notebook-guide.md">Operator runbook and validation scopes</a> /
+      <a href="../../notebooks/README.md">Table contracts and safety boundaries</a> /
+      <a href="../../notebooks/06_monitor_validation.ipynb">Validation notebook</a> /
+      <a href="storyboard.md">Series storyboard</a>.</p>
+  </aside>
+</body>
+</html>

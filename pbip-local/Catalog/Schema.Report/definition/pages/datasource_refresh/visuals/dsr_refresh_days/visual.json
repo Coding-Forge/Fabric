@@ -1,0 +1,187 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "dsr_refresh_days",
+  "position": {
+    "x": 1290,
+    "y": 280,
+    "z": 9000,
+    "height": 300,
+    "width": 560,
+    "tabOrder": 9000
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetRefreshScheduleTimes"
+                    }
+                  },
+                  "Property": "RefreshScheduleTime"
+                }
+              },
+              "queryRef": "DatasetRefreshScheduleTimes.RefreshScheduleTime",
+              "nativeQueryRef": "RefreshScheduleTime",
+              "active": true
+            }
+          ]
+        },
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetRefreshScheduleDays"
+                    }
+                  },
+                  "Property": "RefreshScheduleDay"
+                }
+              },
+              "queryRef": "DatasetRefreshScheduleDays.RefreshScheduleDay",
+              "nativeQueryRef": "RefreshScheduleDay",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Datasets"
+                        }
+                      },
+                      "Property": "DatasetId"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(Datasets.DatasetId)",
+              "nativeQueryRef": "Count of DatasetId"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "DatasetRefreshScheduleDays"
+                  }
+                },
+                "Property": "RefreshScheduleDay"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Refresh schedule heatmap (day x time)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "4f06484ee5bd0da53db6",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetRefreshScheduleDays"
+              }
+            },
+            "Property": "RefreshScheduleDay"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "09ecaa02f44c16a38c5d",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetRefreshScheduleTimes"
+              }
+            },
+            "Property": "RefreshScheduleTime"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "83bc7d9c837dcddcd021",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Datasets"
+                  }
+                },
+                "Property": "DatasetId"
+              }
+            },
+            "Function": 2
+          }
+        },
+        "type": "Advanced"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

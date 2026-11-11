@@ -1,0 +1,851 @@
+/// Where the monitor JSON output is read from: "Local" (a folder) or "Blob" (Azure Blob Storage).
+expression SourceType = "Local" meta [IsParameterQuery=true, List={"Local", "Blob"}, DefaultValue="Local", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 840e6442-ef55-42b6-94a1-a0f381e122ad
+
+	annotation PBI_ResultType = Text
+
+/// Local source: absolute path of the folder that contains the module folders (activity, capacity_metrics, ...). Use the LOCAL_OUTPUT_PATH value that monitor writes to.
+expression LocalFolder = "C:\Projects\Tests\monitor-poc-output" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: feb19fc8-3e22-4c9e-8155-6ee747c938de
+
+	annotation PBI_ResultType = Text
+
+/// Blob source: storage account URL, e.g. https://<account>.blob.core.windows.net/
+expression BlobAccountUrl = "https://<storage-account>.blob.core.windows.net/" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=false]
+	lineageTag: 387e2e06-8a86-4d17-8107-bdb74a771af8
+
+	annotation PBI_ResultType = Text
+
+/// Blob source: container name (STORAGE_ACCOUNT_CONTAINER_NAME).
+expression BlobContainer = "<container>" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=false]
+	lineageTag: 25f7124c-b8a8-4de5-83d9-37b283d694c9
+
+	annotation PBI_ResultType = Text
+
+/// Blob source: root path prefix inside the container (STORAGE_ACCOUNT_CONTAINER_ROOT_PATH). Leave empty when the modules sit directly in the container.
+expression BlobRootPath = null meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=false]
+	lineageTag: 4b69dc18-c440-4d09-b4b3-9c57c1d8111f
+
+	annotation PBI_ResultType = Null
+
+/// Converts any value to text; null or unconvertible values become null.
+expression ToText =
+		(value as any) as nullable text =>
+			if value = null then null else try Text.From(value) otherwise null
+	lineageTag: 4a75e621-509d-436e-8c43-378408ac5e5d
+
+	annotation PBI_ResultType = Function
+
+/// Converts any value to a number; null or unconvertible values become null.
+expression ToNumber =
+		(value as any) as nullable number =>
+			if value = null then null else try Number.From(value) otherwise null
+	lineageTag: cc708719-457b-47b2-bdbb-aa6261a49d4a
+
+	annotation PBI_ResultType = Function
+
+/// Returns the value when it is a logical, otherwise null.
+expression ToLogical =
+		(value as any) as nullable logical =>
+			if value is logical then value else null
+	lineageTag: e540d6d9-e012-459e-a131-b8a00076614c
+
+	annotation PBI_ResultType = Function
+
+/// Parses the date part (yyyy-MM-dd) of an ISO text value; anything else becomes null.
+expression ToDate =
+		(value as any) as nullable date =>
+			if value is date then value
+			else if value is datetime then DateTime.Date(value)
+			else if value is text and Text.Length(value) >= 10 then
+				try Date.FromText(Text.Start(value, 10), [Format = "yyyy-MM-dd", Culture = "en-US"]) otherwise null
+			else null
+	lineageTag: ddea4166-b4da-4fc7-b70a-68be36617c3c
+
+	annotation PBI_ResultType = Function
+
+/// Parses an ISO timestamp as a UTC datetime without time zone. Values ending in Z or carrying a +offset are converted to UTC; values without a zone are taken as already UTC.
+expression ToUtcDateTime =
+		(value as any) as nullable datetime =>
+			if value is datetime then value
+			else if value is text then
+				if Text.EndsWith(value, "Z") or Text.Contains(value, "+") then
+					try DateTimeZone.RemoveZone(DateTimeZone.SwitchZone(DateTimeZone.FromText(value), 0)) otherwise null
+				else
+					try DateTime.FromText(value, [Culture = "en-US"]) otherwise null
+			else null
+	lineageTag: 80385d3a-7c5b-45b2-8460-4e10068cde07
+
+	annotation PBI_ResultType = Function
+
+/// Returns the fallback when the value is null.
+expression Coalesce =
+		(value as any, fallback as any) as any =>
+			if value = null then fallback else value
+	lineageTag: ec6658a9-0aba-484d-a99d-bab87fb891dc
+
+	annotation PBI_ResultType = Function
+
+/// Reads a field from a record; null when the value is not a record or the field is missing.
+expression JsonField =
+		(value as any, name as text) as any =>
+			if value is record then Record.FieldOrDefault(value, name, null) else null
+	lineageTag: b4984c9a-5a91-42af-b6f2-08d0a5d115a9
+
+	annotation PBI_ResultType = Function
+
+/// Reads the first non-null field of a record from a list of candidate field names.
+expression JsonFirst =
+		(value as any, names as list) as any =>
+			List.First(List.RemoveNulls(List.Transform(names, (n) => JsonField(value, n))), null)
+	lineageTag: ce5546fa-73f3-4652-bb60-dd7504633766
+
+	annotation PBI_ResultType = Function
+
+/// Reads the first present key of an executeQueries result row from a list of candidate keys.
+expression GetRowValue =
+		(row as any, names as list) as any =>
+			JsonFirst(row, names)
+	lineageTag: bf9a18a3-b4b3-497b-b2bc-5ef87be4149d
+
+	annotation PBI_ResultType = Function
+
+/// Reads a measure value from a capacity metrics row. executeQueries names the key "[Measure name]"; the bare name is accepted too.
+expression CmMeasure =
+		(row as any, measure as text) as nullable number =>
+			ToNumber(GetRowValue(row, {"[" & measure & "]", measure, "All Measures[" & measure & "]"}))
+	lineageTag: b968a76c-c087-44f7-ac39-83aafbe675e2
+
+	annotation PBI_ResultType = Function
+
+/// Adds several columns to a table. specs is a list of {name, each generator, type}.
+expression AddColumns =
+		(source as table, specs as list) as table =>
+			List.Accumulate(specs, source, (state, spec) => Table.AddColumn(state, spec{0}, spec{1}, spec{2}))
+	lineageTag: 2a2bff89-c0be-41f1-a6f7-36e1412c5003
+
+	annotation PBI_ResultType = Function
+
+/// Lists the .json files below <root>/<moduleFolder>/ for the selected SourceType. Returns RelPath (relative to the root, always with / separators), FileName and Content. A missing local folder or no matching blobs gives an empty table. Other errors (bad credentials, wrong container) are raised.
+expression ListModuleFiles =
+		(moduleFolder as text) as table =>
+		let
+			Normalize = (t as text) as text => Text.Replace(t, "\", "/"),
+			Module = Text.Trim(Normalize(moduleFolder), "/"),
+			EmptyFiles = #table(type table [RelPath = text, FileName = text, Content = binary], {}),
+		
+			FromBlob = () as table =>
+				let
+					Root = Text.Trim(Normalize(Coalesce(BlobRootPath, "")), "/"),
+					StripLength = if Root = "" then 0 else Text.Length(Root) + 1,
+					Prefix = if Root = "" then Module & "/" else Root & "/" & Module & "/",
+					Containers = AzureStorage.Blobs(BlobAccountUrl),
+					Data = Containers{[Name = BlobContainer]}[Data],
+					Matching = Table.SelectRows(Data, each Text.StartsWith(Normalize([Name]), Prefix) and Text.EndsWith(Text.Lower([Name]), ".json")),
+					WithPath = Table.AddColumn(Matching, "RelPath", each Text.Middle(Normalize([Name]), StripLength), type text),
+					WithName = Table.AddColumn(WithPath, "FileName", each List.Last(Text.Split([RelPath], "/")), type text)
+				in
+					Table.SelectColumns(WithName, {"RelPath", "FileName", "Content"}),
+		
+			FromLocal = () as table =>
+				let
+					Root = Text.TrimEnd(Normalize(LocalFolder), "/"),
+					Separator = if Text.Contains(LocalFolder, "\") then "\" else "/",
+					ModulePath = Text.Replace(Root & "/" & Module, "/", Separator),
+					Attempt = try Table.Buffer(Folder.Files(ModulePath)),
+					Raw =
+						if not Attempt[HasError] then Attempt[Value]
+						else if Attempt[Error][Reason] = "DataSource.NotFound" then null
+						else error Attempt[Error],
+					Matching = Table.SelectRows(Raw, each Text.Lower([Extension]) = ".json"),
+					WithPath = Table.AddColumn(Matching, "RelPath", each Text.Middle(Normalize([Folder Path]), Text.Length(Root) + 1) & [Name], type text),
+					WithName = Table.AddColumn(WithPath, "FileName", each [Name], type text)
+				in
+					if Raw = null then EmptyFiles else Table.SelectColumns(WithName, {"RelPath", "FileName", "Content"})
+		in
+			if SourceType = "Blob" then FromBlob()
+			else if SourceType = "Local" then FromLocal()
+			else error Error.Record("Expression.Error", "SourceType must be Local or Blob", SourceType)
+	lineageTag: 895b81eb-2140-44f3-96a0-a84ec0917198
+
+	annotation PBI_ResultType = Function
+
+/// Lists and parses the JSON files of a module folder (for example "activity" or "delegatedsettings"). FileDate is the UTC date from the <module>/[scope/]YYYY/MM/DD/ folder layout (never the modified time). Group is any scope folder between the module and the year. Json holds the parsed document; ParseError holds the message when a file is malformed. Empty files give no Json and no error.
+expression GetFiles =
+		(moduleFolder as text) as table =>
+		let
+			Module = Text.Trim(Text.Replace(moduleFolder, "\", "/"), "/"),
+			ModuleDepth = List.Count(Text.Split(Module, "/")),
+			Files = ListModuleFiles(moduleFolder),
+			PathInfo = (rel as text) as record =>
+				let
+					Parts = Text.Split(rel, "/"),
+					N = List.Count(Parts),
+					FileDate = try (if Text.Length(Parts{N - 4}) = 4 then #date(Number.FromText(Parts{N - 4}, "en-US"), Number.FromText(Parts{N - 3}, "en-US"), Number.FromText(Parts{N - 2}, "en-US")) else null) otherwise null,
+					Group = try Text.Combine(List.Skip(List.FirstN(Parts, N - 4), ModuleDepth), "/") otherwise ""
+				in
+					[FileDate = FileDate, Group = Group],
+			WithInfo = Table.ExpandRecordColumn(Table.AddColumn(Files, "Info", each PathInfo([RelPath])), "Info", {"FileDate", "Group"}),
+			Typed = Table.TransformColumnTypes(WithInfo, {{"FileDate", type date}, {"Group", type text}}),
+			Parsed = Table.AddColumn(Typed, "Parsed", each try (if Binary.Length([Content]) = 0 then null else Json.Document([Content]))),
+			WithJson = Table.AddColumn(Parsed, "Json", each if [Parsed][HasError] then null else [Parsed][Value], type any),
+			WithError = Table.AddColumn(WithJson, "ParseError", each if [Parsed][HasError] then [Parsed][Error][Message] else null, type text)
+		in
+			Table.SelectColumns(WithError, {"RelPath", "FileName", "FileDate", "Group", "Json", "ParseError"})
+	lineageTag: e23feaeb-2fc3-4742-b985-4b6d8842d986
+
+	annotation PBI_ResultType = Function
+
+/// Keeps only the files of the most recent snapshot date within each group (full-state modules write a complete copy per day, so older days must not be summed).
+expression KeepLatestPerGroup =
+		(files as table, groupColumn as text) as table =>
+		let
+			Latest = Table.Group(files, groupColumn, {{"LatestDate", each List.Max([FileDate]), type nullable date}}),
+			Joined = Table.NestedJoin(files, {groupColumn}, Latest, {groupColumn}, "Latest", JoinKind.Inner),
+			Expanded = Table.ExpandTableColumn(Joined, "Latest", {"LatestDate"}),
+			Kept = Table.SelectRows(Expanded, each [FileDate] = [LatestDate])
+		in
+			Table.RemoveColumns(Kept, {"LatestDate"})
+	lineageTag: 223a2c30-83e3-4002-9dc5-debf9751d24d
+
+	annotation PBI_ResultType = Function
+
+/// Turns the file-level table from GetFiles into one row per record in the JSON documents (column Item). A malformed file stays as one row with Item = null and ParseError set.
+expression ExpandItems =
+		(files as table) as table =>
+		let
+			AsItems = (json as any, failed as logical) as list =>
+				if json = null then (if failed then {null} else {})
+				else if json is list then List.Select(json, (x) => x is record)
+				else if json is record then {json}
+				else {},
+			WithItems = Table.AddColumn(files, "Item", each AsItems([Json], [ParseError] <> null)),
+			Expanded = Table.ExpandListColumn(WithItems, "Item"),
+			Kept = Table.SelectRows(Expanded, each [Item] <> null or [ParseError] <> null)
+		in
+			Table.RemoveColumns(Kept, {"Json"})
+	lineageTag: faa05bd6-881f-4dcd-9c70-c64860a1a6c7
+
+	annotation PBI_ResultType = Function
+
+/// Reads the immutable Fabric run layout. Only named resource envelopes and manifests are admitted; request gates and progress files are not facts. A finished manifest commits successful resource observations, even in a partially failed pipeline run.
+expression GetFabricCollection =
+		(module as text, discoveryFile as text) as record =>
+		let
+			IsConnections = module = "fabricconnections",
+			NonemptyText = (v as any) as logical => v is text and v <> "",
+			OptionalText = (r as record, fields as list) as logical =>
+				List.AllTrue(List.Transform(fields, (f) => let v = JsonField(r, f) in v = null or v is text)),
+			IsUuid = (v as text) as logical =>
+				Text.Length(v) = 36 and List.Transform(Text.Split(v, "-"), Text.Length) = {8, 4, 4, 4, 12}
+				and Text.Length(Text.Select(Text.Lower(v), {"0".."9", "a".."f"})) = 32,
+			ValidRecord = (r as any, discovery as logical) as logical =>
+				if not (r is record) then false
+				else if not NonemptyText(JsonField(r, "id")) then false
+				else if IsConnections then
+					Record.HasFields(r, "displayName")
+					and (r[displayName] = null or NonemptyText(r[displayName]))
+					and NonemptyText(JsonField(r, "connectivityType"))
+					and NonemptyText(JsonField(JsonField(r, "connectionDetails"), "type"))
+					and OptionalText(r, {"gatewayId", "privacyLevel"})
+				else if discovery then IsUuid(r[id]) and NonemptyText(JsonField(r, "displayName"))
+				else NonemptyText(JsonField(r, "type")) and NonemptyText(JsonField(r, "status"))
+					and OptionalText(r, {"lastUpdatedTime", "executionStartTime", "executionEndTime", "sourceStageId", "targetStageId"})
+					and List.AllTrue(List.Transform({"lastUpdatedTime", "executionStartTime", "executionEndTime"}, (f) =>
+						JsonField(r, f) = null or ToUtcDateTime(JsonField(r, f)) <> null)),
+			Files = Table.SelectRows(GetFiles(module), each
+				[FileName] = "manifest.json" or [FileName] = discoveryFile
+				or (not IsConnections and IsUuid(Text.BeforeDelimiter([FileName], ".json")))),
+			WithRun = AddColumns(Files, {
+				{"Run Path", each Text.BeforeDelimiter([RelPath], "/", {0, RelativePosition.FromEnd}), type text},
+				{"Path Run Id", each List.Last(Text.Split(Text.BeforeDelimiter([RelPath], "/", {0, RelativePosition.FromEnd}), "/")), type text}
+			}),
+			WithValidation = Table.AddColumn(WithRun, "Issue", each
+				let
+					j = [Json],
+					parts = Text.Split([RelPath], "/"),
+					pathDate = if List.Count(parts) = 6 then ToDate(Text.Combine(List.Range(parts, 1, 3), "-")) else null,
+					common = j is record and JsonField(j, "runId") = [Path Run Id]
+						and ToUtcDateTime(JsonField(j, "observedAt")) <> null
+						and JsonField(j, "complete") is logical,
+					discovery = [FileName] = discoveryFile,
+					parent = JsonField(j, "parent"),
+					pipeline = JsonField(parent, "deploymentPipeline"),
+					expectedPath = if IsConnections then "connections" else if discovery then "deploymentPipelines"
+						else "deploymentPipelines/" & Text.BeforeDelimiter([FileName], ".json") & "/operations",
+					records = JsonField(j, "records"),
+					resourceValid = common and parent is record and JsonField(j, "requestPath") = expectedPath
+						and (IsConnections or discovery or (
+							Text.Lower(Coalesce(ToText(JsonField(pipeline, "id")), "")) = Text.BeforeDelimiter([FileName], ".json")
+							and NonemptyText(JsonField(pipeline, "displayName"))))
+						and (if JsonField(j, "complete") = true then
+							if not (records is list) then false else
+								List.AllTrue(List.Transform(records, (r) => ValidRecord(r, discovery)))
+								and List.Count(List.Distinct(List.Transform(records, (r) => r[id]))) = List.Count(records)
+							else NonemptyText(JsonField(j, "error"))),
+					resources = JsonField(j, "resources"),
+					manifestValid = common and JsonField(j, "finished") is logical and resources is list and JsonField(j, "errors") is list
+						and (if not (resources is list) then false else List.AllTrue(List.Transform(resources, (r) =>
+							r is record and NonemptyText(JsonField(r, "file")) and JsonField(r, "complete") is logical
+							and JsonField(r, "parent") is record)))
+				in
+					if [ParseError] <> null then "Malformed JSON"
+					else if pathDate = null or Text.Length([Path Run Id]) <> 32 then "Invalid run path"
+					else if [FileName] = "manifest.json" then (if manifestValid then null else "Invalid manifest")
+					else if resourceValid then null else "Invalid resource envelope or records",
+				type nullable text),
+			Checked = Table.Buffer(WithValidation),
+			// Group by the physical run directory, not just runId or file date.
+			GroupRuns = Table.Group(Checked, {"Run Path"}, {{"Run", (files as table) as record =>
+				let
+					manifests = Table.SelectRows(files, each [FileName] = "manifest.json"),
+					manifest = if Table.RowCount(manifests) = 1 and manifests{0}[Issue] = null then manifests{0}[Json] else null,
+					finished = JsonField(manifest, "finished") = true,
+					entries = Coalesce(JsonField(manifest, "resources"), {}),
+					resourceFiles = Table.SelectRows(files, each [FileName] <> "manifest.json"),
+					// Both sides must agree on filename, parent, and outcome. Missing/truncated writes never become empty success.
+					Matches = (entry as record) as logical =>
+						let found = Table.SelectRows(resourceFiles, (f) => f[FileName] = entry[file])
+						in if Table.RowCount(found) <> 1 then false else
+							found{0}[Issue] = null and JsonField(found{0}[Json], "complete") = entry[complete]
+							and JsonField(found{0}[Json], "parent") = entry[parent],
+					entriesMatch = List.AllTrue(List.Transform(entries, Matches)),
+					discoveryEntries = List.Select(entries, (e) => e[file] = discoveryFile),
+					discoveryFiles = Table.SelectRows(resourceFiles, each [FileName] = discoveryFile and [Issue] = null and JsonField([Json], "complete") = true),
+					discoveryOk = finished and List.Count(discoveryEntries) = 1 and Table.RowCount(discoveryFiles) = 1
+						and Matches(discoveryEntries{0}) and discoveryEntries{0}[complete] = true,
+					discovery = if discoveryOk then discoveryFiles{0}[Json] else null,
+					expectedNames = if IsConnections then {discoveryFile} else
+						{discoveryFile} & List.Transform(Coalesce(JsonField(discovery, "records"), {}), (r) => Text.Lower(r[id]) & ".json"),
+					actualNames = List.Transform(entries, (e) => e[file]),
+					allExpected = discoveryOk and List.Sort(expectedNames) = List.Sort(actualNames)
+						and List.Sort(resourceFiles[FileName]) = List.Sort(actualNames),
+					healthy = finished and JsonField(manifest, "complete") = true and entriesMatch and allExpected
+						and List.AllTrue(List.Transform(entries, (e) => e[complete] = true))
+						and List.IsEmpty(Coalesce(JsonField(manifest, "errors"), {})),
+					usable = Table.SelectRows(resourceFiles, (f) => finished and f[Issue] = null
+						and JsonField(f[Json], "complete") = true
+						and List.AnyTrue(List.Transform(entries, (e) => e[file] = f[FileName] and e[complete] = true and Matches(e)))),
+					times = List.RemoveNulls(List.Transform(files[Json], (j) => ToUtcDateTime(JsonField(j, "observedAt")))),
+					attempt = if List.IsEmpty(times) then null else List.Max(times),
+					issues = Table.RowCount(Table.SelectRows(files, each [Issue] <> null))
+						+ (if manifest = null and Table.IsEmpty(manifests) then 1 else 0)
+						+ (if manifest <> null and (not entriesMatch or (JsonField(manifest, "complete") = true and not healthy)) then 1 else 0)
+				in
+					[Attempt = attempt, Healthy = healthy, Discovery = discovery, Usable = usable, Issues = issues,
+						RunId = files{0}[Path Run Id]], type record}}),
+			Runs = Table.ExpandRecordColumn(GroupRuns, "Run", {"Attempt", "Healthy", "Discovery", "Usable", "Issues", "RunId"}),
+			// Null timestamps sort behind known observations; unknown/broken runs still flag incomplete below.
+			Sorted = Table.Sort(Runs, {{"Attempt", Order.Descending}, {"Run Path", Order.Descending}}),
+			Eligible = Table.SelectRows(Sorted, each [Discovery] <> null and (not IsConnections or [Healthy])),
+			Snapshot = if Table.IsEmpty(Eligible) then null else Eligible{0}[Discovery],
+			Latest = if Table.IsEmpty(Sorted) then null else Sorted{0},
+			Errors = if Table.IsEmpty(Runs) then 0 else List.Sum(Runs[Issues]),
+			UnknownRuns = Table.RowCount(Table.SelectRows(Runs, each [Attempt] = null)),
+			Current = Latest <> null and Latest[Healthy] and UnknownRuns = 0,
+			Rows = if Snapshot = null then null else List.Count(Snapshot[records]),
+			State = if Latest = null then "Never run / no collection files"
+				else if not Current then
+					if Snapshot = null then "Incomplete or failed collection; no successful snapshot"
+					else if IsConnections then "Stale / incomplete latest collection; showing last successful snapshot"
+					else "Incomplete latest collection; showing last successful discovery; histories may be partial or stale"
+				else if Rows = 0 then (if IsConnections then "Success: no visible connections" else "Success: no visible pipelines")
+				else if IsConnections then "Success" else "Success: discovery and operation histories collected (histories may be empty)",
+			Status = [
+				Module = module,
+				State = State & (if Errors > 0 then " | Load errors present" else ""),
+				#"Last Attempt UTC" = if Latest = null then null else Latest[Attempt],
+				#"Snapshot UTC" = ToUtcDateTime(JsonField(Snapshot, "observedAt")),
+				#"Snapshot Row Count" = Rows,
+				#"Has Snapshot" = Snapshot <> null,
+				#"Latest Run Complete" = Current,
+				#"Error Count" = Errors,
+				#"Load Error" = if Errors = 0 then null else Text.From(Errors, "en-US") & " invalid or missing collection artifacts; inspect source run files.",
+				Coverage = if IsConnections then "Caller-visible connections only; credentials and connection paths excluded."
+					else "Caller-visible pipelines only. History requires pipeline Admin; up to 20 recent deployments per poll. Polling gaps cannot be recovered."
+			],
+			EmptyObservations = Table.FirstN(Table.SelectRows(Checked, each [FileName] <> "manifest.json"), 0),
+			Observations = Table.Combine({EmptyObservations} & Runs[Usable])
+		in
+			[Snapshot = Snapshot, Observations = Observations, Status = Status]
+	lineageTag: 6502b19b-c9b2-47ad-8f16-667a72fb7a69
+
+	annotation PBI_ResultType = Function
+
+expression FabricConnectionsData = GetFabricCollection("fabricconnections", "connections.json")
+	lineageTag: e9cd4bd1-3300-4c54-9fbc-a3dbde0b753e
+
+expression FabricDeploymentData = GetFabricCollection("fabricdeploymentpipelineoperations", "pipelines.json")
+	lineageTag: 7bf2d44b-ebf4-4ad1-9cbc-bc10e4fca22b
+
+/// Validates immutable item observations without reading paths supplied by JSON. Permission evidence links are resolved only against this module's enumerated manifests.
+expression GetFabricItemCollection =
+		(module as text) as record =>
+		let
+			Tenant = module = "fabricitemaccesspermissions_tenant",
+			Permissions = Tenant or module = "fabricitemaccesspermissions",
+			TextValue = (v as any) as logical => v is text and v <> "",
+			Uuid = (v as any) as logical =>
+				if not (v is text) then false else Text.Length(v) = 36
+					and List.Transform(Text.Split(v, "-"), Text.Length) = {8, 4, 4, 4, 12}
+					and Text.Length(Text.Select(v, {"0".."9", "a".."f"})) = 32,
+			Integer = (v as any) as logical => if not (v is number) then false else v >= 0 and Number.RoundDown(v) = v,
+			Strings = (v as any) as logical => if not (v is list) then false else List.AllTrue(List.Transform(v, each _ is text)),
+			Target = (p as any) as logical =>
+				Uuid(JsonField(p, "workspaceId")) and Uuid(JsonField(p, "itemId"))
+					and TextValue(JsonField(p, "type"))
+					and (not Tenant or Text.Select(p[type], {"0".."9", "A".."Z", "a".."z"}) = p[type])
+					and (Permissions or List.Contains({"Notebook", "DataPipeline", "SparkJobDefinition"}, JsonField(p, "type"))),
+			TargetKey = (p as record) as text => p[workspaceId] & "/" & p[itemId] & "/" & p[type],
+			TargetIdentity = (p as record) as text => p[workspaceId] & "/" & p[itemId],
+			Inventory = (p as any) as logical => JsonField(p, "observationUnit") = "inventoryPage",
+			ValidRecords = (records as any, p as record) as logical =>
+				if not (records is list) then false else
+				List.AllTrue(List.Transform(records, (r) =>
+					if not (r is record) then false
+					else if Permissions and Inventory(p) then
+						Target(r) and (Tenant or r[workspaceId] = p[workspaceId])
+					else if Permissions then
+						let principal = JsonField(r, "principal"), details = JsonField(r, "itemAccessDetails"),
+							TypedPowerBI = List.Contains({"Report", "Dashboard", "SemanticModel", "App", "Dataflow"}, p[type])
+						in TextValue(JsonField(principal, "id")) and JsonField(principal, "type") is text
+							and details is record
+							and (JsonField(details, "type") = p[type]
+								or (TypedPowerBI and Record.HasFields(details, "type") and details[type] = null))
+							and Strings(JsonField(details, "permissions"))
+							and (not Record.HasFields(details, "additionalPermissions") or Strings(details[additionalPermissions])
+								or (TypedPowerBI and details[additionalPermissions] = null))
+							and (JsonField(principal, "displayName") = null or JsonField(principal, "displayName") is text)
+							and (JsonField(principal, "userDetails") = null or
+								(JsonField(principal, "userDetails") is record and
+									(JsonField(principal[userDetails], "userPrincipalName") = null or JsonField(principal[userDetails], "userPrincipalName") is text)))
+					else
+						List.AllTrue(List.Transform({"id", "jobType", "invokeType", "status"}, (f) => TextValue(JsonField(r, f))))
+						and JsonField(r, "itemId") = p[itemId]
+						and List.AllTrue(List.Transform({"startTimeUtc", "endTimeUtc"}, (f) =>
+							JsonField(r, f) = null or (JsonField(r, f) is text and ToUtcDateTime(JsonField(r, f)) <> null)))
+						and (JsonField(r, "rootActivityId") = null or JsonField(r, "rootActivityId") is text)))
+				and (if Permissions and not Inventory(p) then true
+					else let keys = List.Transform(records, (r) =>
+						if Tenant and Inventory(p) then TargetIdentity(r) else if Permissions then TargetKey(r) else r[id])
+					in List.Count(keys) = List.Count(List.Distinct(keys))),
+			ValidExecution = (e as any, finished as logical) as logical =>
+				if not (e is record) then false
+				else if not finished then Record.FieldCount(e) = 0
+				else JsonField(e, "cycleFinished") is logical and JsonField(e, "cycleHealthy") is logical
+					and JsonField(e, "deferred") is logical and Integer(JsonField(e, "attempts")) and e[attempts] <= 1
+					and (if Tenant then JsonField(e, "scopeMode") = "tenant"
+						and List.Contains({"inventory", "access"}, JsonField(e, "phase"))
+						and JsonField(e, "inventoryComplete") is logical
+						and Integer(JsonField(e, "discoveredItems")) and Integer(JsonField(e, "nextItem"))
+						and e[nextItem] <= e[discoveredItems]
+						and (e[phase] <> "inventory" or e[nextItem] = 0)
+						and (e[phase] <> "access" or e[inventoryComplete])
+						and e[cycleFinished] = (e[inventoryComplete] and e[nextItem] = e[discoveredItems])
+						and List.Contains({"succeeded", "failed", "unsupported", "denied", "not_found", "deferred"}, JsonField(e, "resourceOutcome"))
+						and e[deferred] = (e[resourceOutcome] = "deferred")
+						and (e[attempts] = 1 or e[deferred])
+						else Integer(JsonField(e, "nextTask")) and Integer(JsonField(e, "taskCount"))
+							and e[taskCount] >= 2 and e[taskCount] <= 100 and e[nextTask] <= e[taskCount]
+							and e[cycleFinished] = (e[nextTask] = e[taskCount]))
+					and (if not (JsonField(e, "cycleEvidence") is list) then false else
+						List.Count(e[cycleEvidence]) <= 1 and List.AllTrue(List.Transform(e[cycleEvidence], TextValue))),
+			Files = Table.SelectRows(GetFiles(module), each not List.Contains({"request_gate.json", "progress.json", "tenant_progress.json"}, [FileName])),
+			WithPath = AddColumns(Files, {
+				{"Run Path", each Text.BeforeDelimiter([RelPath], "/", {0, RelativePosition.FromEnd}), type text},
+				{"Path Run Id", each List.Last(Text.Split(Text.BeforeDelimiter([RelPath], "/", {0, RelativePosition.FromEnd}), "/")), type text}
+			}),
+			Validated = Table.AddColumn(WithPath, "Issue", each
+				let
+					j = [Json], p = JsonField(j, "parent"), parts = Text.Split([RelPath], "/"),
+					pathDate = if List.Count(parts) = 6 then ToDate(Text.Combine(List.Range(parts, 1, 3), "-")) else null,
+					pathOk = List.Count(parts) = 6 and pathDate <> null
+						and Text.Length([Path Run Id]) = 32
+						and Text.Length(Text.Select([Path Run Id], {"0".."9", "a".."f"})) = 32,
+					common = j is record and JsonField(j, "runId") = [Path Run Id]
+						and ToUtcDateTime(JsonField(j, "observedAt")) <> null and JsonField(j, "complete") is logical,
+					entries = JsonField(j, "resources"),
+					manifestOk = common and JsonField(j, "finished") is logical and JsonField(j, "errors") is list
+						and (if not (entries is list) then false else
+							List.AllTrue(List.Transform(entries, (e) => e is record and TextValue(JsonField(e, "file"))
+								and not Text.Contains(e[file], "/") and not Text.Contains(e[file], "\")
+								and e[file] <> "manifest.json" and JsonField(e, "parent") is record and JsonField(e, "complete") is logical))
+							and List.Count(entries) = List.Count(List.Distinct(List.Transform(entries, each _[file]))))
+						and (if Permissions then ValidExecution(JsonField(j, "execution"), JsonField(j, "finished") = true) else true),
+					inventory = Permissions and Inventory(p),
+					parentOk = if inventory then (Tenant or Uuid(JsonField(p, "workspaceId"))) and JsonField(p, "inventoryComplete") is logical else Target(p),
+					name = if inventory then (if Tenant then "inventory.json" else "inventory_" & p[workspaceId] & ".json")
+						else if parentOk then p[workspaceId] & "_" & p[itemId] & ".json" else null,
+					endpoint = if inventory then (if Tenant then "admin/items?state=active" else "admin/items?workspaceId=" & p[workspaceId])
+						else if not parentOk then null
+						else if Permissions then "admin/workspaces/" & p[workspaceId] & "/items/" & p[itemId] & "/users"
+							& (if List.Contains({"Report", "Dashboard", "SemanticModel", "App", "Dataflow"}, p[type]) then "?type=" & p[type] else "")
+						else "workspaces/" & p[workspaceId] & "/items/" & p[itemId] & "/jobs/instances",
+					resourceOk = common and parentOk and [FileName] = name and JsonField(j, "requestPath") = endpoint
+						and (if JsonField(j, "complete") = true then
+								not Record.HasFields(j, "error") and ValidRecords(JsonField(j, "records"), p)
+							else not Record.HasFields(j, "records") and TextValue(JsonField(j, "error"))
+								and (not inventory or not p[inventoryComplete])),
+					valid = if [FileName] = "manifest.json" then manifestOk else resourceOk
+				in
+					if [ParseError] <> null then "Malformed JSON"
+					else if not pathOk then "Invalid immutable run path"
+					else if not valid then "Invalid manifest, envelope or record shape" else null,
+				type nullable text),
+			Checked = Table.Buffer(Validated),
+			GroupRuns = Table.Group(Checked, {"Run Path"}, {{"Run", (files as table) as record =>
+				let
+					manifests = Table.SelectRows(files, each [FileName] = "manifest.json"),
+					m = if Table.RowCount(manifests) = 1 and manifests{0}[Issue] = null then manifests{0}[Json] else null,
+					finished = JsonField(m, "finished") = true,
+					entries = if m = null then {} else m[resources],
+					resources = Table.SelectRows(files, each [FileName] <> "manifest.json"),
+					Matches = (e as record) as logical =>
+						let found = Table.SelectRows(resources, each [FileName] = e[file])
+						in if Table.RowCount(found) <> 1 then false else found{0}[Issue] = null
+							and found{0}[Json][parent] = e[parent] and found{0}[Json][complete] = e[complete]
+							and ToUtcDateTime(found{0}[Json][observedAt]) <= ToUtcDateTime(m[observedAt]),
+					matching = List.AllTrue(List.Transform(entries, Matches)),
+					exact = List.Sort(resources[FileName]) = List.Sort(List.Transform(entries, each _[file])),
+					e = JsonField(m, "execution"),
+					outcomes = List.AllTrue(List.Transform(entries, each _[complete])),
+					// Initial manifests can legitimately precede an uncommitted resource write.
+					integrity = if m = null then false else matching and (not finished or exact)
+						and (if not finished then not m[complete] and List.IsEmpty(entries) and List.IsEmpty(m[errors])
+							else if Permissions then List.Count(entries) = 1
+								and m[complete] = (e[cycleFinished] and e[cycleHealthy])
+								and (not e[cycleHealthy] or outcomes or (e[deferred] and e[attempts] = 0))
+								and (not e[cycleHealthy] or List.IsEmpty(m[errors]) or (e[deferred] and e[attempts] = 0))
+								and (not outcomes or (e[attempts] = 1 and not e[deferred]))
+								and (not Tenant or (
+									e[phase] = (if Inventory(entries{0}[parent]) then "inventory" else "access")
+									and e[inventoryComplete] = (if Inventory(entries{0}[parent]) then entries{0}[parent][inventoryComplete] else true)
+									and (e[resourceOutcome] = "succeeded") = outcomes))
+							else List.Count(entries) >= 1 and List.Count(entries) <= 100
+								and m[complete] = (outcomes and List.IsEmpty(m[errors]))
+								and List.Count(List.Distinct(List.Transform(entries, each TargetKey(_[parent])))) = List.Count(entries)),
+					issues = Table.RowCount(Table.SelectRows(files, each [Issue] <> null))
+						+ (if Table.IsEmpty(manifests) or (m <> null and not integrity) then 1 else 0),
+					committed = Table.SelectRows(resources, (r) => finished and r[Issue] = null
+						and List.AnyTrue(List.Transform(entries, (entry) => entry[file] = r[FileName] and Matches(entry)))),
+					usable = Table.SelectRows(committed, each [Json][complete]),
+					times = List.RemoveNulls(List.Transform(files[Json], each ToUtcDateTime(JsonField(_, "observedAt"))))
+				in
+					[Manifest = m, Execution = e, Finished = finished, LocalIssues = issues,
+						Attempt = if List.IsEmpty(times) then null else List.Max(times),
+						Resources = resources, Committed = committed, Usable = usable, RunId = files{0}[Path Run Id],
+						ManifestPath = files{0}[Run Path] & "/manifest.json"], type record}}),
+			Runs = Table.Buffer(Table.ExpandRecordColumn(GroupRuns, "Run",
+				{"Manifest", "Execution", "Finished", "LocalIssues", "Attempt", "Resources", "Committed", "Usable", "RunId", "ManifestPath"})),
+			RunIndex = Record.FromList(Table.ToRecords(Runs), Runs[ManifestPath]),
+			// The cursor and health must continue monotonically; no link can enter a completed prior cycle.
+			Walk = (path as text, seen as list) as record =>
+				let r = Record.FieldOrDefault(RunIndex, path, null)
+				in if List.Contains(seen, path) or r = null then [Nodes = {}, Valid = false]
+				else
+					let
+						e = r[Execution],
+						admitted = r[LocalIssues] = 0 and r[Finished] and e is record,
+						links = if admitted then e[cycleEvidence] else {},
+						previous = if List.IsEmpty(links) then [Nodes = {}, Valid = true] else @Walk(links{0}, seen & {path}),
+						prior = List.Last(previous[Nodes], null),
+						before = if prior = null then 0 else prior[Execution][nextTask],
+						resource = if admitted then r[Resources]{0}[Json] else null,
+						p = JsonField(resource, "parent"),
+						priorParent = if prior = null then null else prior[Resources]{0}[Json][parent],
+						sameTask = prior <> null and before = prior[Task],
+						parentKey = (parent as record) as text =>
+							if Inventory(parent) then parent[workspaceId] & "/inventory" else TargetKey(parent),
+						transitions = if not admitted or prior = null then true
+							else if sameTask then parentKey(p) = parentKey(priorParent)
+							else if Inventory(priorParent) then not Inventory(p) and p[workspaceId] = priorParent[workspaceId]
+							else if not Inventory(p) then p[workspaceId] = priorParent[workspaceId]
+							else not List.AnyTrue(List.Transform(previous[Nodes], each _[Resources]{0}[Json][parent][workspaceId] = p[workspaceId])),
+						selected = if not admitted then {} else
+							List.Combine(List.Transform(List.Select(previous[Nodes], (n) =>
+								let j = n[Resources]{0}[Json] in Inventory(j[parent]) and j[complete] and j[parent][workspaceId] = p[workspaceId]),
+								each _[Resources]{0}[Json][records])),
+						selectionOk = if not admitted or not resource[complete] then true
+							else if Inventory(p) then
+								List.IsEmpty(List.Intersect({List.Transform(selected, TargetKey), List.Transform(resource[records], TargetKey)}))
+							else List.Contains(List.Transform(selected, TargetKey), TargetKey(p))
+								and List.AnyTrue(List.Transform(previous[Nodes], (n) =>
+									let j = n[Resources]{0}[Json] in Inventory(j[parent]) and j[complete]
+										and j[parent][workspaceId] = p[workspaceId] and j[parent][inventoryComplete])),
+						delta = if not admitted then 0 else
+							if e[deferred] and e[attempts] = 0 then 0
+							else if Inventory(p) and resource[complete] and not p[inventoryComplete] then 0 else 1,
+						valid = admitted and previous[Valid] and transitions and selectionOk
+							and (if prior = null then List.IsEmpty(links) and Inventory(p)
+								else not prior[Execution][cycleFinished] and prior[Execution][taskCount] = e[taskCount]
+									and prior[Attempt] <= ToUtcDateTime(r[Manifest][observedAt])
+									and prior[Attempt] <= ToUtcDateTime(resource[observedAt]))
+							and (if not admitted then false else e[nextTask] = before + delta
+								and e[cycleHealthy] = ((if prior = null then true else prior[Execution][cycleHealthy])
+									and (resource[complete] or (e[deferred] and e[attempts] = 0))))
+					in if not admitted then [Nodes = {}, Valid = false]
+						else [Nodes = previous[Nodes] & {Record.AddField(r, "Task", before)}, Valid = valid],
+			// Tenant discovery precedes ordered access; cursor and inventory counts come only from this linked cycle.
+			TenantWalk = (path as text, seen as list) as record =>
+				let r = Record.FieldOrDefault(RunIndex, path, null)
+				in if List.Contains(seen, path) or List.Count(seen) >= 10000 or r = null then [Nodes = {}, Valid = false]
+				else
+					let
+						e = r[Execution],
+						admitted = r[LocalIssues] = 0 and r[Finished] and e is record,
+						links = if admitted then e[cycleEvidence] else {},
+						previous = if List.IsEmpty(links) then [Nodes = {}, Valid = true] else @TenantWalk(links{0}, seen & {path}),
+						prior = List.Last(previous[Nodes], null),
+						before = if prior = null then 0 else prior[Execution][nextItem],
+						resource = if admitted then r[Resources]{0}[Json] else null,
+						p = JsonField(resource, "parent"),
+						selectedBefore = List.Combine(List.Transform(previous[Nodes], (n) =>
+							let j = n[Resources]{0}[Json] in if Inventory(j[parent]) and j[complete] then j[records] else {})),
+						selected = selectedBefore & (if admitted and Inventory(p) and resource[complete] then resource[records] else {}),
+						identities = List.Transform(selected, TargetIdentity),
+						step = if not admitted then false
+							else if Inventory(p) then before = 0 and (prior = null or not prior[Execution][inventoryComplete])
+								and e[nextItem] = 0 and e[discoveredItems] = List.Count(selected)
+							else prior <> null and prior[Execution][inventoryComplete]
+								and e[discoveredItems] = List.Count(selectedBefore)
+								and before < List.Count(selectedBefore)
+								and TargetKey(p) = TargetKey(selectedBefore{before})
+								and e[nextItem] = before + (if e[deferred] and e[attempts] = 0 then 0 else 1),
+						valid = admitted and previous[Valid] and step
+							and List.Count(identities) = List.Count(List.Distinct(identities))
+							and (if prior = null then Inventory(p)
+								else not prior[Execution][cycleFinished]
+									and prior[Attempt] <= ToUtcDateTime(r[Manifest][observedAt])
+									and prior[Attempt] <= ToUtcDateTime(resource[observedAt]))
+							and (if not admitted then false else
+								e[cycleHealthy] = ((if prior = null then true else prior[Execution][cycleHealthy])
+									and (resource[complete] or (e[deferred] and e[attempts] = 0))))
+					in if not admitted then [Nodes = {}, Valid = false]
+						else [Nodes = previous[Nodes] & {Record.AddField(r, "Task", before)}, Valid = valid],
+			WithChain = Table.AddColumn(Runs, "Chain", each
+				if not Permissions then [Nodes = {}, Valid = true]
+				else if not [Finished] and [LocalIssues] = 0 then [Nodes = {}, Valid = true]
+				else if Tenant then TenantWalk([ManifestPath], {}) else Walk([ManifestPath], {})),
+			// Validate the full scope against the selected inventory, including successful zero-grant targets.
+			CompleteCycle = (r as record) as logical =>
+				if r[LocalIssues] <> 0 or not r[Finished] or not r[Chain][Valid] then false
+				else if not Permissions then r[Manifest][complete]
+				else if not r[Manifest][complete] then false
+				else if Tenant then r[Execution][cycleHealthy] and r[Execution][inventoryComplete]
+					and r[Execution][nextItem] = r[Execution][discoveredItems]
+				else
+					let
+						nodes = r[Chain][Nodes],
+						resources = List.Transform(nodes, each _[Resources]{0}[Json]),
+						successes = List.Select(resources, each _[complete]),
+						inventories = List.Select(successes, each Inventory(_[parent])),
+						access = List.Select(successes, each not Inventory(_[parent])),
+						targets = List.Transform(access, each TargetKey(_[parent])),
+						selected = List.Combine(List.Transform(inventories, each List.Transform(_[records], TargetKey))),
+						workspaces = List.Distinct(List.Transform(access, each _[parent][workspaceId])),
+						taskKeys = List.Transform(nodes, (n) =>
+							let p = n[Resources]{0}[Json][parent]
+							in Text.From(n[Task], "en-US") & ":" & (if Inventory(p) then p[workspaceId] else TargetKey(p))),
+						taskIds = List.Distinct(List.Transform(nodes, each _[Task])),
+						inventoryOk = List.AllTrue(List.Transform(workspaces, (w) =>
+							List.Count(List.Select(inventories, each _[parent][workspaceId] = w and _[parent][inventoryComplete])) = 1)),
+						ordered = List.AllTrue(List.Transform(nodes, (n) =>
+							let p = n[Resources]{0}[Json][parent],
+								predecessors = List.Select(nodes, (x) => x[Task] < n[Task] and Inventory(x[Resources]{0}[Json][parent])
+									and x[Resources]{0}[Json][parent][workspaceId] = p[workspaceId])
+							in Inventory(p) or not List.IsEmpty(predecessors)))
+					in List.Count(targets) >= 1 and List.Count(targets) <= 50
+						and List.Count(targets) = List.Count(List.Distinct(targets))
+						and List.Sort(targets) = List.Sort(selected)
+						and List.Count(List.Distinct(taskKeys)) = r[Execution][taskCount]
+						and List.Count(taskIds) = r[Execution][taskCount]
+						and List.Count(workspaces) + List.Count(targets) = r[Execution][taskCount]
+						and inventoryOk and ordered,
+			PartialStructure = (r as record) as logical =>
+				if not Permissions or Tenant or not r[Finished] or not r[Chain][Valid] then true else
+				let
+					nodes = r[Chain][Nodes],
+					inventories = List.Select(nodes, each Inventory(_[Resources]{0}[Json][parent])),
+					access = List.Select(nodes, each not Inventory(_[Resources]{0}[Json][parent])),
+					accessKeys = List.Transform(access, each TargetKey(_[Resources]{0}[Json][parent])),
+					accessTasks = List.Transform(access, each Text.From(_[Task], "en-US") & ":" & TargetKey(_[Resources]{0}[Json][parent])),
+					inventoryKeys = List.Transform(inventories, each _[Resources]{0}[Json][parent][workspaceId]),
+					inventoryTasks = List.Transform(inventories, each Text.From(_[Task], "en-US") & ":" & _[Resources]{0}[Json][parent][workspaceId]),
+					allTasks = List.Combine({accessTasks, inventoryTasks}),
+					known = List.Distinct(accessKeys & List.Combine(List.Transform(inventories, each
+						let j = _[Resources]{0}[Json] in if j[complete] then List.Transform(j[records], TargetKey) else {})))
+				in List.Count(List.Distinct(accessKeys)) = List.Count(List.Distinct(accessTasks))
+					and List.Count(List.Distinct(inventoryKeys)) = List.Count(List.Distinct(inventoryTasks))
+					and List.Count(List.Distinct(allTasks)) = List.Count(List.Distinct(List.Transform(nodes, each _[Task])))
+					and List.Count(known) <= 50
+					and List.Count(known) + List.Count(List.Distinct(inventoryKeys)) <= r[Execution][taskCount],
+			WithHealth = Table.AddColumn(WithChain, "Healthy", each CompleteCycle(_), type logical),
+			WithIssues = Table.AddColumn(WithHealth, "Issues", each [LocalIssues]
+				+ (if Permissions and [LocalIssues] = 0 and not [Chain][Valid] then 1 else 0)
+				+ (if Permissions and [LocalIssues] = 0 and [Chain][Valid] and not PartialStructure(_) then 1 else 0)
+				+ (if [LocalIssues] = 0 and [Chain][Valid] and JsonField([Manifest], "complete") = true and not [Healthy] then 1 else 0), Int64.Type),
+			Sorted = Table.Buffer(Table.Sort(WithIssues, {{"Attempt", Order.Descending}, {"Run Path", Order.Descending}})),
+			Latest = if Table.IsEmpty(Sorted) then null else Sorted{0},
+			Good = Table.SelectRows(Sorted, each [Healthy] and [Issues] = 0),
+			Empty = Table.FirstN(Table.SelectRows(Checked, each [FileName] <> "manifest.json"), 0),
+			// Partial admission still requires every committed predecessor to pass Walk, not just the final slice.
+			PermissionCandidates = if not Permissions then Table.FirstN(Sorted, 0) else
+				Table.SelectRows(Sorted, each [Finished] and [Issues] = 0 and [Chain][Valid]),
+			CycleResources = (r as any) as table =>
+				if r = null then Empty else Table.Combine({Empty} & List.Transform(r[Chain][Nodes], each _[Committed])),
+			Useful = Table.SelectRows(PermissionCandidates, (r) =>
+				not Table.IsEmpty(Table.SelectRows(CycleResources(r), each [Json][complete] and not Inventory([Json][parent])))
+					or (Tenant and r[Healthy] and r[Execution][discoveredItems] = 0)),
+			FinishedUseful = Table.SelectRows(Useful, each [Execution][cycleFinished]),
+			Preferred = if not Table.IsEmpty(FinishedUseful) then FinishedUseful else Useful,
+			Snapshot = if Permissions then (if Table.IsEmpty(Preferred) then null else Preferred{0})
+				else if Table.IsEmpty(Good) then null else Good{0},
+			Basis = if Snapshot <> null then Snapshot else if Table.IsEmpty(PermissionCandidates) then null else PermissionCandidates{0},
+			Current = Latest <> null and Latest[Healthy] and Latest[Issues] = 0
+				and Table.IsEmpty(Table.SelectRows(Sorted, each [Attempt] = null))
+				and (not Permissions or (Snapshot <> null and Snapshot[ManifestPath] = Latest[ManifestPath])),
+			CycleFiles = if Snapshot = null or not Permissions then Empty else
+				Table.SelectRows(CycleResources(Snapshot), each [Json][complete]),
+			Observations = if Permissions then Table.SelectRows(CycleFiles, each not Inventory([Json][parent]))
+				else Table.Combine({Empty} & Sorted[Usable]),
+			LatestResources = if Latest = null or not Latest[Finished] then Empty
+				else if Permissions then
+					if Latest[LocalIssues] <> 0 or not Latest[Chain][Valid] then Empty else
+						Table.Combine({Empty} & List.Transform(Latest[Chain][Nodes], each _[Resources]))
+				else Latest[Committed],
+			ScopeFiles = if Permissions then Table.SelectRows(CycleResources(Basis), each not Inventory([Json][parent]))
+				else Table.SelectRows(LatestResources, each [Issue] = null and (not Permissions or not Inventory([Json][parent]))),
+			BasisNodes = if not Permissions or Basis = null then {} else Basis[Chain][Nodes],
+			CycleId = (r as any) as nullable text =>
+				if r = null or List.IsEmpty(r[Chain][Nodes]) then null else r[Chain][Nodes]{0}[RunId],
+			LatestCycleId = if not Permissions or Latest = null or not Latest[Chain][Valid] then null else CycleId(Latest),
+			KnownTargets = if not Permissions then {} else List.Distinct(List.Transform(
+				List.Combine(List.Transform(BasisNodes, (n) =>
+					let j = n[Resources]{0}[Json]
+					in if Inventory(j[parent]) then (if j[complete] then j[records] else {}) else {j[parent]})),
+				each Record.SelectFields(_, {"workspaceId", "itemId", "type"}))),
+			// No configured scope file is read. Inventory can identify unvisited targets, but cannot invent missing identities.
+			PermissionScope = List.Transform(KnownTargets, (p) =>
+				let
+					nodes = List.Select(BasisNodes, each not Inventory(_[Resources]{0}[Json][parent])
+						and TargetKey(_[Resources]{0}[Json][parent]) = TargetKey(p)),
+					n = List.Last(nodes, null),
+					j = if n = null then null else n[Resources]{0}[Json],
+					outcome = if j = null then "Not attempted" else if j[complete] then
+						(if List.IsEmpty(j[records]) then "Collected: zero grants" else "Collected")
+						else if n[Execution][deferred] then "Deferred"
+						else if Tenant and n[Execution][resourceOutcome] <> "failed" then "Failed: " & n[Execution][resourceOutcome]
+						else "Failed",
+					codes = if n = null then {} else List.Select(
+						List.Transform(n[Manifest][errors], each JsonField(_, "status")),
+						each if not (_ is number) then false else Integer(_) and _ >= 100 and _ <= 599)
+				in [
+					#"Workspace Id" = p[workspaceId], #"Item Id" = p[itemId], #"Item Type" = p[type],
+					#"Collection Outcome" = outcome, #"HTTP Status" = List.First(codes, null),
+					#"Returned Access Details" = if j = null then null else if j[complete] then List.Count(j[records]) else null,
+					#"Observed At UTC" = if j = null then null else ToUtcDateTime(j[observedAt]),
+					#"Run Id" = if j = null then null else j[runId], #"Cycle Id" = CycleId(Basis)
+				]),
+			Successful = List.Count(List.Select(PermissionScope, each Text.StartsWith(_[Collection Outcome], "Collected"))),
+			Failed = List.Count(List.Select(PermissionScope, each Text.StartsWith(_[Collection Outcome], "Failed"))),
+			Deferred = List.Count(List.Select(PermissionScope, each _[Collection Outcome] = "Deferred")),
+			NotAttempted = List.Count(List.Select(PermissionScope, each _[Collection Outcome] = "Not attempted")),
+			InventoryTasks = List.Count(List.Distinct(List.Transform(
+				List.Select(BasisNodes, each Inventory(_[Resources]{0}[Json][parent])), each _[Task]))),
+			Expected = if Basis = null then null
+				else if Tenant then (if Basis[Execution][inventoryComplete] then Basis[Execution][discoveredItems] else null)
+				else if Basis[Execution][cycleFinished] then Basis[Execution][taskCount] - InventoryTasks
+				else if List.Count(KnownTargets) + InventoryTasks = Basis[Execution][taskCount] then List.Count(KnownTargets) else null,
+			UnknownTargets = if Expected = null then null else List.Max({0, Expected - List.Count(KnownTargets)}),
+			RemainingTasks = if Basis = null then null
+				else if Tenant then (if Expected = null then null else Expected - Basis[Execution][nextItem])
+				else Basis[Execution][taskCount] - Basis[Execution][nextTask],
+			BasisHealthy = Basis <> null and Basis[Healthy],
+			Partial = not Current or not BasisHealthy or Expected = null or UnknownTargets <> 0,
+			BasisState = if Basis = null then "No validated cycle"
+				else if Basis[Healthy] then "Finished healthy cycle"
+				else if Basis[Execution][cycleFinished] then "Finished failed cycle" else "In-progress cycle",
+			ObservationTimes = List.Transform(Observations[Json], each ToUtcDateTime(_[observedAt])),
+			ObservationStart = if List.IsEmpty(ObservationTimes) then null else List.Min(ObservationTimes),
+			ObservationEnd = if List.IsEmpty(ObservationTimes) then null else List.Max(ObservationTimes),
+			Errors = if Table.IsEmpty(Sorted) then 0 else List.Sum(Sorted[Issues]),
+			SnapshotFiles = if Snapshot = null then Empty else if Permissions then Observations else Snapshot[Usable],
+			Count = if Snapshot = null then null else List.Sum({0} & List.Transform(SnapshotFiles[Json], each List.Count(_[records]))),
+			AttemptState = if Latest = null then "Not collected"
+				else if Latest[Issues] > 0 then "Invalid collection evidence"
+				else if not Latest[Finished] then "Unfinished / initial write"
+				else if not Permissions then
+					if Latest[Healthy] then "Completed healthy poll" else "Finished partial or failed poll"
+				else if Latest[Execution][deferred] then
+					if Latest[Execution][attempts] = 0 then "Deferred without HTTP attempt" else "Deferred after attempted request"
+				else if not Latest[Execution][cycleHealthy] then
+					if Latest[Execution][cycleFinished] then "Finished unsuccessful cycle" else "Cycle incomplete after failed target"
+				else if Latest[Execution][cycleFinished] then "Completed healthy cycle" else "Healthy cycle in progress",
+			State = if Latest = null then "Not collected: disabled, unconfigured or never run; no observations"
+				else if Current then (if Count = 0 then "Success: complete collection returned zero records" else "Success: complete collection")
+				else if Permissions then
+					"PARTIAL COVERAGE: " & Text.From(Successful, "en-US") & " of "
+						& (if Expected = null then "unknown" else Text.From(Expected, "en-US")) & " targets successfully read; "
+						& Text.From(Failed, "en-US") & " failed; " & Text.From(Deferred, "en-US") & " deferred; "
+						& Text.From(NotAttempted, "en-US") & " known not attempted; "
+						& (if UnknownTargets = null then "unknown identities/count unresolved" else Text.From(UnknownTargets, "en-US") & " unknown identities")
+						& ". " & BasisState
+						& (if Basis = null then "" else "; basis cycle " & CycleId(Basis)
+							& (if Latest = null then "" else if Basis[ManifestPath] <> Latest[ManifestPath] then "; STALE relative to latest attempt; scope may differ" else ""))
+						& ". Permission rows show successful observations only; failures do not mean no access."
+				else "Incomplete or failed latest job poll; retained job history may be stale; latest scope may omit unvisited targets",
+			Status = [
+				Module = if Permissions then "fabricitemaccesspermissions" else module,
+				State = (if Permissions then (if Tenant then "Tenant" else "Scoped") & " mode | " else "")
+					& State & (if Latest = null then "" else " | Latest attempt: " & AttemptState)
+					& (if Errors > 0 then " | Load errors present" else ""),
+				#"Last Attempt UTC" = if Latest = null then null else Latest[Attempt],
+				#"Snapshot UTC" = if Snapshot = null then null else ToUtcDateTime(Snapshot[Manifest][observedAt]),
+				#"Snapshot Row Count" = Count, #"Has Snapshot" = Snapshot <> null,
+				#"Latest Run Complete" = Current, #"Error Count" = Errors,
+				#"Load Error" = if Errors = 0 then null else Text.From(Errors, "en-US") & " invalid or inconsistent immutable artifacts/evidence chains; inspect source files.",
+				Coverage = if Permissions then
+					"One validated cycle only: newest finished cycle with successful access observations (including empty success), otherwise newest useful in-progress cycle. No cross-cycle grant carry-forward. "
+						& (if Tenant then "Tenant active items returned by Admin discovery; expected total is unknown until discovery completes. Healthy empty tenant discovery clears older grants. "
+							else "Explicit configured items only. ")
+						& "Linked slices are not a point-in-time snapshot. No expanded groups or complete effective access."
+					else "Explicit Notebook, DataPipeline and SparkJobDefinition targets only. Most APIs expose 100 completed plus active jobs; polling gaps cannot be recovered. All retained observations, including deselected targets, contribute history; raw failure payloads excluded."
+			],
+			PermissionStatus = if not Permissions then Status else Record.Combine({Status, [
+				#"Permission Cycle Id" = CycleId(Basis), #"Permission Latest Cycle Id" = LatestCycleId,
+				#"Permission Cycle Status" = BasisState, #"Permission Latest Attempt Status" = AttemptState,
+				#"Permission Successful Targets" = Successful, #"Permission Failed Targets" = Failed,
+				#"Permission Deferred Targets" = Deferred, #"Permission Not Attempted Targets" = NotAttempted,
+				#"Permission Expected Targets" = Expected, #"Permission Unknown Targets" = UnknownTargets,
+				#"Permission Remaining Tasks" = RemainingTasks, #"Permission Partial Coverage" = Partial,
+				#"Permission Observation Start UTC" = ObservationStart, #"Permission Observation End UTC" = ObservationEnd
+			]})
+		in
+			[Observations = Observations, ScopeFiles = ScopeFiles, Status = PermissionStatus, PermissionScope = PermissionScope,
+				ScopeComplete = if Permissions then BasisHealthy else Current,
+				ScopeCurrent = Current, Snapshot = Snapshot]
+	lineageTag: 0fc41d2d-b696-4e52-9da4-5bed96fe7e63
+
+	annotation PBI_ResultType = Function
+
+expression FabricItemPermissionsData =
+		if ItemPermissionMode = "Scoped" then GetFabricItemCollection("fabricitemaccesspermissions")
+		else if ItemPermissionMode = "Tenant" then GetFabricItemCollection("fabricitemaccesspermissions_tenant")
+		else error Error.Record("InvalidItemPermissionMode", "ItemPermissionMode must be Scoped or Tenant.", null)
+	lineageTag: c58d8b43-2a9c-4cae-920b-8d24679f0838
+
+expression FabricItemJobsData = GetFabricItemCollection("fabricitemjobhistory")
+	lineageTag: d4e3a0a9-d65d-46c2-b854-e667085dc9cf
+
+/// Stable list normalization preserves one row per principal/access detail, rather than multiplying grants by permission strings.
+expression NormalizeFabricPermissions = (values as list) as text => Text.Combine(List.Sort(List.Distinct(values)), ", ")
+	lineageTag: 032ac636-c9a2-4fa7-8c8c-6edbd66b1ca3
+
+	annotation PBI_ResultType = Function
+
+/// Selects one immutable permission evidence folder; never combines scoped and tenant cycles.
+expression ItemPermissionMode = "Scoped" meta [IsParameterQuery=true, List={"Scoped", "Tenant"}, DefaultValue="Scoped", Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 5ab0121f-7619-4dbe-938b-94cd1899650d
+
+	annotation PBI_ResultType = Text
+

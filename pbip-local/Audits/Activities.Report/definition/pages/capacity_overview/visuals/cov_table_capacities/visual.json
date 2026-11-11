@@ -1,0 +1,166 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "cov_table_capacities",
+  "position": {
+    "x": 35,
+    "y": 700,
+    "z": 40,
+    "height": 340,
+    "width": 1850,
+    "tabOrder": 40
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Capacities"
+                    }
+                  },
+                  "Property": "Capacity Name"
+                }
+              },
+              "queryRef": "Capacities.Capacity Name",
+              "nativeQueryRef": "Capacity Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Capacities"
+                    }
+                  },
+                  "Property": "SKU"
+                }
+              },
+              "queryRef": "Capacities.SKU",
+              "nativeQueryRef": "SKU"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Peak Utilization %"
+                }
+              },
+              "queryRef": "CapacityMetrics.Peak Utilization %",
+              "nativeQueryRef": "Peak Utilization %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Avg Utilization %"
+                }
+              },
+              "queryRef": "CapacityMetrics.Avg Utilization %",
+              "nativeQueryRef": "Avg Utilization %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Max Carry Over %"
+                }
+              },
+              "queryRef": "CapacityMetrics.Max Carry Over %",
+              "nativeQueryRef": "Max Carry Over %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Overload Timepoints"
+                }
+              },
+              "queryRef": "CapacityMetrics.Overload Timepoints",
+              "nativeQueryRef": "Overload Timepoints"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Throttling Status"
+                }
+              },
+              "queryRef": "CapacityMetrics.Throttling Status",
+              "nativeQueryRef": "Throttling Status"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Capacity summary'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

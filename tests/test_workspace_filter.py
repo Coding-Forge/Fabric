@@ -7,7 +7,7 @@ from datetime import datetime
 import pytest
 
 from env.config import build_audit
-from env.modules import catalog, fabricitems, itemjobs
+from env.modules import catalog, controlplane, fabricitems, itemjobs
 from env.utility.workspace_filter import filter_workspace_records, parse_workspace_ids
 
 
@@ -92,9 +92,9 @@ class FakeContext:
         return f"https://api.fabric.microsoft.com/{path}"
 
     def convert_dt_str(self, value):
-        if isinstance(value, datetime):
-            return value
-        return datetime.strptime(value, "%Y-%m-%dT%H:%M:%S.%fZ")
+        from env.context import Context
+
+        return Context().convert_dt_str(value)
 
     async def invokeAPI(self, rest_api, headers=None, json=None):
         self.api_calls.append((rest_api, json))
@@ -134,6 +134,37 @@ def test_catalog_inclusion_overrides_modified_since_and_scans_only_included_work
     assert len(scan_files) == 1
     assert [workspace["id"] for workspace in scan_files[0][2]["workspaces"]] == [WORKSPACE_ID]
     assert "Catalog workspace filter: found=1, included=1, excluded=0, processed=1" in caplog.text
+
+
+def test_catalog_exclusion_wins_without_scanning_or_advancing_state():
+    context = FakeContext(include_ids={WORKSPACE_ID}, exclude_ids={WORKSPACE_ID})
+
+    assert asyncio.run(catalog.main(context)) is True
+
+    assert context.api_calls == []
+    assert context.fm.saved == []
+    assert context.current_state == {}
+
+
+@pytest.mark.parametrize("module", [itemjobs, controlplane])
+@pytest.mark.parametrize("payload", [
+    None,
+    {"ERROR": "HTTP 503", "status": 503},
+    {"error": {"code": "Forbidden"}},
+    {"itemEntities": {}},
+    {"itemEntities": [], "continuationUri": 1},
+    {"itemEntities": [], "continuationUri": "https://api.fabric.microsoft.com/v1/admin/items"},
+])
+def test_supplementary_inventory_failure_cannot_report_success(module, payload):
+    context = FakeContext()
+
+    async def invoke(*args, **kwargs):
+        return payload
+
+    context.invokeAPI = invoke
+
+    assert asyncio.run(module.main(context)) is False
+    assert context.fm.saved == []
 
 
 def test_itemjobs_filters_before_per_item_http_calls(monkeypatch, caplog):
@@ -187,7 +218,7 @@ def test_itemjobs_filters_before_per_item_http_calls(monkeypatch, caplog):
     assert "ItemJobs workspace filter: found=2, included=1, excluded=1, processed=1" in caplog.text
 
 
-def test_fabricitems_filters_saved_items_and_lineage_api_calls(monkeypatch, caplog):
+def test_fabricitems_filters_saved_items_without_non_admin_api_calls(monkeypatch, caplog):
     caplog.set_level(logging.INFO, logger="test.workspace_filter")
     context = FakeContext(include_ids={WORKSPACE_ID})
     relation_urls = []
@@ -209,7 +240,5 @@ def test_fabricitems_filters_saved_items_and_lineage_api_calls(monkeypatch, capl
     item_outputs = [saved for saved in context.fm.saved if saved[0].startswith("items/")]
     assert len(item_outputs) == 1
     assert [item["workspaceId"] for item in item_outputs[0][2]] == [WORKSPACE_ID]
-    assert len(relation_urls) == 2
-    assert all(f"/workspaces/{WORKSPACE_ID}/" in url for url in relation_urls)
+    assert relation_urls == []
     assert "FabricItems workspace filter: found=2, included=1, excluded=1, processed=1" in caplog.text
-    assert "FabricItems lineage workspace filter: found=2, included=1, excluded=1, processed=1" in caplog.text

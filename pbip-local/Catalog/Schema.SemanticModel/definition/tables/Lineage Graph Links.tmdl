@@ -1,0 +1,76 @@
+table 'Lineage Graph Links'
+	lineageTag: 8e33b2f6-2b35-4ae4-9647-92270d633802
+
+	measure 'Graph Link Weight' =
+			VAR Focus = VALUES('Lineage Graph Nodes'[Node Key])
+			RETURN
+				IF(ISFILTERED('Lineage Graph Nodes'),
+					CALCULATE(COUNTROWS('Lineage Graph Links'),
+						KEEPFILTERS(FILTER('Lineage Graph Links',
+							'Lineage Graph Links'[Source Key] IN Focus
+								|| 'Lineage Graph Links'[Consumer Key] IN Focus))),
+					COUNTROWS('Lineage Graph Links'))
+		formatString: #,0
+		lineageTag: b894f1b9-567d-4a0a-bc6b-499b67033d1c
+
+	measure 'Graph Dependency Count' = IF(COUNTROWS('Lineage Workspaces') > 0, COALESCE([Graph Link Weight], 0))
+		formatString: #,0
+		lineageTag: d6c0b962-566d-43dd-9604-deb011ba0248
+
+	column 'Source Key'
+		dataType: string
+		isHidden
+		lineageTag: 8492ebd1-57c6-4a27-9dca-df45e978dcb1
+		summarizeBy: none
+		sourceColumn: Source Key
+
+	column 'Consumer Key'
+		dataType: string
+		isHidden
+		lineageTag: f3c2b1d7-96d8-4f18-99d8-3f080f38d88a
+		summarizeBy: none
+		sourceColumn: Consumer Key
+
+	column 'Consumer Workspace Id'
+		dataType: string
+		lineageTag: 6d6869c2-33e1-447e-8841-6e19d70bd9cd
+		summarizeBy: none
+		sourceColumn: Consumer Workspace Id
+
+	column Source
+		dataType: string
+		lineageTag: a508f3dc-cd99-41a5-b0bf-019e1b48851c
+		summarizeBy: none
+		sourceColumn: Source
+
+	column Consumer
+		dataType: string
+		lineageTag: 22d2f2bf-690a-4595-aa6a-9534e7e1a1a0
+		summarizeBy: none
+		sourceColumn: Consumer
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 2cb03749-0d85-488d-bd66-0bf906741cc4
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	column 'Relation Types'
+		dataType: string
+		lineageTag: 8246adb7-2d20-49a6-9737-8709bf85eeed
+		summarizeBy: none
+		sourceColumn: Relation Types
+
+	column 'Source Resolution'
+		dataType: string
+		lineageTag: e6fcaa04-b0a6-4921-b9e0-0180612a685f
+		summarizeBy: none
+		sourceColumn: Source Resolution
+
+	partition 'Lineage Graph Links' = m
+		mode: import
+		source = LineageGraphData[Links]
+
+	annotation PBI_ResultType = Table
+

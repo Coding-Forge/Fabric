@@ -1,0 +1,218 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "wi_datasets",
+  "position": {
+    "x": 40,
+    "y": 260,
+    "z": 7000,
+    "height": 300,
+    "width": 590,
+    "tabOrder": 7000
+  },
+  "visual": {
+    "visualType": "clusteredBarChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Datasets"
+                    }
+                  },
+                  "Property": "WorkspaceName"
+                }
+              },
+              "queryRef": "Datasets.WorkspaceName",
+              "nativeQueryRef": "WorkspaceName",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "Datasets"
+                        }
+                      },
+                      "Property": "DatasetId"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(Datasets.DatasetId)",
+              "nativeQueryRef": "Count of DatasetId"
+            }
+          ]
+        },
+        "Drillthrough": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Datasets"
+                    }
+                  },
+                  "Property": "WorkspaceName"
+                }
+              },
+              "queryRef": "Datasets.WorkspaceName",
+              "nativeQueryRef": "WorkspaceName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Datasets"
+                    }
+                  },
+                  "Property": "WorkspaceId"
+                }
+              },
+              "queryRef": "Datasets.WorkspaceId",
+              "nativeQueryRef": "WorkspaceId"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "Datasets"
+                      }
+                    },
+                    "Property": "DatasetId"
+                  }
+                },
+                "Function": 2
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "categoryAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "valueAxis": [
+        {
+          "properties": {
+            "showAxisTitle": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Datasets per workspace'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "10d94a289c7284e48070",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspaces"
+              }
+            },
+            "Property": "WorkspaceName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "2b9eec02a9a107db1e52",
+        "field": {
+          "Aggregation": {
+            "Expression": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Datasets"
+                  }
+                },
+                "Property": "DatasetId"
+              }
+            },
+            "Function": 2
+          }
+        },
+        "type": "Advanced"
+      },
+      {
+        "name": "4ea0ed46957b0d715043",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Workspaces"
+              }
+            },
+            "Property": "WorkspaceId"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

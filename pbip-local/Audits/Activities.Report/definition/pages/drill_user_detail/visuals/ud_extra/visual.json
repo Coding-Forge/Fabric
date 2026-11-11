@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "ud_extra",
+  "position": { "x": 1210, "y": 500, "z": 31, "height": 560, "width": 675 },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "UserLicenseActivity" } }, "Property": "DisplayName" } }, "queryRef": "UserLicenseActivity.DisplayName", "nativeQueryRef": "DisplayName" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "UserLicenseActivity" } }, "Property": "LicenseName" } }, "queryRef": "UserLicenseActivity.LicenseName", "nativeQueryRef": "LicenseName" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "UserLicenseActivity" } }, "Property": "IsPowerBILicense" } }, "queryRef": "UserLicenseActivity.IsPowerBILicense", "nativeQueryRef": "IsPowerBILicense" },
+            { "field": { "Column": { "Expression": { "SourceRef": { "Entity": "UserLicenseActivity" } }, "Property": "ActivityStatus" } }, "queryRef": "UserLicenseActivity.ActivityStatus", "nativeQueryRef": "ActivityStatus" },
+            { "field": { "Measure": { "Expression": { "SourceRef": { "Entity": "_Measures" } }, "Property": "Licence Rows for User" } }, "queryRef": "_Measures.Licence Rows for User", "nativeQueryRef": "Licence Rows for User" }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        { "properties": { "textSize": { "expr": { "Literal": { "Value": "9D" } } } } }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": { "expr": { "Literal": { "Value": "true" } } },
+            "text": { "expr": { "Literal": { "Value": "'Licences (matched on user principal name)'" } } },
+            "fontSize": { "expr": { "Literal": { "Value": "11D" } } }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

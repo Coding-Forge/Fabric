@@ -1,4 +1,5 @@
 .azure
+GeneralDynamics/
 config.json
 
 # Ignore all files in the root except the .gitignore file
@@ -6,6 +7,32 @@ config.json
 *.log
 *.map
 *.ipynb
+!notebooks/01_monitor_inventory_health.ipynb
+!notebooks/02_monitor_permissions.ipynb
+!notebooks/03_monitor_job_history.ipynb
+!notebooks/04_monitor_lineage.ipynb
+!notebooks/05_monitor_visualizations.ipynb
+!notebooks/06_monitor_validation.ipynb
+!notebooks/07_monitor_activity_events.ipynb
+!notebooks/08_monitor_estate_catalog_schema.ipynb
+!notebooks/09_monitor_connections.ipynb
+!notebooks/10_monitor_gateways.ipynb
+!notebooks/11_monitor_refresh_history.ipynb
+!notebooks/12_monitor_apps.ipynb
+!notebooks/13_monitor_capacity_performance.ipynb
+!notebooks/14_monitor_directory_licensing.ipynb
+!notebooks/15_monitor_workspace_roles.ipynb
+!notebooks/16_monitor_tenant_settings.ipynb
+!notebooks/17_monitor_domains.ipynb
+!notebooks/18_monitor_git_connections.ipynb
+!notebooks/19_monitor_tags.ipynb
+!notebooks/20_monitor_broad_sharing.ipynb
+!notebooks/21_monitor_deployment_pipelines.ipynb
+!notebooks/nb_orchestrator.ipynb
+!notebooks/archive/activity.ipynb
+!notebooks/archive/catalog.ipynb
+!notebooks/archive/Deconstruct.ipynb
+!notebooks/archive/nbk.ipynb
 
 
 **/__pycache__/
@@ -21,10 +48,12 @@ venv/
 !Fabric/*.json
 .python_packages
 
-# Ignore local GeneralDynamics content
-GeneralDynamics/
+# Local Power BI project copy of the Capacity Metrics app (schema inspection only)
+MetricApp/
+# Local exports of the Capacity Metrics model schema/samples (may contain capacity names)
+capacity_data/
 
-# pbip-local is for local PBIP development only (used to produce PBIT files);
-# it should not be committed to source control
-pbip-local/
-
+# Version PBIP sources, not Desktop caches or endpoint-protection metadata.
+!pbip-local/**/*.json
+**/.pbi/
+*:sec.endpointdlp

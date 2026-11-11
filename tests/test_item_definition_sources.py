@@ -4,8 +4,8 @@ import json
 from unittest import mock
 
 from env.modules import itemjobs
-from test_workspace_filter import FakeContext, WORKSPACE_ID, OTHER_WORKSPACE_ID
-from test_item_sources import Response
+from tests.test_workspace_filter import FakeContext, WORKSPACE_ID, OTHER_WORKSPACE_ID
+from tests.test_item_sources import Response
 
 MODEL_ID = "ee9d3aed-f341-4bba-a41c-f8be25e97b9e"
 EVENTHOUSE_ID = "ad021d12-0721-4c22-acc8-f6f64469988f"

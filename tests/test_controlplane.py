@@ -4,8 +4,9 @@ from datetime import datetime
 from unittest import mock
 
 from env.modules import controlplane
-from test_item_sources import Response
-from test_workspace_filter import FakeContext, WORKSPACE_ID, OTHER_WORKSPACE_ID, ITEM_ID, OTHER_ITEM_ID
+from env.context import utc_now
+from tests.test_item_sources import Response
+from tests.test_workspace_filter import FakeContext, WORKSPACE_ID, OTHER_WORKSPACE_ID, ITEM_ID, OTHER_ITEM_ID
 
 PIPELINE_ID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
 
@@ -25,7 +26,7 @@ ITEM_USERS = {"accessDetails": [{
 
 
 def _day():
-    d = datetime.now()
+    d = utc_now()
     return f"{d:%Y}/{d:%m}/{d:%d}/", d
 
 
@@ -55,6 +56,27 @@ def test_flatten_access_prefers_upn():
     item = controlplane._flatten_access(ITEM_USERS["accessDetails"])
     assert ws == [{"Principal": "u1@contoso.com", "PrincipalType": "User", "PrincipalId": "u1", "Role": "Admin"}]
     assert item[0]["Principal"] == "Group One" and item[0]["Permissions"] == ["Read"]
+
+
+def test_lineage_falls_back_to_saved_scanner_results_without_beta_calls():
+    context = FakeContext()
+    day_path, day = _day()
+    context.fm.files[f"catalog/scans/{day_path}{day:%Y%m%d}_00001.scanResults.json"] = json.dumps({
+        "workspaces": [{
+            "id": WORKSPACE_ID,
+            "reports": [{"id": PIPELINE_ID, "datasetId": ITEM_ID}],
+            "datasets": [{"id": ITEM_ID, "name": "model"}],
+        }],
+    })
+
+    edges = asyncio.run(controlplane._load_lineage(context, day))
+
+    assert len(edges) == 2
+    upstream = next(edge for edge in edges if edge["Direction"] == "upstream")
+    assert upstream["QueryItemId"] == PIPELINE_ID
+    assert upstream["RelatedItemId"] == ITEM_ID
+    assert upstream["Source"] == "Scanner"
+    assert context.api_calls == []
 
 
 def test_main_one_row_per_endpoint_and_item_row_for_items_without_endpoints():

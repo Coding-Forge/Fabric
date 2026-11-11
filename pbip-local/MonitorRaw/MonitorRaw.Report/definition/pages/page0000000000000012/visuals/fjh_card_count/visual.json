@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "fjh_card_count",
+  "position": {
+    "x": 20,
+    "y": 325,
+    "width": 230,
+    "height": 80,
+    "z": 6000,
+    "tabOrder": 6000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Fabric Job Count"
+                }
+              },
+              "queryRef": "Fabric Job History.Fabric Job Count",
+              "nativeQueryRef": "Fabric Job Count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

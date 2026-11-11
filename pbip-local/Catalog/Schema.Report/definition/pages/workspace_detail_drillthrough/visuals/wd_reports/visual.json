@@ -1,0 +1,234 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "wd_reports",
+  "position": {
+    "x": 40,
+    "y": 405,
+    "z": 3000,
+    "height": 275,
+    "width": 895,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reports"
+                    }
+                  },
+                  "Property": "ReportName"
+                }
+              },
+              "queryRef": "Reports.ReportName",
+              "nativeQueryRef": "ReportName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reports"
+                    }
+                  },
+                  "Property": "ReportId"
+                }
+              },
+              "queryRef": "Reports.ReportId",
+              "nativeQueryRef": "ReportId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reports"
+                    }
+                  },
+                  "Property": "DatasetId"
+                }
+              },
+              "queryRef": "Reports.DatasetId",
+              "nativeQueryRef": "DatasetId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reports"
+                    }
+                  },
+                  "Property": "ReportType"
+                }
+              },
+              "queryRef": "Reports.ReportType",
+              "nativeQueryRef": "ReportType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reports"
+                    }
+                  },
+                  "Property": "Format"
+                }
+              },
+              "queryRef": "Reports.Format",
+              "nativeQueryRef": "Format"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Reports"
+                    }
+                  },
+                  "Property": "ModifiedDateTime"
+                }
+              },
+              "queryRef": "Reports.ModifiedDateTime",
+              "nativeQueryRef": "ModifiedDateTime"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Reports'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "b416cc719150976a730a",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Reports"
+              }
+            },
+            "Property": "ReportName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "2af8ccd4a85623103be6",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Reports"
+              }
+            },
+            "Property": "ReportId"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "4c18792aca750e1ce871",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Reports"
+              }
+            },
+            "Property": "DatasetId"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "763a70625307087a640e",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Reports"
+              }
+            },
+            "Property": "ReportType"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "39cc424b0e5c8e088bd3",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Reports"
+              }
+            },
+            "Property": "Format"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "9dc8890d4cadc9283b07",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Reports"
+              }
+            },
+            "Property": "ModifiedDateTime"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

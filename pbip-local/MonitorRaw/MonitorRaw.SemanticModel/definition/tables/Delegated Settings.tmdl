@@ -1,0 +1,116 @@
+/// Latest snapshot of delegated tenant-setting overrides per scope (delegatedsettings/<scope>/YYYY/MM/DD/<scope>.json); one row per override.
+table 'Delegated Settings'
+	lineageTag: 84c167f2-a186-42b2-a5a1-e55a3e3512de
+
+	measure 'Delegated Override Count' = CALCULATE(COUNTROWS('Delegated Settings'), 'Delegated Settings'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 73475d4a-f86c-4208-8ee8-745b0565bb2d
+
+	measure 'Delegated Entity Count' = CALCULATE(DISTINCTCOUNT('Delegated Settings'[Entity Id]), 'Delegated Settings'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: e30e4d68-e0cb-4e7e-9807-80b056c4832f
+
+	measure 'Delegated Setting Count' = CALCULATE(DISTINCTCOUNT('Delegated Settings'[Setting Name]), 'Delegated Settings'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 9ab4a4c8-4db4-43c6-95fc-9773534945e4
+
+	column Scope
+		dataType: string
+		lineageTag: 3f9a09ce-90c5-49e8-8e89-66f5325f4fe3
+		summarizeBy: none
+		sourceColumn: Scope
+
+	column 'Entity Id'
+		dataType: string
+		lineageTag: 955f4045-e8b6-4f72-851b-5a7ca3abce9b
+		summarizeBy: none
+		sourceColumn: Entity Id
+
+	column 'Setting Name'
+		dataType: string
+		lineageTag: 4a0e0913-3d25-4a54-8ebb-63ca7fdd9b19
+		summarizeBy: none
+		sourceColumn: Setting Name
+
+	column Title
+		dataType: string
+		lineageTag: e8f487b2-c94e-4d3a-8bf5-aaa226f85f35
+		summarizeBy: none
+		sourceColumn: Title
+
+	column Enabled
+		dataType: boolean
+		lineageTag: 8e69ee10-27e5-41ff-b3b6-980760a7032c
+		summarizeBy: none
+		sourceColumn: Enabled
+
+	column 'Setting Group'
+		dataType: string
+		lineageTag: 7772703d-010d-460e-9988-6090a17dae63
+		summarizeBy: none
+		sourceColumn: Setting Group
+
+	column 'Delegated From'
+		dataType: string
+		lineageTag: 6e4264b3-2ec9-4e7b-823c-8ff1a21096e7
+		summarizeBy: none
+		sourceColumn: Delegated From
+
+	column 'Snapshot Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 438b6baf-b355-4621-92b9-dc2db3714d47
+		summarizeBy: none
+		sourceColumn: Snapshot Date
+
+		variation Variation
+			isDefault
+			relationship: 828c238b-57f0-4f58-9d6d-8b90dcdf0cc5
+			defaultHierarchy: LocalDateTable_30125a66-aaa4-4143-bd1f-9f6b1ddded61.'Date Hierarchy'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Source File'
+		dataType: string
+		lineageTag: f9c4eb6e-bf8e-4d62-b089-ce57088d7a64
+		summarizeBy: none
+		sourceColumn: Source File
+
+	column 'Load Error'
+		dataType: string
+		lineageTag: dc29a688-8326-46af-b4cd-ccad72dd2cb3
+		summarizeBy: none
+		sourceColumn: Load Error
+
+	partition 'Delegated Settings' = m
+		mode: import
+		source =
+				let
+					Items = ExpandItems(KeepLatestPerGroup(GetFiles("delegatedsettings"), "Group")),
+					WithSettings = Table.AddColumn(Items, "Setting", each
+						if [Item] is record then
+							(let s = Coalesce(JsonField([Item], "tenantSettings"), JsonField([Item], "overrides"))
+							in if s is list then List.Select(s, (x) => x is record) else {})
+						else {null}),
+					Expanded = Table.SelectRows(Table.ExpandListColumn(WithSettings, "Setting"), each [Setting] <> null or [ParseError] <> null),
+					WithColumns = AddColumns(Expanded, {
+						{"Scope", each [Group], type text},
+						{"Entity Id", each ToText(JsonField([Item], "id")), type text},
+						{"Setting Name", each ToText(JsonField([Setting], "settingName")), type text},
+						{"Title", each ToText(JsonField([Setting], "title")), type text},
+						{"Enabled", each ToLogical(JsonField([Setting], "enabled")), type nullable logical},
+						{"Setting Group", each ToText(JsonField([Setting], "tenantSettingGroup")), type text},
+						{"Delegated From", each ToText(JsonField([Setting], "delegatedFrom")), type text},
+						{"Snapshot Date", each [FileDate], type nullable date},
+						{"Source File", each if [ParseError] <> null then [RelPath] else null, type text},
+						{"Load Error", each [ParseError], type text}
+					}),
+					Result = Table.SelectColumns(WithColumns, {"Scope", "Entity Id", "Setting Name", "Title", "Enabled", "Setting Group", "Delegated From", "Snapshot Date", "Source File", "Load Error"})
+				in
+					Result
+
+	annotation PBI_ResultType = Table
+

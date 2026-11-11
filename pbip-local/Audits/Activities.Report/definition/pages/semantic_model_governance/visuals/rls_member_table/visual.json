@@ -1,0 +1,115 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "rls_member_table",
+  "position": {
+    "x": 40,
+    "y": 640,
+    "z": 7,
+    "height": 360,
+    "width": 1200
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetRoleMembers"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "CatalogDatasetRoleMembers.DatasetName",
+              "nativeQueryRef": "DatasetName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetRoleMembers"
+                    }
+                  },
+                  "Property": "RoleName"
+                }
+              },
+              "queryRef": "CatalogDatasetRoleMembers.RoleName",
+              "nativeQueryRef": "RoleName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetRoleMembers"
+                    }
+                  },
+                  "Property": "MemberName"
+                }
+              },
+              "queryRef": "CatalogDatasetRoleMembers.MemberName",
+              "nativeQueryRef": "MemberName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetRoleMembers"
+                    }
+                  },
+                  "Property": "MemberType"
+                }
+              },
+              "queryRef": "CatalogDatasetRoleMembers.MemberType",
+              "nativeQueryRef": "MemberType"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetRoleMembers"
+                    }
+                  },
+                  "Property": "IdentityProvider"
+                }
+              },
+              "queryRef": "CatalogDatasetRoleMembers.IdentityProvider",
+              "nativeQueryRef": "IdentityProvider"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'RLS role members'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

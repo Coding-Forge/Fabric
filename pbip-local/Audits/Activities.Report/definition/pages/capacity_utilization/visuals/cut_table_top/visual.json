@@ -1,0 +1,169 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "cut_table_top",
+  "position": {
+    "x": 750,
+    "y": 635,
+    "z": 40,
+    "height": 405,
+    "width": 1135,
+    "tabOrder": 40
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Capacities"
+                    }
+                  },
+                  "Property": "Capacity Name"
+                }
+              },
+              "queryRef": "Capacities.Capacity Name",
+              "nativeQueryRef": "Capacity Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Timepoint"
+                }
+              },
+              "queryRef": "CapacityMetrics.Timepoint",
+              "nativeQueryRef": "Timepoint"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Peak Utilization %"
+                }
+              },
+              "queryRef": "CapacityMetrics.Peak Utilization %",
+              "nativeQueryRef": "Peak Utilization %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Max Background Billable %"
+                }
+              },
+              "queryRef": "CapacityMetrics.Max Background Billable %",
+              "nativeQueryRef": "Max Background Billable %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "Max Interactive Billable %"
+                }
+              },
+              "queryRef": "CapacityMetrics.Max Interactive Billable %",
+              "nativeQueryRef": "Max Interactive Billable %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CapacityMetrics"
+                    }
+                  },
+                  "Property": "CU Usage (CU-s)"
+                }
+              },
+              "queryRef": "CapacityMetrics.CU Usage (CU-s)",
+              "nativeQueryRef": "CU Usage (CU-s)"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Measure": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "CapacityMetrics"
+                  }
+                },
+                "Property": "Peak Utilization %"
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Top timepoints (highest utilization first)'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

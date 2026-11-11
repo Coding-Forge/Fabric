@@ -1,0 +1,42 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_ProTooling = ["DevMode"]
+
+annotation PBI_QueryOrder = ["Capacity Metrics","Capacities","Activity","Git Connections","Tags","Delegated Settings","Widely Shared Links","Connections","Deployment Pipelines","Deployment Operations","Collection Status","Item Permissions","Item Permission Scope","Fabric Job History","Fabric Job Scope","SourceType","ItemPermissionMode","LocalFolder","BlobAccountUrl","BlobContainer","BlobRootPath","ToText","ToNumber","ToLogical","ToDate","ToUtcDateTime","Coalesce","JsonField","JsonFirst","GetRowValue","CmMeasure","AddColumns","ListModuleFiles","GetFiles","KeepLatestPerGroup","ExpandItems","GetFabricCollection","FabricConnectionsData","FabricDeploymentData","GetFabricItemCollection","FabricItemPermissionsData","FabricItemJobsData","NormalizeFabricPermissions"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+ref table 'Capacity Metrics'
+ref table Capacities
+ref table Activity
+ref table 'Git Connections'
+ref table Tags
+ref table 'Delegated Settings'
+ref table 'Widely Shared Links'
+ref table Calendar
+ref table DateTableTemplate_4cd3deab-19cc-494b-a9f5-35853ec8118f
+ref table LocalDateTable_64c2df87-4145-446d-9489-b0ec65615e69
+ref table LocalDateTable_29ef5857-03de-473f-a489-f5f21a2ab639
+ref table LocalDateTable_7042635b-70d6-40ea-bb79-ea68a9467045
+ref table LocalDateTable_b1631ab4-0221-4ced-90ab-eea5c3630574
+ref table LocalDateTable_f8f748ca-cf6a-49e5-87ba-f0ec4ede6633
+ref table LocalDateTable_30125a66-aaa4-4143-bd1f-9f6b1ddded61
+ref table LocalDateTable_8476a828-7a7e-439e-be48-2e2b2028246e
+ref table Connections
+ref table 'Deployment Pipelines'
+ref table 'Deployment Operations'
+ref table 'Collection Status'
+ref table 'Item Permissions'
+ref table 'Item Permission Scope'
+ref table 'Fabric Job History'
+ref table 'Fabric Job Scope'
+
+ref cultureInfo en-US
+

@@ -1,0 +1,115 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "dlc_license_assignments_table",
+  "position": {
+    "x": 960,
+    "y": 270,
+    "z": 9,
+    "height": 340,
+    "width": 900
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "DisplayName"
+                }
+              },
+              "queryRef": "UserLicenseActivity.DisplayName",
+              "nativeQueryRef": "DisplayName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "UserPrincipalName"
+                }
+              },
+              "queryRef": "UserLicenseActivity.UserPrincipalName",
+              "nativeQueryRef": "UserPrincipalName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "LicenseName"
+                }
+              },
+              "queryRef": "UserLicenseActivity.LicenseName",
+              "nativeQueryRef": "LicenseName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "AccountEnabled"
+                }
+              },
+              "queryRef": "UserLicenseActivity.AccountEnabled",
+              "nativeQueryRef": "AccountEnabled"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "ActivityStatus"
+                }
+              },
+              "queryRef": "UserLicenseActivity.ActivityStatus",
+              "nativeQueryRef": "ActivityStatus"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Directory user license assignments'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

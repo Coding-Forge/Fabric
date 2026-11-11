@@ -1,0 +1,7 @@
+# The repository root .gitignore excludes *.json; PBIP/PBIR definitions are JSON, so re-include them here.
+!*.json
+
+# Local Power BI Desktop state and caches
+.pbi/localSettings.json
+.pbi/cache.abf
+**/.pbi/

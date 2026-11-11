@@ -1,0 +1,115 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "semantic_table_inventory",
+  "position": {
+    "x": 1260,
+    "y": 640,
+    "z": 9,
+    "height": 360,
+    "width": 600
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetTables"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "CatalogDatasetTables.DatasetName",
+              "nativeQueryRef": "DatasetName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetTables"
+                    }
+                  },
+                  "Property": "TableName"
+                }
+              },
+              "queryRef": "CatalogDatasetTables.TableName",
+              "nativeQueryRef": "TableName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetTables"
+                    }
+                  },
+                  "Property": "ColumnCount"
+                }
+              },
+              "queryRef": "CatalogDatasetTables.ColumnCount",
+              "nativeQueryRef": "ColumnCount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetTables"
+                    }
+                  },
+                  "Property": "MeasureCount"
+                }
+              },
+              "queryRef": "CatalogDatasetTables.MeasureCount",
+              "nativeQueryRef": "MeasureCount"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogDatasetTables"
+                    }
+                  },
+                  "Property": "StorageMode"
+                }
+              },
+              "queryRef": "CatalogDatasetTables.StorageMode",
+              "nativeQueryRef": "StorageMode"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Semantic model table inventory'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

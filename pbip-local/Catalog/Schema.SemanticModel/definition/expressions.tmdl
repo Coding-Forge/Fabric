@@ -1,0 +1,293 @@
+expression Parameter1 = #"Sample File" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 4fd676fc-49bb-40e0-8b21-bbe9f96134a1
+	queryGroup: 'Transform File from scans\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression Parameter2 = #"Sample File (2)" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File (2)", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 4f54ff95-1712-4eb3-934c-afa9418207c0
+	queryGroup: 'Transform File from scans (2)\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Sample File' =
+		let
+		  Source = Folder.Files(CatalogOutputPath & "\catalog\scans"),
+		    #"Removed Other Columns" = Table.SelectColumns(Source,{"Content"}),
+		    Navigation1 = #"Removed Other Columns"{0}[Content]
+		in
+		  Navigation1
+	lineageTag: 9fb32ada-edf4-45a7-9f70-3cfd091b8878
+	queryGroup: 'Transform File from scans\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform Sample File' =
+		let
+		    Source = Json.Document(Parameter1),
+		    #"Converted to Table" = Table.FromRecords({Source}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"workspaces", type any}, {"datasourceInstances", type any}})
+		in
+		    #"Changed Type"
+	lineageTag: cee41d4f-2867-48b8-a01b-9d4ae3912b9d
+	queryGroup: 'Transform File from scans'
+
+	annotation PBI_ResultType = Table
+
+expression 'Transform File' =
+		let
+		    Source = (Parameter1 as binary) => let
+		    Source = Json.Document(Parameter1),
+		    #"Converted to Table" = Table.FromRecords({Source}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"workspaces", type any}, {"datasourceInstances", type any}})
+		in
+		    #"Changed Type"
+		in
+		    Source
+	mAttributes: [ FunctionQueryBinding = "{""exemplarFormulaName"":""Transform Sample File""}" ]
+	lineageTag: 3546f95c-8199-4904-8b0d-20964dbe25b8
+	queryGroup: 'Transform File from scans\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
+expression 'Sample File (2)' =
+		let
+		  Source = Folder.Files(CatalogOutputPath & "\catalog\scans"),
+		    Navigation1 = Source{0}[Content]
+		in
+		    Navigation1
+	lineageTag: e9550a7d-4194-4648-b280-2062bbdd77b6
+	queryGroup: 'Transform File from scans (2)\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform Sample File (2)' =
+		let
+		    Source = Json.Document(Parameter2),
+		    #"Converted to Table" = Table.FromRecords({Source}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"workspaces", type any}, {"datasourceInstances", type any}})
+		in
+		    #"Changed Type"
+	lineageTag: c82cbb18-abbb-4956-9060-e8f6748e0e18
+	queryGroup: 'Transform File from scans (2)'
+
+	annotation PBI_ResultType = Table
+
+expression 'Transform File (2)' =
+		let
+		    Source = (Parameter2 as binary) => let
+		    Source = Json.Document(Parameter2),
+		    #"Converted to Table" = Table.FromRecords({Source}),
+		    #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"workspaces", type any}, {"datasourceInstances", type any}})
+		in
+		    #"Changed Type"
+		in
+		    Source
+	mAttributes: [ FunctionQueryBinding = "{""exemplarFormulaName"":""Transform Sample File (2)""}" ]
+	lineageTag: 21ac0f8f-f31b-4019-96e7-4d79cef659d2
+	queryGroup: 'Transform File from scans (2)\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
+expression 'Transform File (3)' =
+		let
+		    Source = (Parameter2) => let
+		        Source = Json.Document(Parameter2),
+		        #"Converted to Table" = Table.FromRecords({Source}),
+		        #"Changed Type" = Table.TransformColumnTypes(#"Converted to Table",{{"workspaces", type any}, {"datasourceInstances", type any}})
+		    in
+		        #"Changed Type"
+		in
+		    Source
+	lineageTag: ba330b5c-3c18-4a05-8884-64c833b6b107
+
+	annotation PBI_ResultType = Function
+
+expression 'Sample File (3)' =
+		let
+		  Source = Folder.Files(CatalogOutputPath & "\catalog\scans"),
+		    Navigation1 = Source{0}[Content]
+		in
+		    Navigation1
+	lineageTag: 0d264aae-9948-44d5-83aa-ca7b7f9a16a1
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Binary
+
+expression 'Errors in Dashboards' =
+		let
+		Source = Dashboards,
+		  #"Detected Type Mismatches" = let
+		    tableWithOnlyPrimitiveTypes = Table.SelectColumns(Source, Table.ColumnsOfType(Source, {type nullable number, type nullable text, type nullable logical, type nullable date, type nullable datetime, type nullable datetimezone, type nullable time, type nullable duration})),
+		    recordTypeFields = Type.RecordFields(Type.TableRow(Value.Type(tableWithOnlyPrimitiveTypes))),
+		    fieldNames = Record.FieldNames(recordTypeFields),
+		    fieldTypes = List.Transform(Record.ToList(recordTypeFields), each [Type]),
+		    pairs = List.Transform(List.Positions(fieldNames), (i) => {fieldNames{i}, (v) => if v = null or Value.Is(v, fieldTypes{i}) then v else error [Message = "The type of the value does not match the type of the column.", Detail = v], fieldTypes{i}})
+		in
+		    Table.TransformColumns(Source, pairs),
+		  #"Added Index" = Table.AddIndexColumn(#"Detected Type Mismatches", "Row Number" ,1),
+		  #"Kept Errors" = Table.SelectRowsWithErrors(#"Added Index", {"WorkspaceId", "WorkspaceName", "DashboardId", "DashboardName", "IsReadOnly"}),
+		  #"Reordered Columns" = Table.ReorderColumns(#"Kept Errors", {"Row Number", "WorkspaceId", "WorkspaceName", "DashboardId", "DashboardName", "IsReadOnly"}),
+		  Navigation = #"Reordered Columns"{0}[IsReadOnly]
+		in
+		  Navigation
+	lineageTag: 5809add7-f6c5-4977-8b03-45444ae10238
+	queryGroup: 'Query Errors - 8/14/2026 7:39:02 PM'
+
+	annotation PBI_ResultType = Exception
+
+expression CatalogOutputPath = "C:\Projects\Tests\monitor-poc-output" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 9cc885f2-638b-4ccd-aad7-f2748ee59d01
+
+	annotation PBI_ResultType = Text
+
+expression LineageData =
+		let
+			IsText = (v as any) as logical => Value.Is(v, type text) and Text.Length(Text.Trim(v)) > 0,
+			IsId = (v as any) as logical => IsText(v) and v = Text.Lower(Text.Trim(v)),
+			OptionalText = (v as any) as logical => v = null or Value.Is(v, type text),
+			OptionalId = (v as any) as logical => v = null or IsId(v),
+			Validate = (d as any) as record =>
+				let
+					Header = Value.Is(d, type record) and d[schemaVersion]? = 1 and d[source]? = "Scanner"
+						and d[complete]? = true and IsText(d[scanId]?) and IsText(d[observedAtUtc]?)
+						and Text.EndsWith(d[observedAtUtc], "Z")
+						and List.Contains({"full", "incremental"}, d[scanMode]?)
+						and Value.Is(d[requestedWorkspaceIds]?, type list) and Value.Is(d[returnedWorkspaceIds]?, type list)
+						and Value.Is(d[items]?, type list) and Value.Is(d[edges]?, type list),
+					Checked = if Header then d else error "Invalid lineage envelope",
+					Observed = DateTimeZone.RemoveZone(DateTimeZone.SwitchZone(DateTimeZone.FromText(Checked[observedAtUtc]), 0)),
+					Requested = Checked[requestedWorkspaceIds],
+					Returned = Checked[returnedWorkspaceIds],
+					WorkspaceIdsValid = List.AllTrue(List.Transform(Requested & Returned, IsId))
+						and List.Count(List.Distinct(Requested)) = List.Count(Requested)
+						and List.Count(List.Distinct(Returned)) = List.Count(Returned)
+						and List.IsEmpty(List.Difference(Returned, Requested)),
+					Items = Checked[items],
+					ItemsValid = List.AllTrue(List.Transform(Items, each Value.Is(_, type record)
+						and Record.HasFields(_, {"id", "name", "type", "workspaceId"})
+						and IsId([id]?) and OptionalText([name]?) and List.Contains({"Report", "SemanticModel", "Dataflow"}, [type]?)
+						and List.Contains(Returned, [workspaceId]?))),
+					ItemKeys = if ItemsValid then List.Transform(Items, each [workspaceId] & "|" & [id]) else {},
+					EdgesValid = List.AllTrue(List.Transform(Checked[edges], each Value.Is(_, type record)
+						and Record.HasFields(_, {"QueryItemId", "QueryWorkspaceId", "QueryItemName", "QueryItemType", "Direction",
+							"RelatedItemId", "RelatedItemName", "RelatedItemType", "RelatedWorkspaceId", "RelationType", "Source"})
+						and IsId([QueryItemId]?) and IsId([QueryWorkspaceId]?) and IsId([RelatedItemId]?)
+						and List.Contains(ItemKeys, [QueryWorkspaceId] & "|" & [QueryItemId])
+						and OptionalText([QueryItemName]?) and OptionalText([RelatedItemName]?)
+						and List.Contains({"Report", "SemanticModel", "Dataflow"}, [QueryItemType]?)
+						and OptionalText([RelatedItemType]?) and OptionalId([RelatedWorkspaceId]?)
+						and List.Contains({"upstream", "downstream"}, [Direction]?)
+						and IsText([RelationType]?) and [Source]? = "Scanner")),
+					Valid = WorkspaceIdsValid and ItemsValid and EdgesValid
+						and List.Count(List.Distinct(ItemKeys)) = List.Count(ItemKeys) and Value.Is(Observed, type datetime)
+				in
+					if Valid then Record.AddField(Checked, "ObservedUtc", Observed) else error "Invalid lineage records",
+			Listing = try Table.Buffer(Folder.Files(Text.TrimEnd(CatalogOutputPath, {"\", "/"}) & "\lineage_edges")),
+			Files = if Listing[HasError] then #table(type table [Content = nullable binary, Name = nullable text, #"Folder Path" = nullable text], {})
+				else Table.SelectRows(Listing[Value], each Text.EndsWith([Name], ".lineage_edges.json") and [Attributes]?[Hidden]? <> true),
+			Attempts = List.Buffer(List.Transform(Table.ToRecords(Files), (file) =>
+				let Parsed = try Validate(Json.Document(file[Content]))
+				in [File = file[Folder Path] & file[Name], Document = if Parsed[HasError] then null else Parsed[Value]])),
+			Good = List.Select(Attempts, each [Document] <> null),
+			Candidates = List.Combine(List.Transform(Good, (a) => List.Transform(a[Document][returnedWorkspaceIds], (ws) =>
+				[#"Workspace Id" = ws, #"Observed At UTC" = a[Document][ObservedUtc], #"Scan Id" = a[Document][scanId],
+					#"Scan Mode" = a[Document][scanMode], File = a[File], Document = a[Document]]))),
+			CandidateTable = Table.FromRecords(Candidates,
+				type table [#"Workspace Id" = nullable text, #"Observed At UTC" = nullable datetime, #"Scan Id" = nullable text,
+					#"Scan Mode" = nullable text, File = nullable text, Document = nullable record], MissingField.UseNull),
+			// Select the complete observation first; a newer empty inventory must replace old edges.
+			Groups = Table.Group(CandidateTable, {"Workspace Id"}, {{"Winner", each Table.First(
+				Table.Sort(_, {{"Observed At UTC", Order.Descending}, {"Scan Id", Order.Descending}, {"File", Order.Descending}})), type record}}),
+			Selected = List.Transform(Table.ToRecords(Groups), each [Winner]),
+			WorkspaceRows = List.Transform(Selected, (s) =>
+				let Inventory = List.Select(s[Document][items], each [workspaceId] = s[Workspace Id]),
+					Edges = List.Select(s[Document][edges], each [QueryWorkspaceId] = s[Workspace Id])
+				in [#"Workspace Id" = s[Workspace Id], #"Observed At UTC" = s[Observed At UTC], #"Scan Id" = s[Scan Id],
+					#"Scan Mode" = s[Scan Mode], #"Observed Items" = List.Count(Inventory), #"Directional Rows" = List.Count(Edges),
+					Coverage = if List.IsEmpty(Inventory) then "Returned workspace; no supported items observed" else "Returned workspace; scanner-supported items only"]),
+			ItemRows = List.Combine(List.Transform(Selected, (s) => List.Transform(
+				List.Select(s[Document][items], each [workspaceId] = s[Workspace Id]), (i) =>
+					[#"Workspace Id" = i[workspaceId], #"Item Id" = i[id], #"Item Key" = i[workspaceId] & "|" & i[id],
+						Item = (if i[name] = null or i[name] = "" then i[id] else i[name]) & " (" & i[type] & ") [" & i[id] & "]",
+						#"Item Type" = i[type], #"Observed At UTC" = s[Observed At UTC]]))),
+			EdgeRows = List.Combine(List.Transform(Selected, (s) => List.Transform(
+				List.Select(s[Document][edges], each [QueryWorkspaceId] = s[Workspace Id]), (e) =>
+					[#"Item Key" = e[QueryWorkspaceId] & "|" & e[QueryItemId],
+						#"Query Item" = if e[QueryItemName] = null or e[QueryItemName] = "" then e[QueryItemId] else e[QueryItemName],
+						#"Query Item Id" = e[QueryItemId], #"Query Item Type" = e[QueryItemType],
+						Direction = e[Direction], #"Related Item" = if e[RelatedItemName] = null or e[RelatedItemName] = "" then e[RelatedItemId] else e[RelatedItemName],
+						#"Related Item Id" = e[RelatedItemId], #"Related Type" = e[RelatedItemType],
+						#"Related Workspace Id" = e[RelatedWorkspaceId], #"Relation Type" = e[RelationType],
+						Resolution = if e[RelatedItemName] = null or e[RelatedItemName] = "" then "Unresolved / metadata unavailable"
+							else if e[RelatedItemType] = "DataSource" then "External datasource" else "Named reference",
+						#"Observed At UTC" = s[Observed At UTC], #"Scan Id" = s[Scan Id]]))),
+			FileDiagnostics = List.Transform(Attempts, (a) =>
+				let Valid = a[Document] <> null,
+					Used = List.Count(List.Select(Selected, each [File] = a[File]))
+				in [File = a[File], Status = if not Valid then "Rejected / unreadable snapshot"
+						else if Used > 0 then "Selected for returned workspace(s)" else "Valid; superseded or no returned workspaces",
+					#"Load Errors" = if Valid then 0 else 1, #"Selected Workspaces" = Used,
+					#"Requested Not Returned" = if Valid then List.Count(List.Difference(a[Document][requestedWorkspaceIds], a[Document][returnedWorkspaceIds])) else null,
+					#"Observed At UTC" = if Valid then a[Document][ObservedUtc] else null]),
+			Diagnostics = if Listing[HasError] or List.IsEmpty(Attempts) then {
+				[File = null, Status = if Listing[HasError] then "Lineage folder unavailable" else "No lineage snapshot files",
+					#"Load Errors" = if Listing[HasError] then 1 else 0, #"Selected Workspaces" = 0,
+					#"Requested Not Returned" = null, #"Observed At UTC" = null]} else FileDiagnostics
+		in
+			[Workspaces = WorkspaceRows, Items = ItemRows, Edges = EdgeRows, Diagnostics = Diagnostics]
+	lineageTag: 9cc885f2-638b-4ccd-aad7-f2748ee59d02
+
+	annotation PBI_ResultType = Record
+
+expression LineageGraphData =
+		let
+			// Reverse-copy downstream rows are excluded; dependencies point from source to consumer.
+			Upstream = Table.SelectRows(#"Lineage Edges", each [Direction] = "upstream"),
+			RawLinks = Table.FromRecords(List.Transform(Table.ToRecords(Upstream), (e) =>
+				[#"Source Key" = (if e[Related Type] = "DataSource" then "datasource|" else "item|") & e[Related Item Id],
+					#"Consumer Key" = "item|" & e[Query Item Id],
+					#"Consumer Workspace Id" = Text.BeforeDelimiter(e[Item Key], "|"),
+					#"Source Id" = e[Related Item Id], #"Consumer Id" = e[Query Item Id],
+					#"Source Name" = e[Related Item], #"Consumer Name" = e[Query Item],
+					#"Source Type" = if e[Related Type] = null then "Unresolved" else e[Related Type],
+					#"Consumer Type" = e[Query Item Type], #"Relation Type" = e[Relation Type],
+					#"Source Resolution" = e[Resolution], #"Observed At UTC" = e[Observed At UTC]]),
+				type table [#"Source Key" = nullable text, #"Consumer Key" = nullable text, #"Consumer Workspace Id" = nullable text,
+					#"Source Id" = nullable text, #"Consumer Id" = nullable text, #"Source Name" = nullable text, #"Consumer Name" = nullable text,
+					#"Source Type" = nullable text, #"Consumer Type" = nullable text, #"Relation Type" = nullable text,
+					#"Source Resolution" = nullable text, #"Observed At UTC" = nullable datetime], MissingField.UseNull),
+			NodeSchema = type table [#"Node Key" = nullable text, #"Node Id" = nullable text, #"Node Name" = nullable text,
+				#"Node Type" = nullable text, Priority = nullable number],
+			Candidates = List.Combine(List.Transform(Table.ToRecords(RawLinks), (e) => {
+				[#"Node Key" = e[Source Key], #"Node Id" = e[Source Id], #"Node Name" = e[Source Name], #"Node Type" = e[Source Type],
+					Priority = if e[Source Name] = e[Source Id] then 2 else 1],
+				[#"Node Key" = e[Consumer Key], #"Node Id" = e[Consumer Id], #"Node Name" = e[Consumer Name], #"Node Type" = e[Consumer Type],
+					Priority = if e[Consumer Name] = e[Consumer Id] then 2 else 0]})),
+			NodeCandidates = Table.FromRecords(Candidates, NodeSchema, MissingField.UseNull),
+			NodeGroups = Table.Group(NodeCandidates, {"Node Key"}, {{"Winner", each Table.First(
+				Table.Sort(_, {{"Priority", Order.Ascending}, {"Node Name", Order.Ascending}, {"Node Type", Order.Ascending}})), type record}}),
+			NodeWinners = Table.FromRecords(List.Transform(Table.ToRecords(NodeGroups), each [Winner]), NodeSchema, MissingField.UseNull),
+			BaseLabels = Table.AddColumn(NodeWinners, "Base Label", each [Node Name] & " (" & [Node Type] & ")", type text),
+			LabelCounts = Table.Group(BaseLabels, {"Base Label"}, {{"Label Count", each Table.RowCount(_), type number}}),
+			JoinedCounts = Table.NestedJoin(BaseLabels, {"Base Label"}, LabelCounts, {"Base Label"}, "Count", JoinKind.LeftOuter),
+			ExpandedCounts = Table.ExpandTableColumn(JoinedCounts, "Count", {"Label Count"}),
+			LabeledNodes = Table.AddColumn(ExpandedCounts, "Node Label", each
+				[Base Label] & (if [Label Count] > 1 then " [" & [Node Key] & "]" else ""), type text),
+			Nodes = Table.SelectColumns(LabeledNodes, {"Node Key", "Node Id", "Node Label", "Node Type"}),
+			SourceJoin = Table.NestedJoin(RawLinks, {"Source Key"}, Nodes, {"Node Key"}, "SourceNode", JoinKind.LeftOuter),
+			Sources = Table.ExpandTableColumn(SourceJoin, "SourceNode", {"Node Label"}, {"Source"}),
+			ConsumerJoin = Table.NestedJoin(Sources, {"Consumer Key"}, Nodes, {"Node Key"}, "ConsumerNode", JoinKind.LeftOuter),
+			Consumers = Table.ExpandTableColumn(ConsumerJoin, "ConsumerNode", {"Node Label"}, {"Consumer"}),
+			// Different relation types for the same pair are one topology link, not extra volume.
+			Links = Table.Group(Consumers, {"Source Key", "Consumer Key", "Consumer Workspace Id", "Source", "Consumer"}, {
+				{"Observed At UTC", each List.Max([Observed At UTC]), type nullable datetime},
+				{"Relation Types", each Text.Combine(List.Sort(List.Distinct([Relation Type])), "; "), type nullable text},
+				{"Source Resolution", each Text.Combine(List.Sort(List.Distinct([Source Resolution])), "; "), type nullable text}})
+		in
+			[Links = Links, Nodes = Nodes]
+	lineageTag: 8e33b2f6-2b35-4ae4-9647-92270d633801
+
+	annotation PBI_ResultType = Record
+

@@ -1,0 +1,166 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.14.0/schema.json",
+  "name": "about_text",
+  "position": {
+    "x": 19.981267561660943,
+    "y": 9.9906337808304713,
+    "z": 0,
+    "height": 459.96877926943489,
+    "width": 1125.7446144239775,
+    "tabOrder": 0
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "MonitorRaw: raw monitor output in Import mode",
+                    "textStyle": {
+                      "fontWeight": "bold",
+                      "fontSize": "20pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "This report reads the JSON files that monitor writes and does not call any API. Open Transform data > Edit parameters to configure the source.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "SourceType: Local or Blob. Selects where the files are read from.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "LocalFolder: absolute path of the folder that contains the module folders (activity, capacity_metrics, gitconnections, ...). Use the LOCAL_OUTPUT_PATH value, or a copy of the container root. Used when SourceType is Local.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "BlobAccountUrl and BlobContainer: storage account URL and container name. Used when SourceType is Blob. Sign in with an account that has the Storage Blob Data Reader role.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "BlobRootPath: the STORAGE_ACCOUNT_CONTAINER_ROOT_PATH value. Leave empty when the module folders sit at the container root.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Legacy dates come from <module>/YYYY/MM/DD/ folders (UTC), not file modified times. Fabric collections use <module>/YYYY/MM/DD/runId/ envelopes and UTC observedAt timestamps.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Capacity Metrics rows are de-duplicated: the latest run wins per capacity, group and timepoint. Carry-over data exists only for newer Capacity Metrics app versions.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Git connections, tags, delegated settings and widely shared links show the latest snapshot only. They are opt-in monitor modules and stay empty until the module has run.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Connections uses the latest complete healthy snapshot, including an empty success. Null names stay null; only report labels fall back to identity. Credentials and connection paths are never imported.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Deployment Pipelines uses the latest committed discovery, including empty success. Deployment Operations retains all stored history, latest observation per pipeline/operation. Coverage is caller-visible, not tenant-wide; history requires pipeline Admin. The API exposes up to 20 recent deployments per poll; polling gaps cannot be recovered.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Item Permissions uses one validated cycle: newest finished with successful observations (including empty success), else newest useful in-progress. No cross-cycle carry-forward. PARTIAL COVERAGE: grants show successful observations only; failed/unvisited targets do not mean no access. Newer attempts make older evidence stale; scope may differ. Not effective access; no Graph group expansion.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Fabric Job History retains latest observations per workspace/item/job, even for deselected targets. Explicit Notebook, DataPipeline and SparkJobDefinition targets only; polling gaps cannot be recovered. Scope shows latest finished-poll outcomes, possibly incomplete. Raw failure payloads excluded.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "The diagnostics below cover all four Fabric collectors. Legacy parse failures appear in Load Error rows. Fabric malformed/missing artifacts count in Collection Status and Load Errors; manifests and gates are not facts. Disabled, unconfigured or never-run collectors show Not collected, not healthy zeroes. Check status and snapshot times before counts. This read-only report does not enable collection or select targets.",
+                    "textStyle": {
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

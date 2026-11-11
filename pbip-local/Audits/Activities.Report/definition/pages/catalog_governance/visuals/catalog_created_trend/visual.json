@@ -1,0 +1,83 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "catalog_created_trend",
+  "position": {
+    "x": 40,
+    "y": 620,
+    "z": 8,
+    "height": 270,
+    "width": 900
+  },
+  "visual": {
+    "visualType": "lineChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "CatalogReports"
+                    }
+                  },
+                  "Property": "CreatedDateTime"
+                }
+              },
+              "queryRef": "CatalogReports.CreatedDateTime",
+              "nativeQueryRef": "CreatedDateTime",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "CatalogReports"
+                        }
+                      },
+                      "Property": "ReportId"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(CatalogReports.ReportId)",
+              "nativeQueryRef": "Count of ReportId"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Reports created over time'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,121 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.11.0/schema.json",
+  "name": "dlc_sku_capacity_bar",
+  "position": {
+    "x": 40,
+    "y": 270,
+    "z": 8,
+    "height": 340,
+    "width": 900
+  },
+  "visual": {
+    "visualType": "clusteredColumnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "GraphSubscribedSkus"
+                    }
+                  },
+                  "Property": "SkuPartNumber"
+                }
+              },
+              "queryRef": "GraphSubscribedSkus.SkuPartNumber",
+              "nativeQueryRef": "SkuPartNumber",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "GraphSubscribedSkus"
+                        }
+                      },
+                      "Property": "ConsumedUnits"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(GraphSubscribedSkus.ConsumedUnits)",
+              "nativeQueryRef": "Sum of ConsumedUnits"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "GraphSubscribedSkus"
+                        }
+                      },
+                      "Property": "EnabledUnits"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(GraphSubscribedSkus.EnabledUnits)",
+              "nativeQueryRef": "Sum of EnabledUnits"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "GraphSubscribedSkus"
+                        }
+                      },
+                      "Property": "WarningUnits"
+                    }
+                  },
+                  "Function": 0
+                }
+              },
+              "queryRef": "Sum(GraphSubscribedSkus.WarningUnits)",
+              "nativeQueryRef": "Sum of WarningUnits"
+            }
+          ]
+        }
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'License seats by SKU (consumed vs enabled vs warning)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,155 @@
+/// Latest observation per workspace/item/job across all retained days, including deselected items and jobs outside the API's recent window. Raw failure payloads are deliberately excluded.
+table 'Fabric Job History'
+	lineageTag: a5bc49a5-333c-4cb1-b5c0-9f3cfc9d1c76
+
+	measure 'Fabric Job Count' =
+			IF(
+				COUNTROWS('Fabric Job History') > 0,
+				COUNTROWS('Fabric Job History'),
+				IF(CALCULATE(SELECTEDVALUE('Collection Status'[Has Snapshot]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemjobhistory"), 0)
+			)
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: d12fa521-f70e-4693-9ce6-f7696d7da59f
+
+	measure 'Failed Fabric Jobs' = CALCULATE([Fabric Job Count], KEEPFILTERS('Fabric Job History'[Status] = "Failed"))
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: ab57a694-ef19-4bda-a04e-668d39d719b0
+
+	measure 'Running Fabric Jobs' = CALCULATE([Fabric Job Count], KEEPFILTERS('Fabric Job History'[Status] = "InProgress"))
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 1d267769-830c-4a3f-9df4-81ce83d6fcbd
+
+	measure 'Canceled Fabric Jobs' = CALCULATE([Fabric Job Count], KEEPFILTERS('Fabric Job History'[Status] = "Cancelled"))
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: c7d9b980-57a3-465b-b4f9-5519eb0413a5
+
+	measure 'Average Fabric Job Duration (min)' = AVERAGE('Fabric Job History'[Duration Minutes])
+		formatString: #,0.0
+		displayFolder: Duration
+		lineageTag: 0411add8-b264-4636-9595-3a81336b75fa
+
+	column 'Workspace Id'
+		dataType: string
+		lineageTag: b51fc889-e8d4-4cc4-967d-e35961213897
+		summarizeBy: none
+		sourceColumn: Workspace Id
+
+	column 'Item Id'
+		dataType: string
+		lineageTag: 5c012a60-38b1-49e1-aa32-b97bdb222016
+		summarizeBy: none
+		sourceColumn: Item Id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 350e284a-cea7-4570-8268-15e7ce22f11e
+		summarizeBy: none
+		sourceColumn: Item Type
+
+	column 'Job Instance Id'
+		dataType: string
+		lineageTag: 0c0b1e8a-b51d-4cbb-86da-2f40137384f8
+		summarizeBy: none
+		sourceColumn: Job Instance Id
+
+	column Status
+		dataType: string
+		lineageTag: b12f8362-81ad-4541-8910-59b5ba031b36
+		summarizeBy: none
+		sourceColumn: Status
+
+	column 'Job Type'
+		dataType: string
+		lineageTag: eed4f946-90f2-4b80-8ec4-3fc2fd95634d
+		summarizeBy: none
+		sourceColumn: Job Type
+
+	column 'Invoke Type'
+		dataType: string
+		lineageTag: a5d0e288-56fd-48ad-97ce-7a45953456c1
+		summarizeBy: none
+		sourceColumn: Invoke Type
+
+	column 'Root Activity Id'
+		dataType: string
+		lineageTag: d4ca9737-3bb3-4210-b69c-bbb2d31f1b8d
+		summarizeBy: none
+		sourceColumn: Root Activity Id
+
+	column 'Start UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: c1320b06-c1fa-4636-a39d-e5bde58b1263
+		summarizeBy: none
+		sourceColumn: Start UTC
+
+	column 'End UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 7bb8e4f4-c79b-440e-bc22-3a88810b28a1
+		summarizeBy: none
+		sourceColumn: End UTC
+
+	column 'Job Date'
+		dataType: dateTime
+		formatString: yyyy-MM-dd
+		lineageTag: aa0c9930-846a-4d18-875f-a218179ea0e4
+		summarizeBy: none
+		sourceColumn: Job Date
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Duration Minutes'
+		dataType: double
+		formatString: #,0.0
+		lineageTag: 7cce5766-1c6f-4833-980b-d3ec42df5ccf
+		summarizeBy: none
+		sourceColumn: Duration Minutes
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: 1ac2b621-9de0-4790-9ec1-1481d627e856
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	column 'Run Id'
+		dataType: string
+		isHidden
+		lineageTag: a878a6ce-56da-43d0-8cd9-bb558ebc0e50
+		summarizeBy: none
+		sourceColumn: Run Id
+
+	partition 'Fabric Job History' = m
+		mode: import
+		source =
+				let
+				  Files = FabricItemJobsData[Observations],
+				  NonEmpty = Table.SelectRows(Files, each not List.IsEmpty([Json][records])),
+				  #"Expanded Json" = Table.ExpandRecordColumn(NonEmpty, "Json", {"runId", "observedAt", "parent", "records"}, {"Run Id", "Observed At UTC", "parent", "records"}),
+				  #"Expanded parent" = Table.ExpandRecordColumn(#"Expanded Json", "parent", {"workspaceId", "itemId", "type"}, {"Workspace Id", "Item Id", "Item Type"}),
+				  Items = Table.ExpandListColumn(#"Expanded parent", "records"),
+				  #"Expanded jobs" = Table.ExpandRecordColumn(Items, "records", {"id", "status", "jobType", "invokeType", "rootActivityId", "startTimeUtc", "endTimeUtc"}, {"Job Instance Id", "Status", "Job Type", "Invoke Type", "Root Activity Id", "Start UTC", "End UTC"}),
+				  Slim = Table.SelectColumns(#"Expanded jobs", {"Workspace Id", "Item Id", "Item Type", "Job Instance Id", "Status", "Job Type", "Invoke Type", "Root Activity Id", "Start UTC", "End UTC", "Observed At UTC", "Run Id"}),
+				  Times = Table.TransformColumns(Slim, {
+						{"Start UTC", ToUtcDateTime, type nullable datetime},
+						{"End UTC", ToUtcDateTime, type nullable datetime},
+						{"Observed At UTC", ToUtcDateTime, type datetime}
+					}),
+				  Typed = Table.TransformColumnTypes(Times, {{"Workspace Id", type text}, {"Item Id", type text}, {"Item Type", type text}, {"Job Instance Id", type text}, {"Status", type text}, {"Job Type", type text}, {"Invoke Type", type text}, {"Root Activity Id", type text}, {"Run Id", type text}}),
+				  Sorted = Table.Buffer(Table.Sort(Typed, {{"Observed At UTC", Order.Descending}, {"Run Id", Order.Descending}})),
+				  Latest = Table.Distinct(Sorted, {"Workspace Id", "Item Id", "Job Instance Id"}),
+				  Custom = AddColumns(Latest, {
+						{"Job Date", each if [Start UTC] = null then null else DateTime.Date([Start UTC]), type nullable date},
+						{"Duration Minutes", each if [Start UTC] = null or [End UTC] = null then null
+							else if [End UTC] < [Start UTC] then null else Duration.TotalMinutes([End UTC] - [Start UTC]), type nullable number}
+					})
+				in
+				  Custom
+
+	annotation PBI_ResultType = Table
+

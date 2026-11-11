@@ -1,9 +1,80 @@
-This project looks to take advantage of all the work put into the original Power BI Monitor application and port it to Fabric. This project has several components including a means of containerizing the application and for those enthusiasts that like to use Jupyter Notebooks a whole section is devoted to "BUILDING" the application but using notebooks.
+# Fabric Monitor
+
+Fabric Monitor collects selected Power BI, Fabric and Microsoft Graph metadata
+using Python API collectors. It preserves raw JSON in local files, Blob Storage
+or a Fabric Lakehouse, with Power BI reports and a separate Fabric notebook
+analytics layer for exploring that evidence.
+
+| Layer | Purpose | Guide |
+|---|---|---|
+| Collection | Run explicitly enabled modules against authorized APIs and preserve raw observations | [Configuration and API boundaries](docs/configuration-reference.md), [local operation](docs/local-development.md) |
+| Analytics | Transform existing Lakehouse files into curated Delta tables, charts and validation reports without calling the collection APIs again | [Notebook walkthrough](notebooks/notebook-guide.md), [table contracts and coverage](notebooks/README.md) |
+| Consumption | Use Power BI or notebook views; optionally design KQL access or external delivery | [MonitorRaw report](pbip-local/MonitorRaw/README.md), [Eventhouse, Event Hubs and Splunk](docs/analytics-integration.md) |
 
 **NOTE**  
 The application was written using Python 3.10.13 and has successfully been tested up through Python 3.12.2. It is recommended that you install Python 3.12 however you may use Python 3.10.13. 
 
-# Getting Started
+## Getting Started
+
+**API scope:** Fabric Monitor is **not Admin-API-only**. Catalog uses the Admin
+Scanner APIs, but definitions, job history and several existing collectors use
+non-Admin APIs with separate resource or Microsoft Graph permissions. Review the
+[API scope and authorization boundaries](docs/configuration-reference.md#api-scope-and-authorization-boundaries)
+before customer deployment. Every new or changed non-Admin API use must explicitly
+document its scope, permissions, coverage, side effects and limitations.
+
+Four additional **opt-in** collectors are available: `FabricItemAccessPermissions`, `FabricItemJobHistory`, `FabricConnections` and `FabricDeploymentPipelineOperations`. By default, configure explicit item scopes for permissions/jobs and check caller/resource permissions before enabling them. See [settings and API limits](docs/configuration-reference.md#scoped-fabric-collectors) and [scheduling, output and recovery guidance](docs/local-development.md#operating-the-four-fabric-collectors). [MonitorRaw](pbip-local/MonitorRaw/README.md) can read these outputs without enabling the collectors; offline tests do not establish live API/storage validation.
+
+Permissions also support **opt-in tenant-wide discovery** with
+`FABRIC_ITEM_ACCESS_MODE=tenant`, using only preview Admin APIs. This attempts
+access collection for every active item returned by tenant inventory, not just
+an explicit list; unsupported/denied items remain failed coverage. Scoped mode
+is unchanged by default. See [scope, authorization, quotas and separate JSON
+output](docs/configuration-reference.md#tenant-wide-permission-collection-opt-in).
+MonitorRaw can read tenant output by selecting `ItemPermissionMode=Tenant` in
+Desktop's Manage Parameters; its default stays `Scoped`, with no automatic
+mode fallback or cycle merging. See the [report guide](pbip-local/MonitorRaw/README.md).
+
+`FabricItemDefinitions` is a separate **opt-in** collector for tenant-discovered
+notebooks and Fabric Data Factory pipelines. It preserves definitions and decoded
+pipeline JSON, and infers supported notebook table/file reads and writes plus
+static pipeline calls and Copy source/sink references without executing code.
+These are potential dependencies, not runtime evidence. See
+[enablement, permissions, sensitive output and resumable collection](docs/configuration-reference.md#notebook-and-data-pipeline-definitions).
+
+### Fabric analytics notebooks
+
+The **21 numbered notebooks** in `notebooks/` define **48 managed Delta
+datasets**, with selected-field coverage for all **23 registered collectors**.
+Nineteen notebooks transform existing raw evidence; 05 visualizes core results,
+and 06 validates reruns. Missing collection is not treated as an empty successful
+estate, and historical snapshots are not automatically current state.
+
+| Notebooks | Purpose |
+|---|---|
+| 01-04 | Inventory/health, Scoped/Tenant permissions, job history and scanner/static lineage |
+| 05-06 | Core visualizations and persistent rerun validation |
+| 07-11 | Activity events, estate catalog/semantic-model schema, connections, gateways and dataset refresh history |
+| 12-21 | Apps, capacity/performance, directory/licensing, workspace roles, tenant/delegated settings, domains, Git, tags, broad sharing and deployment operations |
+
+Start with the [notebook walkthrough and run order](notebooks/notebook-guide.md).
+Upload the `.ipynb` files, attach your default Lakehouse, preview, then explicitly
+enable insert-only Delta writes. No repository/helper upload or collection
+credentials are required by these analytics notebooks. The example workspace
+and Lakehouse are **FabricMonitor / lh_monitor**.
+
+See the [technical notebook reference](notebooks/README.md) for all output
+tables, safety limits, privacy exclusions and validation scopes (10, 25 or 48
+tables). Local verification is not Fabric runtime or private-network acceptance.
+The initial 01-05 execution was operator-reported successful; acceptance of the
+expanded suite remains separate.
+
+The suite currently has **no Event Hub publisher or Splunk export notebook**.
+Eventhouse/KQL is optional, not a prerequisite for the proposed
+Delta-to-Event-Hubs-to-Splunk path. See
+[integration options and outstanding decisions](docs/analytics-integration.md).
+
+### Collector setup
 
 What you need to do to use this application
 1.	Create a Service Principal
@@ -44,6 +115,13 @@ You can grant specific permissions to service principals to use Fabric APIs incl
 <img src="images/admin-portal-settings.png" heigth="500px" width="500px"></img>
 
 ### Service Principal API permissions  
+For app-only Power BI/Fabric access, tenant settings and resource grants are
+distinct from delegated API scopes. The legacy delegated `Tenant.Read.All` entry
+below is **not** an application permission to add to the Monitor SPN, and does not
+grant workspace access. Follow the
+[API scope and authorization guidance](docs/configuration-reference.md#api-scope-and-authorization-boundaries)
+for the selected modules; Microsoft Graph application permissions are separate.
+
 In order for the service principal to leverage all of the functionality of the Fabric Montior application you will will need to grant specific API permissions for the service principal. The following can be granted when editing the Service Principal in Microsoft Entra under the Apps section and API permissions.
 
 #### Graph Permissions  
@@ -89,7 +167,20 @@ The following will set the module to run every day of the week
 * * * * 0-6
 ```
 
-### Arguments  
+### Scanner lineage (opt-in)
+
+Set `CATALOG_LINEAGE_ENABLED=true` with `Catalog` included in `APPLICATION_MODULES`
+to extract upstream/downstream report, semantic-model, dataflow and datasource
+relationships from existing scan responses. No additional API calls are made.
+Versioned JSON observations are saved under `lineage_edges/YYYY/MM/DD/`, including
+workspace/item coverage and successful empty results. This is relationship
+collection, not change detection or a complete Fabric lineage graph.
+See [configuration and limits](docs/configuration-reference.md#scanner-lineage).
+The [Catalog PBIP Lineage page](pbip-local/Catalog/README.md) can display these
+saved observations with workspace/item selectors, upstream/downstream tables,
+and coverage diagnostics.
+
+### Arguments
 
 The application can accept one argument that will retrieve all workspaces for the catalog that have been modified. This should be run at the beginning use of the Fabric Monitor and from that point on should be updated daily or monthly depending upon your needs. The following argument will cause the catalog to scan all modified workspaces.
 ```
@@ -134,7 +225,11 @@ See [Running the Monitor from Azure Synapse Notebooks](docs/azure-synapse-notebo
 
 ## Enterprise Deployment
 
-For production deployments, use Azure Functions for scheduled data collection, ADLS Gen2 or Blob Storage for raw output, and Synapse for downstream curation/loading.
+Choose hosting, storage and curation for the target cloud and network policy.
+Azure Functions with Blob/ADLS Gen2 and downstream Synapse is one deployment
+option; Fabric Lakehouse storage with the numbered analytics notebooks is another
+analytics path where supported. Neither path removes API authorization or
+private-network acceptance requirements.
 
 See [Enterprise Deployment Best Practices](docs/enterprise-deployment-best-practices.md) for cloud-specific guidance across Commercial, GCC, GCC High, and DoD.
 
@@ -156,7 +251,12 @@ to create a desktop icon.
 
 See [Windows UI Release and Launcher](docs/windows-ui-release.md) for release zip and enterprise packaging guidance.
 
-For Fabric notebooks, keep the repo files available in the notebook environment and call the notebook helper from a setup cell:
+The following helper is for **running API collectors inside a Fabric notebook**.
+It is not needed by the self-contained numbered analytics notebooks, which read
+existing files instead. For collector execution, keep the repository files
+available in the notebook environment and call the helper from a setup cell.
+Resolve credentials from an approved secret store rather than saving secret
+values in notebook source or executed outputs:
 
 ```python
 from env.notebook import run
@@ -235,10 +335,18 @@ Learn how to publish to [Azure Container Instance](https://learn.microsoft.com/e
 Use [Azure Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/managed-identity-image-pull?tabs=azure-cli&pivots=azure-portal) with your published container image
 
 
-### Running Notebooks  
-You can also run each module as a Jupyter notebook. This allows you to step through the processes and get a better understanding of the modules. Each notebook will have supporting links to the appropriate Power BI API or Fabric API.  The notebook will also allow you to experiment with the process and modify it to your needs. There is an `environment.yml` file that you can use with the *Anaconda* or *miniconda* package management. This file will create the appropriate virtual environment and will install all the necessary jupyter packages.
+### Running notebooks
 
-> Notebooks can be found in the notebook folder and each notebook will be named after a module that it mimics.
+For curated Fabric analytics, use **01-21** and follow the
+[notebook guide](notebooks/notebook-guide.md). These are generated, uploadable
+artifacts; do not edit their embedded implementation or use the legacy
+`environment.yml` as their Fabric runtime configuration.
+
+The older `activity.ipynb`, `catalog.ipynb`, `Deconstruct.ipynb` and `nbk.ipynb`
+are preserved in [notebooks/archive/](notebooks/archive/). They are experiments,
+not prerequisites or replacements for the numbered suite.
+For running the Python collector from a notebook runtime, use the helper above
+or the [Synapse collector guide](docs/azure-synapse-notebooks.md).
 
 
 ### Reports  
@@ -251,147 +359,44 @@ you may not have to change the <capacity> but if you do you can find the capacit
 ```
 You can also use the FabricMonitor and provide the name of the Storage account and the container name plus the UTC offset, RangeStart and RangeEnd along with your SAS or Account Key.
 
-# Audit, lineage and Splunk export
+A third option is the Power BI Project in [pbip-local/MonitorRaw/](pbip-local/MonitorRaw/README.md). It reads the raw JSON output directly, from a local folder (`LOCAL_OUTPUT_PATH`) or from Blob Storage, and includes the four optional Fabric collectors. Basic Desktop checks and Scoped/Tenant permission views have been verified; detailed fixture checks and Local/Blob parity remain unconfirmed. Read its README for validation status, historical warnings and the acceptance checklist.
 
-Beyond the base modules, the monitor can collect item lineage, job runs and source/destination details, and a Fabric notebook consolidates everything into one flat table for Splunk.
+## Optional audit and Splunk reporting
 
-## What each part collects
+The PR's `ItemJobs` and `ControlPlane` modules are opt-in, mixed Admin/non-Admin
+collectors. They require workspace/item access beyond Admin API authorization;
+their coverage is limited to accessible, supported items. See the
+[configuration and API boundaries](docs/configuration-reference.md#optional-audit-reporting-modules)
+before enabling them. Run Activity, Graph and Catalog first, then ItemJobs, then
+ControlPlane in separate invocations: the module runner is concurrent, not
+dependency-ordered.
 
-| Output folder (`Files/<PATH_IN_LAKEHOUSE>/`) | Module | Source API |
-|---|---|---|
-| `activity/` | Activity | Power BI `admin/activityevents` |
-| `catalog/scans/` | Catalog | Power BI Scanner API (`getInfo`, `scanStatus`, `scanResult`) |
-| `lineage_edges/` | Catalog (`env/utility/lineage_edges.py`) | Flattened from the scan results: one row per edge, upstream and downstream |
-| `lineage/` | FabricItems | Fabric `relations/upstream` and `relations/downstream` (beta). Supplementary, it returns HTTP 500 for many item types |
-| `jobs/` | ItemJobs | Fabric `items/{id}/jobs/instances` |
-| `itemdefinitions/` | ItemJobs | Fabric `items/{id}/getDefinition` (copy jobs and pipelines): source and destination |
-| `jobactivityruns/` | ItemJobs | Fabric `datapipelines/pipelineruns/{runId}/queryactivityruns`, including child pipeline runs: rows and bytes copied |
-| `itemdetails/` | ControlPlane | Every item in scope from `v1/admin/items` (state, capacity, creator, last updated) plus the type-specific Fabric REST properties and description |
-| `controlplane/` | ControlPlane | Consolidated, one row per item endpoint: source/destination, connection type, last run status, owner, workspace and item access (user principal names), and volume (pipeline Copy activities only). Reads the ItemJobs and Catalog outputs, so run Catalog and ItemJobs first. Also carries `UpstreamItems`/`DownstreamItems` (+ counts) from lineage and `LastActivity*`/`ActivityCount`/`ActivityUsers` from the last 7 days of `activity/` (matched on item ID). Copy job destinations to a Lakehouse table get `RowsWritten`/`BytesWritten` (`VolumeSource=DeltaLog`), read from the table's OneLake `_delta_log` |
-| `lineagegraph/` | ControlPlane | One row per upstream -> downstream edge (Scanner `lineage_edges/` + Fabric `lineage/` merged) with each end's state, owner and latest activity (time, operation, user). Run Catalog, FabricItems and Activity first |
-| `graph/` | Graph | Microsoft Graph users and group members (user display names) |
-
-Add `ItemJobs` to `APPLICATION_MODULES` in your `.env` to collect jobs, definitions and volume. The endpoint inventory links each API to its official Microsoft Learn reference: [docs/api-endpoints.md](docs/api-endpoints.md).
-
-**Access needed.** The Scanner lineage works with the admin API settings alone. The job, definition and volume calls also need the service principal to be a member of each workspace, because a service principal cannot add itself. Items in other workspaces return no job, source or destination data.
-
-## Consolidating for Splunk
-
-The master table is the Delta table `audit_events_splunk`: one row per audit event, enriched with user display name, item name, upstream and downstream lineage, run history, sources, destinations, volume, and the owner, state, last run and recent activity of the item. It is built by [notebooks/audit_events_splunk.ipynb](notebooks/audit_events_splunk.ipynb), which needs **only the JSON files the monitor modules write to your Lakehouse**. It does not depend on any other table, so you can build the master table in your own tenant from the modules alone. The notebook also writes JSON Lines to `Files/splunk_export/YYYY/MM/DD/`.
-
-### Implementation steps
-
-Follow these in order. Each step says how to confirm it worked.
-
-1. **Prepare the service principal and Fabric.** Complete [Create a Service Principal](#create-a-service-principal) and [Grant Permissions to the Service Principal](#grant-permissions-to-the-service-principal) (Fabric admin API settings, Graph and Power BI permissions). Add the service principal as a member of every workspace you want job, definition and volume data from, because it cannot add itself.
-2. **Create or choose the Lakehouse** that will hold both the raw module output and the master table (for example `fabricauditlh`) in a Fabric workspace you can write to.
-3. **Configure `.env`** (start from `local.settings.example`; all names are in [docs/configuration-reference.md](docs/configuration-reference.md)):
-   ```
-   APPLICATION_MODULES=Activity,Graph,Catalog,FabricItems,ItemJobs,ControlPlane
-   LAKEHOUSE_NAME=<lakehouse name>
-   WORKSPACE_NAME=<workspace name>
-   PATH_IN_LAKEHOUSE=fabricmonitor
-   ON_FABRIC=true          # true when the modules run inside Fabric, false when they run elsewhere and write to OneLake
-   HTTP_MAX_RETRIES=6      # optional, see "Throttling and HTTP retries" below
-   ```
-   Optionally set `INCLUDE_WORKSPACE_IDS` / `EXCLUDE_WORKSPACE_IDS` to limit scope.
-4. **Run the modules in this order.** Later modules read earlier output, so the order matters. Run them once for a full backfill (`python -m app.monitor --base --modules ...`), then on a schedule.
-
-   | Order | Module | Writes | Feeds these master table columns |
-   |---|---|---|---|
-   | 1 | Activity | `activity/` | The events themselves: `event_id`, `event_time`, `operation`, `status`, `user_id`, `client_ip`, workspace, capacity and item columns |
-   | 2 | Graph | `graph/` | `user_display_name` |
-   | 3 | Catalog | `catalog/scans/`, `lineage_edges/` | `item_name`, `upstream_*`, `downstream_*`, `data_sources`, `has_lineage`, `lineage_note` |
-   | 4 | FabricItems | `items/`, `lineage/` | Supplementary lineage |
-   | 5 | ItemJobs | `jobs/`, `itemdefinitions/`, `jobactivityruns/` | `run_count`, `failed_runs`, `last_run_status`, `last_run_time`, `sources`, `destinations`, `rows_copied`, `bytes_written` |
-   | 6 | ControlPlane | `controlplane/`, `lineagegraph/`, `fabric_audit/` | `cp_owner_principal`, `cp_item_state`, `cp_last_run_status`, `cp_last_run_end`, `cp_last_run_failure_reason`, `cp_runs_collected`, `cp_failed_runs`, `cp_last_activity`, `cp_last_activity_time`, `cp_last_activity_user`, `cp_activity_count_7d`, `cp_activity_users` |
-
-   Confirm: in the Lakehouse, open **Files > fabricmonitor** and check that each folder above contains `YYYY/MM/DD` subfolders with `.json` files.
-5. **Import the notebook.** In the Fabric workspace choose **Import > Notebook** and select `notebooks/audit_events_splunk.ipynb`. Attach the Lakehouse from step 2 as the **default Lakehouse**. If `PATH_IN_LAKEHOUSE` is not `fabricmonitor`, change `base_path` in the first cell.
-6. **Run the notebook (first run).** Select **Run all**. The preflight cell lists every source folder as `OK` or `MISSING` and names the module to run for each missing one. It stops only when `activity/` is empty; other missing folders just leave the related columns empty. The notebook then builds `audit_events_splunk`, exports JSON Lines, and prints row counts and data quality checks.
-7. **Verify the table.** Open the Lakehouse **Tables** list, or run in a notebook or the SQL analytics endpoint:
-   ```sql
-   SELECT source, COUNT(*) AS events FROM audit_events_splunk GROUP BY source;
-   SELECT item_name, operation, status, user_display_name, cp_owner_principal, cp_last_run_status,
-          cp_activity_count_7d, lineage_note
-   FROM audit_events_splunk ORDER BY event_time DESC LIMIT 20;
-   ```
-8. **Schedule it.** Create a Data Factory pipeline whose Notebook activity runs the notebook after the module run finishes (see [Orchestrate refreshes](#orchestrate-refreshes)). Run the notebook at least once per 30 days, because the activity API returns at most 30 days.
-
-### How the notebook builds the table
-
-- **Source of truth:** only `Files/<PATH_IN_LAKEHOUSE>/` JSON from the modules. Every source is optional except `activity/`.
-- **Joins:** every enrichment is a left join keyed on the lower-cased item ID, and the notebook fails if the row count changes. `controlplane/` is reduced to one row per item from its newest `YYYY/MM/DD` snapshot, so it cannot multiply rows.
-- **Write:** a MERGE on `event_id`, partitioned by `event_date`. Schema auto-merge is on, so columns added by a newer version of the notebook are added to an existing table.
-- **Adding the new `cp_*` columns to an existing table:** the incremental run only enriches new events. Set `REBUILD = True` in the first cell for one run to fill the new columns for existing rows, then set it back to `False`.
-
-### Throttling and HTTP retries
-
-Every module calls the Power BI, Fabric and Graph APIs through one shared client ([env/utility/http.py](env/utility/http.py)). It retries HTTP 429, any 5xx and network failures, up to `HTTP_MAX_RETRIES` times (default 6). It waits for the server's `Retry-After` header (up to one hour) or uses exponential backoff from 2 to 60 seconds with jitter. Other 4xx responses (400, 401, 403, 404) are never retried. Each retry is logged as `HTTP retry: status=... attempt=n/m wait=...s path=...`.
-
-This is not the same as the run retries in the table. `cp_runs_collected` and `cp_failed_runs` describe how the customer's own jobs ran. The HTTP retries only decide whether a module manages to collect its data.
-
-If a module still fails after its retries, rerun that module, then rerun the notebook. Because the master table merges on `event_id`, reruns do not create duplicates.
-
-### Troubleshooting
-
-| Symptom | Cause and fix |
-|---|---|
-| Preflight raises `No data under Files/fabricmonitor/` | `activity/` is empty. Run the Activity module, and check `PATH_IN_LAKEHOUSE` matches `base_path` in the notebook. |
-| `MISSING controlplane` | Run ControlPlane after Catalog and ItemJobs. Until then the `cp_*` columns are empty. |
-| `lineage_note` is `item not in lineage_edges` | The item was not in a Catalog scan. Run Catalog with `--base`. |
-| `lineage_note` is `no relations in scanner` | The scanner returned no relations for that item. This is expected for some item types. |
-| Job, source or volume columns are empty for some items | The service principal is not a member of that item's workspace. Add it and rerun ItemJobs and ControlPlane. |
-| Many `HTTP retry: status=429` lines | Power BI admin throttling. Wait for the run to finish, run fewer modules at once, or narrow scope with `INCLUDE_WORKSPACE_IDS`. |
-| Notebook fails with `Row count changed after enrichments` | A lookup has duplicate keys. Check the source folder for duplicated item IDs. |
-| New columns are empty for old events | Run once with `REBUILD = True`. |
-
-### Notebook behavior
-
-- The notebook is incremental. If you change the enrichment logic, set `REBUILD = True` in the first cell for one run so existing rows are recomputed.
-- Every join is a left join and the notebook fails if the row count changes.
-- Item IDs prefer source GUID fields and ignore the all-zero GUID placeholder; item type falls back to `ArtifactKind`. The normalized `status` column is added alongside the original result/success fields.
-- `lineage_note` explains blanks: `no item id on event`, `item not in lineage_edges`, `no relations in scanner` or `ok`.
-- Lineage, runs, sources and volume belong to the item, so every event on the same item carries the same values.
-
-### Convert the JSONL export into a Delta table
-
-The export is stored as Spark part files beneath `Files/splunk_export/YYYY/MM/DD/audit_events.jsonl/`; it is not one physical `.jsonl` file. To materialize those records as a tabular Delta table without changing the canonical table, import [notebooks/jsonl_to_delta.ipynb](notebooks/jsonl_to_delta.ipynb), attach the same Lakehouse as its default Lakehouse, and run it. The notebook reads the JSON part files and overwrites the separate `audit_events_splunk_jsonl` table, then verifies that its row count matches the JSONL input. Run the audit notebook first so the export exists. The conversion notebook is a full refresh of this separate table each time it runs.
-
-### Orchestrate refreshes
-
-| Option | How to use it | Best for / trade-off |
-|---|---|---|
-| Run manually in Fabric | Open the notebook and select **Run all**. For JSONL materialization, run the converter after the audit export finishes. | Development, troubleshooting, or one-time backfills; requires a person to start and monitor each run. |
-| Fabric Data Factory pipeline (recommended for routine runs) | Create a pipeline with a Notebook activity for `audit_events_splunk`; add a dependent Notebook activity for `jsonl_to_delta` only if you need the extra JSONL-derived table. Configure a schedule or an event trigger on the pipeline. | Native Fabric monitoring, dependency handling, retry configuration and scheduling. Use the pipeline's run history to inspect each activity. |
-| Fabric REST API | Submit a notebook job instance for the audit notebook and, after it succeeds, submit the converter job if required. Poll the returned job-instance status and surface failures to the caller. | Programmatic, on-demand execution from a controlled service; caller must handle authentication, sequencing, retries and status polling. |
-| External orchestrator | An Azure Data Factory or another scheduler can call the Fabric REST API, or use its supported Fabric integration, and wait for job completion before starting the optional converter. Keep the Fabric notebook as the compute step. | Existing cross-platform workflows; adds external identity, networking and operational dependencies. |
-
-Fabric references: [Notebook activity](https://learn.microsoft.com/en-us/fabric/data-factory/notebook-activity), [run, schedule, or trigger a pipeline](https://learn.microsoft.com/en-us/fabric/data-factory/pipeline-runs), [use a notebook](https://learn.microsoft.com/en-us/fabric/data-engineering/how-to-use-notebook), [run a notebook job with the REST API](https://learn.microsoft.com/en-us/rest/api/fabric/notebook/background-jobs/run-on-demand-notebook), and [Fabric REST API overview](https://learn.microsoft.com/en-us/rest/api/fabric/).
-
-## Validating the results
-
-Lineage for a copy job in the Fabric portal (RawLakehouse to `CopyJob_1` to pipelinedLH):
-
-![Copy job lineage in the Fabric portal](docs/images/lineage-copyjob-portal.png)
-
-The same item in `audit_events_splunk`: last run, source, destination and `lineage_note = ok`:
-
-![Sources and destinations in audit_events_splunk](docs/images/audit-events-sources-destinations.png)
-
-An exported event file (user and client IP redacted):
-
-![audit_events_splunk file view](docs/images/audit-events-file-view.png)
-
-## Known limits
-
-- No public API returns the portal's full lineage view. The Scanner relations are the main source and the Fabric beta relations API only supplements them.
-- Copy-job runs return no activity-level rows or bytes, so volume is only available for pipeline copy activities.
-- The activity API returns at most 30 days, and scans only cover workspaces modified since the last run.
-- Storage-level events (reads and writes through OneLake) require OneLake diagnostics to be enabled on the workspace.
+[audit_events_splunk.ipynb](notebooks/audit_events_splunk.ipynb) consolidates
+saved module JSON into `audit_events_splunk` and a JSONL export.
+Enable `CATALOG_LINEAGE_ENABLED=true` for lineage enrichment. The notebook
+accepts the current Scanner snapshot envelope and legacy flat edge files.
+FabricItems remains Admin inventory only; it does not call the beta relations
+API. Retained lineage is observed evidence, not a complete current estate or
+event-time dependency graph.
+[jsonl_to_delta.ipynb](notebooks/jsonl_to_delta.ipynb) optionally materializes
+the export into the separate `audit_events_splunk_jsonl` table. These supplementary
+notebooks do not replace the numbered suite; live Fabric execution of the merged
+reporting path has not been validated.
 
 # Build and Test
-TODO: Describe and show how to build your code and run the tests. 
+Run the unit tests from the repository root:
+```
+python3 -m unittest discover -s tests -t .
+```
+
+The supplementary audit/reporting tests also require pytest:
+`python3 -m pytest -q tests`.
+
+See [docs/changelog.md](docs/changelog.md) for recent bug fixes (B1–B16), behaviour notes (state/`lastRun`, 7-day first run, 30-day Activity limit, catalog polling caps) and known gaps, the opt-in E5 modules (`GitConnections`, `Tags`, `DelegatedSettings`, `WidelySharedLinks`), and [docs/configuration-reference.md](docs/configuration-reference.md) for environment variables.
+
+To check your version and upgrade, see [docs/updating.md](docs/updating.md). The version is in the top-level `VERSION` file and is logged at startup.
+
+The `CapacityMetrics` module was rewritten (plan item E7). It reads the Capacity Metrics app semantic model through the `executeQueries` REST API and writes a new output format, which is a breaking change for consumers of the old files. See the [changelog](docs/changelog.md) and [Capacity Metrics settings](docs/configuration-reference.md#capacity-metrics-capacitymetrics).
 
 # Contribute
 TODO: Explain how other users and developers can contribute to make your code better. 

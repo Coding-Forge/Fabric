@@ -3,8 +3,10 @@ import json
 
 from datetime import datetime, timedelta, timezone
 
+from env.context import utc_now
 from env.modules.itemjobs import SCAN_LOOKBACK_DAYS, SCAN_MAX_FILES, SCANNER_ITEM_TYPES, _load_scans
 from env.utility.http import request_with_retry
+from env.utility.lineage_edges import scan_snapshot
 from env.utility.workspace_filter import filter_workspace_records, log_workspace_filter_counts
 
 MAX_FAILURE_REASON_CHARS = 500
@@ -310,6 +312,17 @@ async def _load_lineage(context, today):
             if found:
                 edges.extend({**e, "Source": e.get("Source") or "FabricRelations"} for e in found)
                 break
+    if not edges:
+        for index, scan in enumerate(await _load_scans(context, today)):
+            try:
+                snapshot = scan_snapshot(
+                    scan, f"controlplane-{index}",
+                    [workspace["id"] for workspace in scan.get("workspaces", [])],
+                    today.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
+                )
+                edges.extend(snapshot["edges"])
+            except (KeyError, TypeError, ValueError):
+                context.logger.warning("ControlPlane: invalid scanner lineage batch")
     return edges
 
 
@@ -730,7 +743,7 @@ async def main(context=None):
     if context is None:
         raise RuntimeError("Context is None")
 
-    today = datetime.now()
+    today = utc_now()
     day_path = f"{today.strftime('%Y')}/{today.strftime('%m')}/{today.strftime('%d')}/"
     definitions = await _read_json(context, f"itemdefinitions/{day_path}", "itemdefinitions_00001.json")
     jobs = await _read_json(context, f"jobs/{day_path}", "jobs_00001.json")
@@ -759,15 +772,26 @@ async def main(context=None):
     list_urls = ([context.get_fabric_url(f"v1/admin/items?workspaceId={w}") for w in sorted(context.include_workspace_ids)]
                  or [context.get_fabric_url("v1/admin/items")])
     for url in list_urls:
+        seen_urls = set()
         while url:
+            if not isinstance(url, str) or url in seen_urls:
+                context.logger.error("ControlPlane: invalid or repeated inventory page")
+                return False
+            seen_urls.add(url)
             response = await context.invokeAPI(url, headers=headers)
-            if "ERROR" in response:
-                context.logger.error(
-                    f"ControlPlane: admin/items listing stopped: HTTP {response.get('status_code')} {response.get('message')}"
-                )
-                break
-            entities.extend(response.get("itemEntities") or [])
+            if (
+                not isinstance(response, dict)
+                or "ERROR" in response
+                or "error" in response
+                or not isinstance(response.get("itemEntities"), list)
+            ):
+                context.logger.error("ControlPlane: admin inventory is incomplete")
+                return False
+            entities.extend(response["itemEntities"])
             url = response.get("continuationUri")
+            if url is not None and not isinstance(url, str):
+                context.logger.error("ControlPlane: invalid inventory continuation URI")
+                return False
     entities, item_counts = filter_workspace_records(
         entities, context.include_workspace_ids, context.exclude_workspace_ids,
         get_workspace_id=lambda e: e.get("workspaceId"),
@@ -856,7 +880,7 @@ async def main(context=None):
     collectors = collector_ids(events, app_id)
     directory = principal_directory(events, item_access, workspace_access)
     activity = _activity_by_item(events, directory, collectors, item_info)
-    collected_at = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+    collected_at = utc_now().strftime("%Y-%m-%dT%H:%M:%SZ")
     operations = build_operations(events, item_info, edges, directory, collectors,
                                   context.include_workspace_ids, context.exclude_workspace_ids, collected_at)
     if not edges:
@@ -866,10 +890,10 @@ async def main(context=None):
 
     rows = build_rows(
         definitions, inventory, runs, _latest_activity_volume(activity_runs),
-        item_access, workspace_access, workspace_names, datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        item_access, workspace_access, workspace_names, utc_now().strftime("%Y-%m-%dT%H:%M:%SZ"),
         details, delta_commits, edges, activity,
     )
-    graph_rows = build_lineage_graph(edges, item_info, activity, datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"))
+    graph_rows = build_lineage_graph(edges, item_info, activity, utc_now().strftime("%Y-%m-%dT%H:%M:%SZ"))
     context.logger.info(
         "ControlPlane rows: %d from %d items in %d workspaces (definitions=%d, jobs=%d, activity runs=%d, "
         "lineage edges=%d, items with activity=%d, control plane operations=%d)",

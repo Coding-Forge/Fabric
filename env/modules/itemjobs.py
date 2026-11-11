@@ -6,6 +6,7 @@ import time
 
 from datetime import datetime, timedelta
 
+from env.context import utc_now
 from env.utility.http import (
     DEFAULT_MAX_RETRIES,
     parse_retry_after,
@@ -514,19 +515,30 @@ async def main(context=None):
     _logger = context.logger
     headers = context.clients['tenant'].get_headers()
     base = context.get_fabric_url("").rstrip("/")
-    today = datetime.now()
+    today = utc_now()
 
     items = []
     url = context.get_fabric_url("v1/admin/items")
+    seen_urls = set()
     while url:
+        if not isinstance(url, str) or url in seen_urls:
+            context.logger.error("ItemJobs: invalid or repeated inventory page")
+            return False
+        seen_urls.add(url)
         response = await context.invokeAPI(url, headers=headers)
-        if "ERROR" in response:
-            context.logger.error(
-                f"ItemJobs: admin/items listing stopped: HTTP {response.get('status_code')} {response.get('message')}"
-            )
-            break
-        items.extend(response.get("itemEntities") or [])
+        if (
+            not isinstance(response, dict)
+            or "ERROR" in response
+            or "error" in response
+            or not isinstance(response.get("itemEntities"), list)
+        ):
+            context.logger.error("ItemJobs: admin inventory is incomplete")
+            return False
+        items.extend(response["itemEntities"])
         url = response.get("continuationUri")
+        if url is not None and not isinstance(url, str):
+            context.logger.error("ItemJobs: invalid inventory continuation URI")
+            return False
 
     all_items = items
     items, workspace_counts = filter_workspace_records(

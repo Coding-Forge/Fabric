@@ -1,0 +1,157 @@
+/// Successful observations from one validated permission cycle; partial coverage is not effective access. One row per distinct principal/access detail.
+table 'Item Permissions'
+	lineageTag: c7eb7ea6-e6b6-4973-9984-15910b20b99b
+
+	measure 'Observed Grant Count' =
+			IF(
+				COUNTROWS('Item Permissions') > 0,
+				COUNTROWS('Item Permissions'),
+				IF(CALCULATE(SELECTEDVALUE('Collection Status'[Has Snapshot]), REMOVEFILTERS('Collection Status'), 'Collection Status'[Module] = "fabricitemaccesspermissions"), 0)
+			)
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 4c4593af-3e4d-4182-8e4e-a75a19606242
+
+	measure 'Items With Grants' =
+			IF(
+				COUNTROWS('Item Permissions') > 0,
+				COUNTROWS(SUMMARIZE('Item Permissions', 'Item Permissions'[Workspace Id], 'Item Permissions'[Item Id])),
+				IF(NOT ISBLANK([Observed Grant Count]), 0)
+			)
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 26e87c64-7933-4468-b3ac-e53a8577e0ad
+
+	measure 'Principals With Grants' =
+			IF(
+				COUNTROWS('Item Permissions') > 0,
+				COUNTROWS(SUMMARIZE('Item Permissions', 'Item Permissions'[Principal Type], 'Item Permissions'[Principal Id])),
+				IF(NOT ISBLANK([Observed Grant Count]), 0)
+			)
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: ba5823e3-9596-452a-bd24-a84c1c2b3600
+
+	column 'Workspace Id'
+		dataType: string
+		lineageTag: fe3c9d86-07ea-4bba-b4b9-2738f5682f68
+		summarizeBy: none
+		sourceColumn: Workspace Id
+
+	column 'Item Id'
+		dataType: string
+		lineageTag: 32adc4f5-c6c8-4bf1-bbfb-d24bfbc58cb4
+		summarizeBy: none
+		sourceColumn: Item Id
+
+	column 'Item Type'
+		dataType: string
+		lineageTag: 21805727-e4e2-4817-8815-b08169d16f50
+		summarizeBy: none
+		sourceColumn: Item Type
+
+	column 'Principal Type'
+		dataType: string
+		lineageTag: be7fd6ea-7c91-4484-9c61-6a281aeeeb9d
+		summarizeBy: none
+		sourceColumn: Principal Type
+
+	column 'Principal Id'
+		dataType: string
+		lineageTag: 13a9243b-09ad-48f1-98fc-78273b914391
+		summarizeBy: none
+		sourceColumn: Principal Id
+
+	column 'Principal Label'
+		dataType: string
+		lineageTag: 6f347770-2ba2-44f8-9e96-b84067af61a2
+		summarizeBy: none
+		sourceColumn: Principal Label
+
+	column 'Principal Display Name'
+		dataType: string
+		lineageTag: 76462227-af81-43e6-af7c-1d6fc94ab943
+		summarizeBy: none
+		sourceColumn: Principal Display Name
+
+	column 'Principal User Principal Name'
+		dataType: string
+		lineageTag: 6b252c34-fbc1-4769-8d3f-17962723dfd8
+		summarizeBy: none
+		sourceColumn: Principal User Principal Name
+
+	column 'Access Detail Type'
+		dataType: string
+		lineageTag: 49792317-d16e-48b1-85aa-4a6023b65b23
+		summarizeBy: none
+		sourceColumn: Access Detail Type
+
+	column Permissions
+		dataType: string
+		lineageTag: 2d984ef6-941a-4463-ab91-81f552568f3c
+		summarizeBy: none
+		sourceColumn: Permissions
+
+	column 'Additional Permissions'
+		dataType: string
+		lineageTag: 0da8b81b-7cfd-45bf-9a52-6d8ab89ac05f
+		summarizeBy: none
+		sourceColumn: Additional Permissions
+
+	column 'Observed At UTC'
+		dataType: dateTime
+		formatString: yyyy-MM-dd HH:mm:ss
+		lineageTag: d9fbe440-cec1-4bc6-be47-330429f0f827
+		summarizeBy: none
+		sourceColumn: Observed At UTC
+
+	column 'Run Id'
+		dataType: string
+		isHidden
+		lineageTag: 848a54ca-a370-4732-827a-12c5c5c95a6f
+		summarizeBy: none
+		sourceColumn: Run Id
+
+	column 'Grant Key'
+		dataType: string
+		isHidden
+		lineageTag: a3e88c04-0a3a-4c55-ad41-0b3c94b34614
+		summarizeBy: none
+		sourceColumn: Grant Key
+
+	partition 'Item Permissions' = m
+		mode: import
+		source =
+				let
+				  Files = FabricItemPermissionsData[Observations],
+				  NonEmpty = Table.SelectRows(Files, each not List.IsEmpty([Json][records])),
+				  Items = Table.ExpandListColumn(Table.AddColumn(NonEmpty, "Item", each [Json][records], type list), "Item"),
+				  WithColumns = AddColumns(Items, {
+						{"Workspace Id", each [Json][parent][workspaceId], type text},
+						{"Item Id", each [Json][parent][itemId], type text},
+						{"Item Type", each [Json][parent][type], type text},
+						{"Principal Type", each [Item][principal][type], type text},
+						{"Principal Id", each [Item][principal][id], type text},
+						{"Principal Display Name", each JsonField([Item][principal], "displayName"), type nullable text},
+						{"Principal User Principal Name", each JsonField(JsonField([Item][principal], "userDetails"), "userPrincipalName"), type nullable text},
+						{"Access Detail Type", each [Item][itemAccessDetails][type], type nullable text},
+						{"Permissions", each NormalizeFabricPermissions([Item][itemAccessDetails][permissions]), type text},
+						{"Additional Permissions", each NormalizeFabricPermissions(Coalesce(JsonField([Item][itemAccessDetails], "additionalPermissions"), {})), type text},
+						{"Observed At UTC", each ToUtcDateTime([Json][observedAt]), type datetime},
+						{"Run Id", each [Json][runId], type text},
+						{"Grant Key", each Text.FromBinary(Json.FromValue({
+							[Json][parent][workspaceId], [Json][parent][itemId], [Json][parent][type],
+							[Item][principal][type], [Item][principal][id], [Item][itemAccessDetails][type],
+							List.Sort(List.Distinct([Item][itemAccessDetails][permissions])),
+							List.Sort(List.Distinct(Coalesce(JsonField([Item][itemAccessDetails], "additionalPermissions"), {})))
+						}), TextEncoding.Utf8), type text}
+					}),
+				  Labels = Table.AddColumn(WithColumns, "Principal Label", each List.First(List.Select({[Principal Display Name], [Principal User Principal Name], [Principal Id]}, (v) => v <> null and v <> ""), null), type text),
+				  Slim = Table.SelectColumns(Labels, {"Workspace Id", "Item Id", "Item Type", "Principal Type", "Principal Id", "Principal Label", "Principal Display Name", "Principal User Principal Name", "Access Detail Type", "Permissions", "Additional Permissions", "Observed At UTC", "Run Id", "Grant Key"}),
+				  Sorted = Table.Buffer(Table.Sort(Slim, {{"Observed At UTC", Order.Descending}, {"Run Id", Order.Descending}})),
+				  Custom = Table.Distinct(Sorted, {"Grant Key"})
+				in
+				  Custom
+
+	annotation PBI_ResultType = Table
+

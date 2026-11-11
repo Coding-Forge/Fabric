@@ -1,0 +1,45 @@
+/// Capacity dimension built from the capacity_metrics files (latest run wins per capacity).
+table Capacities
+	lineageTag: 01da021c-462f-4207-a10a-ac2dba88f2b4
+
+	column 'Capacity Id'
+		dataType: string
+		isHidden
+		lineageTag: 48da7c3b-a4c1-46ed-94b5-2861a856cb3e
+		summarizeBy: none
+		sourceColumn: Capacity Id
+
+	column 'Capacity Name'
+		dataType: string
+		lineageTag: a47396a9-d595-4761-bf1a-b219e519f7cb
+		summarizeBy: none
+		sourceColumn: Capacity Name
+
+	column SKU
+		dataType: string
+		lineageTag: 7fe815cb-1649-4e74-be0d-bc8d865f88ef
+		summarizeBy: none
+		sourceColumn: SKU
+
+	partition Capacities = m
+		mode: import
+		source =
+				let
+					Files = GetFiles("capacity_metrics"),
+					Valid = Table.SelectRows(Files, each [ParseError] = null and [Json] is record),
+					WithMeta = AddColumns(Valid, {
+						{"Capacity Id", each ToText(JsonField([Json], "capacityId")), type text},
+						{"Capacity Name", each ToText(JsonField([Json], "capacityName")), type text},
+						{"SKU", each ToText(JsonField([Json], "sku")), type text},
+						{"Run Key", each Text.Start([FileName], 8), type text}
+					}),
+					Slim = Table.SelectColumns(WithMeta, {"Capacity Id", "Capacity Name", "SKU", "Run Key"}),
+					Known = Table.SelectRows(Slim, each [Capacity Id] <> null),
+					Sorted = Table.Buffer(Table.Sort(Known, {{"Run Key", Order.Descending}})),
+					Latest = Table.Distinct(Sorted, {"Capacity Id"}),
+					Result = Table.TransformColumnTypes(Table.RemoveColumns(Latest, {"Run Key"}), {{"Capacity Id", type text}, {"Capacity Name", type text}, {"SKU", type text}})
+				in
+					Result
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,104 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "ddi_dataflows_table",
+  "position": {
+    "x": 1280,
+    "y": 580,
+    "z": 11000,
+    "height": 400,
+    "width": 590,
+    "tabOrder": 11000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dataflows"
+                    }
+                  },
+                  "Property": "DataflowName"
+                }
+              },
+              "queryRef": "Dataflows.DataflowName",
+              "nativeQueryRef": "DataflowName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dataflows"
+                    }
+                  },
+                  "Property": "WorkspaceName"
+                }
+              },
+              "queryRef": "Dataflows.WorkspaceName",
+              "nativeQueryRef": "WorkspaceName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dataflows"
+                    }
+                  },
+                  "Property": "ConfiguredBy"
+                }
+              },
+              "queryRef": "Dataflows.ConfiguredBy",
+              "nativeQueryRef": "ConfiguredBy"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Dataflow details'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "howCreated": "Copilot"
+}

@@ -1,0 +1,194 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "ip_table",
+  "position": {
+    "x": 20,
+    "y": 580,
+    "width": 1240,
+    "height": 120,
+    "z": 12000,
+    "tabOrder": 12000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Workspace Id"
+                }
+              },
+              "queryRef": "Item Permissions.Workspace Id",
+              "nativeQueryRef": "Workspace Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Item Id"
+                }
+              },
+              "queryRef": "Item Permissions.Item Id",
+              "nativeQueryRef": "Item Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Item Type"
+                }
+              },
+              "queryRef": "Item Permissions.Item Type",
+              "nativeQueryRef": "Item Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Principal Type"
+                }
+              },
+              "queryRef": "Item Permissions.Principal Type",
+              "nativeQueryRef": "Principal Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Principal Label"
+                }
+              },
+              "queryRef": "Item Permissions.Principal Label",
+              "nativeQueryRef": "Principal Label"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Principal Id"
+                }
+              },
+              "queryRef": "Item Permissions.Principal Id",
+              "nativeQueryRef": "Principal Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Permissions"
+                }
+              },
+              "queryRef": "Item Permissions.Permissions",
+              "nativeQueryRef": "Permissions"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Additional Permissions"
+                }
+              },
+              "queryRef": "Item Permissions.Additional Permissions",
+              "nativeQueryRef": "Additional Permissions"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Item Permissions"
+                    }
+                  },
+                  "Property": "Observed At UTC"
+                }
+              },
+              "queryRef": "Item Permissions.Observed At UTC",
+              "nativeQueryRef": "Observed At UTC"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "values": [
+        {
+          "properties": {
+            "wordWrap": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "10D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Observed principal grants — permission lists preserved'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

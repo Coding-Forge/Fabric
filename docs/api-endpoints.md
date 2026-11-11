@@ -1,6 +1,11 @@
 # API endpoints used by Fabric Monitor
 
-Source: `env/modules/*.py`. Base URLs and token scopes are defined per cloud in `env/cloud.py`; all calls go through `Context.invokeAPI` in `env/context.py` (some modules call `requests.get` directly). Links below point to the official Microsoft Learn REST references; where an exact operation reference is unavailable, the API-family reference is linked.
+This supplementary endpoint inventory covers the base and audit-reporting modules,
+not every optional collector. For the complete authorization boundaries and
+collector-specific scope, use the [configuration reference](configuration-reference.md#api-scope-and-authorization-boundaries).
+Base URLs and token scopes are defined per cloud in `env/cloud.py`. Base modules
+use `Context.invokeAPI` or the existing shared transport; ItemJobs/ControlPlane
+also use their separate HTTP helper. Links below point to Microsoft Learn.
 
 Base URLs (Commercial):
 - Power BI: `https://api.powerbi.com/v1.0/myorg/`
@@ -17,18 +22,22 @@ Base URLs (Commercial):
 | Workspaces | `GET v1/admin/workspaces` | [List workspaces (Admin)](https://learn.microsoft.com/en-us/rest/api/fabric/admin/workspaces/list-workspaces) | `modules/workspaces.py` |
 | Roles | `GET v1/admin/workspaces` | [Fabric Admin REST API](https://learn.microsoft.com/en-us/rest/api/fabric/admin/) | `modules/roles.py` |
 | Tenant | `GET v1/admin/tenantsettings` | [Fabric Admin REST API](https://learn.microsoft.com/en-us/rest/api/fabric/admin/) | `modules/tenant.py` |
-| FabricItems (lineage, beta) | `GET v1/workspaces/{ws}/items/{id}/relations/upstream?beta=true` and `/relations/downstream?beta=true` | [Fabric REST API reference](https://learn.microsoft.com/en-us/rest/api/fabric/) | `modules/fabricitems.py` |
+| ControlPlane | `GET v1/admin/items`, `GET v1/admin/workspaces/{ws}/users` and `GET v1/admin/workspaces/{ws}/items/{id}/users` | [Fabric Admin REST API](https://learn.microsoft.com/en-us/rest/api/fabric/admin/) | `modules/controlplane.py` |
 
 ## Fabric REST API (workspace-level, needs workspace access)
 
 | Module | Endpoint | Microsoft Learn reference | File |
 |---|---|---|---|
 | ItemJobs | `GET v1/workspaces/{ws}/items/{id}/jobs/instances` | [Fabric REST API reference](https://learn.microsoft.com/en-us/rest/api/fabric/) | `modules/itemjobs.py` |
-| ItemJobs | `POST v1/workspaces/{ws}/items/{id}/getDefinition` (long-running operation) for CopyJob and DataPipeline | [Get item definition](https://learn.microsoft.com/en-us/rest/api/fabric/core/items/get-item-definition) | `modules/itemjobs.py` |
-| ItemJobs | `GET v1/workspaces/{ws}/datapipelines/pipelineruns/{runId}/queryactivityruns` (recurses into child pipelines) | [Fabric REST API reference](https://learn.microsoft.com/en-us/rest/api/fabric/) | `modules/itemjobs.py` |
-| ControlPlane | `GET v1/admin/items` and `GET v1/workspaces/{ws}/{lakehouses|warehouses|eventhouses|kqlDatabases|eventstreams|notebooks|dataPipelines|copyJobs|reflexes|semanticModels|reports|sqlEndpoints|items}/{id}` | [Items - Get Item](https://learn.microsoft.com/en-us/rest/api/fabric/core/items/get-item) | `modules/controlplane.py` |
-| ControlPlane | `GET v1/admin/workspaces/{ws}/users` | [Admin - Workspaces - List Workspace Access Details](https://learn.microsoft.com/en-us/rest/api/fabric/admin/workspaces/list-workspace-access-details) | `modules/controlplane.py` |
-| ControlPlane | `GET v1/admin/workspaces/{ws}/items/{id}/users` | [Admin - Items - List Item Access Details](https://learn.microsoft.com/en-us/rest/api/fabric/admin/items/list-item-access-details) | `modules/controlplane.py` |
+| ItemJobs | `POST v1/workspaces/{ws}/items/{id}/getDefinition` (long-running operation), selected supported types | [Get item definition](https://learn.microsoft.com/en-us/rest/api/fabric/core/items/get-item-definition) | `modules/itemjobs.py` |
+| ItemJobs | `POST v1/workspaces/{ws}/datapipelines/pipelineruns/{runId}/queryactivityruns` (recurses into child pipelines) | [Fabric REST API reference](https://learn.microsoft.com/en-us/rest/api/fabric/) | `modules/itemjobs.py` |
+| ItemJobs | `GET v1/workspaces/{ws}/items/{id}/shortcuts` and `GET v1/workspaces/{ws}/eventstreams/{id}/topology` | [Fabric REST API reference](https://learn.microsoft.com/en-us/rest/api/fabric/) | `modules/itemjobs.py` |
+| ControlPlane | `GET v1/workspaces/{ws}/{lakehouses|warehouses|eventhouses|kqlDatabases|eventstreams|notebooks|dataPipelines|copyJobs|reflexes|semanticModels|reports|sqlEndpoints|items}/{id}` | [Items - Get Item](https://learn.microsoft.com/en-us/rest/api/fabric/core/items/get-item) | `modules/controlplane.py` |
+
+ControlPlane also reads selected table Delta logs from OneLake. These non-Admin
+calls require item/storage access independently of Admin discovery; see the
+[supplementary module permissions and limits](configuration-reference.md#optional-audit-reporting-modules).
+FabricItems does not call the beta relations API.
 
 ## Power BI REST API
 
@@ -37,7 +46,7 @@ Base URLs (Commercial):
 | Activity | `GET admin/activityevents?startDateTime=...&endDateTime=...` (continuation URIs) | [Get Activity Events](https://learn.microsoft.com/en-us/rest/api/power-bi/admin/get-activity-events) | `modules/activity.py` |
 | Apps | `GET admin/apps?$top=5000&$skip=0` | [Power BI Admin REST API](https://learn.microsoft.com/en-us/rest/api/power-bi/admin) | `modules/apps.py` |
 | Capacity | `GET admin/capacities` | [Power BI Admin REST API](https://learn.microsoft.com/en-us/rest/api/power-bi/admin) | `modules/capacity.py` |
-| CapacityMetrics | `GET admin/capacities/metrics`, `POST datasets/{datasetId}/executeQueries` | [Power BI Admin REST API](https://learn.microsoft.com/en-us/rest/api/power-bi/admin) and [Execute Queries](https://learn.microsoft.com/en-us/rest/api/power-bi/datasets/execute-queries) | `modules/capacity_metrics.py` |
+| CapacityMetrics | `POST datasets/{datasetId}/executeQueries` (non-Admin; selected Metrics app semantic model) | [Execute Queries](https://learn.microsoft.com/en-us/rest/api/power-bi/datasets/execute-queries) | `modules/capacity_metrics.py` |
 | Catalog | `GET admin/workspaces/modified?...` | [Power BI Admin REST API](https://learn.microsoft.com/en-us/rest/api/power-bi/admin) | `modules/catalog.py` |
 | Catalog | `POST admin/workspaces/getInfo?lineage=True&datasourceDetails=True&datasetSchema=True&datasetExpressions=True` | [Post Workspace Info](https://learn.microsoft.com/en-us/rest/api/power-bi/admin/workspace-info-post-workspace-info) | `modules/catalog.py` |
 | Catalog | `GET admin/workspaces/scanStatus/{scanId}` | [Get Scan Status](https://learn.microsoft.com/en-us/rest/api/power-bi/admin/workspace-info-get-scan-status) | `modules/catalog.py` |
@@ -61,7 +70,7 @@ Base URLs (Commercial):
 
 | Output | Built from | File |
 |---|---|---|
-| `lineage_edges/` (flat upstream and downstream edges) | Scanner `getInfo` results (`relations`, report `datasetId`, `datasourceUsages`) | `utility/lineage_edges.py`, called from `modules/catalog.py` |
+| `lineage_edges/` (versioned batch envelopes containing items and edges; opt-in) | Scanner results (`relations`, report `datasetId`, upstream datasets/dataflows, `datasourceUsages`); no extra HTTP calls | `utility/lineage_edges.py`, called from `modules/catalog.py` |
 
 ## Notes
 

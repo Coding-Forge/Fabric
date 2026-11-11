@@ -5,7 +5,7 @@ from datetime import datetime
 from unittest import mock
 
 from env.modules import itemjobs
-from test_workspace_filter import FakeContext, WORKSPACE_ID, OTHER_WORKSPACE_ID
+from tests.test_workspace_filter import FakeContext, WORKSPACE_ID, OTHER_WORKSPACE_ID
 
 LAKEHOUSE_ID = "4bea5ffc-62d9-4ff5-9022-a8b43e7e3548"
 EXTRA_LAKEHOUSE_ID = "cccccccc-cccc-4ccc-8ccc-cccccccccccc"

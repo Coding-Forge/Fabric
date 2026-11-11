@@ -1,0 +1,94 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "tag_table",
+  "position": {
+    "x": 540,
+    "y": 210,
+    "width": 720,
+    "height": 490,
+    "z": 3000,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tags"
+                    }
+                  },
+                  "Property": "Display Name"
+                }
+              },
+              "queryRef": "Tags.Display Name",
+              "nativeQueryRef": "Display Name"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tags"
+                    }
+                  },
+                  "Property": "Scope Type"
+                }
+              },
+              "queryRef": "Tags.Scope Type",
+              "nativeQueryRef": "Scope Type"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tags"
+                    }
+                  },
+                  "Property": "Domain Id"
+                }
+              },
+              "queryRef": "Tags.Domain Id",
+              "nativeQueryRef": "Domain Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tags"
+                    }
+                  },
+                  "Property": "Tag Id"
+                }
+              },
+              "queryRef": "Tags.Tag Id",
+              "nativeQueryRef": "Tag Id"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Tags"
+                    }
+                  },
+                  "Property": "Load Error"
+                }
+              },
+              "queryRef": "Tags.Load Error",
+              "nativeQueryRef": "Load Error"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

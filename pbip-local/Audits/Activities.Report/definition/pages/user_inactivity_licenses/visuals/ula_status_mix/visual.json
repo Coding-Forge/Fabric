@@ -1,0 +1,114 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "ula_status_mix",
+  "position": {
+    "x": 40,
+    "y": 390,
+    "z": 30,
+    "height": 300,
+    "width": 430,
+    "tabOrder": 30
+  },
+  "visual": {
+    "visualType": "donutChart",
+    "drillFilterOtherVisuals": true,
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "UserLicenseActivity"
+                    }
+                  },
+                  "Property": "ActivityStatus"
+                }
+              },
+              "queryRef": "UserLicenseActivity.ActivityStatus",
+              "nativeQueryRef": "ActivityStatus",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "UserLicenseActivity"
+                        }
+                      },
+                      "Property": "UserPrincipalName"
+                    }
+                  },
+                  "Function": 2
+                }
+              },
+              "queryRef": "Count(UserLicenseActivity.UserPrincipalName)",
+              "nativeQueryRef": "Count of UserPrincipalName"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Aggregation": {
+                "Expression": {
+                  "Column": {
+                    "Expression": {
+                      "SourceRef": {
+                        "Entity": "UserLicenseActivity"
+                      }
+                    },
+                    "Property": "UserPrincipalName"
+                  }
+                },
+                "Function": 2
+              }
+            },
+            "direction": "Descending"
+          }
+        ]
+      }
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Users by activity status'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "howCreated": "Copilot"
+}

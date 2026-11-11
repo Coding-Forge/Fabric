@@ -1,0 +1,97 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "co_line_carryover",
+  "position": {
+    "x": 20,
+    "y": 210,
+    "width": 1240,
+    "height": 490,
+    "z": 5000,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "lineChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Capacity Metrics"
+                    }
+                  },
+                  "Property": "Timepoint"
+                }
+              },
+              "queryRef": "Capacity Metrics.Timepoint",
+              "nativeQueryRef": "Timepoint",
+              "active": true
+            }
+          ]
+        },
+        "Series": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Capacities"
+                    }
+                  },
+                  "Property": "Capacity Name"
+                }
+              },
+              "queryRef": "Capacities.Capacity Name",
+              "nativeQueryRef": "Capacity Name"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Capacity Metrics"
+                    }
+                  },
+                  "Property": "Max Carry Over %"
+                }
+              },
+              "queryRef": "Capacity Metrics.Max Carry Over %",
+              "nativeQueryRef": "Max Carry Over %"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Cumulative carry-over % by timepoint (empty on older Capacity Metrics app versions)'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

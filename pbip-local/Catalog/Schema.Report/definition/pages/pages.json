@@ -1,0 +1,16 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.1.0/schema.json",
+  "pageOrder": [
+    "9b5bb1db4348402a4b40",
+    "workspace_inventory",
+    "dashboards_datamarts_inventory",
+    "semantic_model_inventory",
+    "datasource_refresh",
+    "lineage",
+    "lineage_graphs",
+    "governance_health",
+    "workspace_detail_drillthrough",
+    "dataset_detail_drillthrough"
+  ],
+  "activePageName": "lineage_graphs"
+}

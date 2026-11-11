@@ -1,0 +1,137 @@
+/// Latest snapshot of workspace Git connections (gitconnections/YYYY/MM/DD/gitconnections.json); older days are not summed.
+table 'Git Connections'
+	lineageTag: 60a13cd2-2778-44b0-bd7f-b28d8e681eae
+
+	measure 'Git Connection Count' = CALCULATE(COUNTROWS('Git Connections'), 'Git Connections'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 52970b19-12f7-4360-9ab4-c1c555348811
+
+	measure 'Git Workspace Count' = CALCULATE(DISTINCTCOUNT('Git Connections'[Workspace Id]), 'Git Connections'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 6f7704bd-cbe2-4f3c-aa82-3d3cda29e3d4
+
+	measure 'Git Repository Count' = CALCULATE(DISTINCTCOUNT('Git Connections'[Repository Name]), 'Git Connections'[Load Error] = BLANK())
+		formatString: #,0
+		displayFolder: Counts
+		lineageTag: 9d8418cb-dfe3-4214-835f-f1445620c997
+
+	column 'Workspace Id'
+		dataType: string
+		lineageTag: f18d0b1a-d988-4f7f-b279-5347409e8dd3
+		summarizeBy: none
+		sourceColumn: Workspace Id
+
+	column 'Git Provider Type'
+		dataType: string
+		lineageTag: 1f4229c7-215d-46fb-97eb-5450b2556422
+		summarizeBy: none
+		sourceColumn: Git Provider Type
+
+	column 'Owner Name'
+		dataType: string
+		lineageTag: f18004ab-81b2-4158-93e0-08986667c00f
+		summarizeBy: none
+		sourceColumn: Owner Name
+
+	column 'Organization Name'
+		dataType: string
+		lineageTag: 1a4664e7-0840-45d7-952e-438add3c16cb
+		summarizeBy: none
+		sourceColumn: Organization Name
+
+	column 'Project Name'
+		dataType: string
+		lineageTag: 466241e5-a957-4a43-a201-0c36ab77d267
+		summarizeBy: none
+		sourceColumn: Project Name
+
+	column 'Repository Name'
+		dataType: string
+		lineageTag: a30c1858-3462-4754-b131-4603df9a211e
+		summarizeBy: none
+		sourceColumn: Repository Name
+
+	column 'Branch Name'
+		dataType: string
+		lineageTag: b4800289-0a83-48fa-89a4-6a185ee1b7e5
+		summarizeBy: none
+		sourceColumn: Branch Name
+
+	column 'Directory Name'
+		dataType: string
+		lineageTag: 49af599c-4d40-4665-8cf8-9b1d778e9c28
+		summarizeBy: none
+		sourceColumn: Directory Name
+
+	column 'Connection State'
+		dataType: string
+		lineageTag: 42360072-2d8d-4a9c-9de5-11caee1fd3a1
+		summarizeBy: none
+		sourceColumn: Connection State
+
+	column 'Last Sync Time'
+		dataType: dateTime
+		formatString: General Date
+		lineageTag: 9a122cca-12f6-4e36-98ad-02b09a8c146d
+		summarizeBy: none
+		sourceColumn: Last Sync Time
+
+		variation Variation
+			isDefault
+			relationship: 60790472-ada2-4535-93a2-9e1d762605d4
+			defaultHierarchy: LocalDateTable_7042635b-70d6-40ea-bb79-ea68a9467045.'Date Hierarchy'
+
+	column 'Snapshot Date'
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: f1b3a667-0bd5-4e4d-b2dd-6f397dcce8a1
+		summarizeBy: none
+		sourceColumn: Snapshot Date
+
+		variation Variation
+			isDefault
+			relationship: 413058b0-73d2-4b96-9840-5a0280483666
+			defaultHierarchy: LocalDateTable_b1631ab4-0221-4ced-90ab-eea5c3630574.'Date Hierarchy'
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 'Source File'
+		dataType: string
+		lineageTag: 19fbaf12-acf0-4e61-b41b-d04583474685
+		summarizeBy: none
+		sourceColumn: Source File
+
+	column 'Load Error'
+		dataType: string
+		lineageTag: 269ca07d-b1bd-473d-8566-41216764f6c3
+		summarizeBy: none
+		sourceColumn: Load Error
+
+	partition 'Git Connections' = m
+		mode: import
+		source =
+				let
+					Items = ExpandItems(KeepLatestPerGroup(GetFiles("gitconnections"), "Group")),
+					WithColumns = AddColumns(Items, {
+						{"Workspace Id", each ToText(JsonField([Item], "workspaceId")), type text},
+						{"Git Provider Type", each ToText(JsonField(JsonField([Item], "gitProviderDetails"), "gitProviderType")), type text},
+						{"Owner Name", each ToText(JsonField(JsonField([Item], "gitProviderDetails"), "ownerName")), type text},
+						{"Organization Name", each ToText(JsonField(JsonField([Item], "gitProviderDetails"), "organizationName")), type text},
+						{"Project Name", each ToText(JsonField(JsonField([Item], "gitProviderDetails"), "projectName")), type text},
+						{"Repository Name", each ToText(JsonField(JsonField([Item], "gitProviderDetails"), "repositoryName")), type text},
+						{"Branch Name", each ToText(JsonField(JsonField([Item], "gitProviderDetails"), "branchName")), type text},
+						{"Directory Name", each ToText(JsonField(JsonField([Item], "gitProviderDetails"), "directoryName")), type text},
+						{"Connection State", each ToText(JsonField([Item], "gitConnectionState")), type text},
+						{"Last Sync Time", each ToUtcDateTime(JsonField(JsonField([Item], "gitSyncDetails"), "lastSyncTime")), type nullable datetime},
+						{"Snapshot Date", each [FileDate], type nullable date},
+						{"Source File", each if [ParseError] <> null then [RelPath] else null, type text},
+						{"Load Error", each [ParseError], type text}
+					}),
+					Result = Table.SelectColumns(WithColumns, {"Workspace Id", "Git Provider Type", "Owner Name", "Organization Name", "Project Name", "Repository Name", "Branch Name", "Directory Name", "Connection State", "Last Sync Time", "Snapshot Date", "Source File", "Load Error"})
+				in
+					Result
+
+	annotation PBI_ResultType = Table
+

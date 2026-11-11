@@ -1,0 +1,206 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "dsr_refresh_table",
+  "position": {
+    "x": 970,
+    "y": 620,
+    "z": 11000,
+    "height": 395,
+    "width": 880,
+    "tabOrder": 11000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetRefreshSchedules"
+                    }
+                  },
+                  "Property": "DatasetName"
+                }
+              },
+              "queryRef": "DatasetRefreshSchedules.DatasetName",
+              "nativeQueryRef": "DatasetName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetRefreshSchedules"
+                    }
+                  },
+                  "Property": "DatasetId"
+                }
+              },
+              "queryRef": "DatasetRefreshSchedules.DatasetId",
+              "nativeQueryRef": "DatasetId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetRefreshSchedules"
+                    }
+                  },
+                  "Property": "RefreshScheduleEnabled"
+                }
+              },
+              "queryRef": "DatasetRefreshSchedules.RefreshScheduleEnabled",
+              "nativeQueryRef": "RefreshScheduleEnabled"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetRefreshSchedules"
+                    }
+                  },
+                  "Property": "LocalTimeZoneId"
+                }
+              },
+              "queryRef": "DatasetRefreshSchedules.LocalTimeZoneId",
+              "nativeQueryRef": "LocalTimeZoneId"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetRefreshSchedules"
+                    }
+                  },
+                  "Property": "NotifyOption"
+                }
+              },
+              "queryRef": "DatasetRefreshSchedules.NotifyOption",
+              "nativeQueryRef": "NotifyOption"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Refresh schedule details'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "63d2a48046807eb020cd",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetRefreshSchedules"
+              }
+            },
+            "Property": "DatasetName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "d8813e0aa2eb8d0b4a20",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetRefreshSchedules"
+              }
+            },
+            "Property": "DatasetId"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "4e19b909c2e048953932",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetRefreshSchedules"
+              }
+            },
+            "Property": "RefreshScheduleEnabled"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "fdb502ee1a8aa1e39a01",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetRefreshSchedules"
+              }
+            },
+            "Property": "LocalTimeZoneId"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "575446b200e1c7e0a8bd",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetRefreshSchedules"
+              }
+            },
+            "Property": "NotifyOption"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}

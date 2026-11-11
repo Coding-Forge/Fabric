@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "dpo_card_count",
+  "position": {
+    "x": 270,
+    "y": 220,
+    "width": 230,
+    "height": 90,
+    "z": 7000,
+    "tabOrder": 7000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Deployment Operations"
+                    }
+                  },
+                  "Property": "Deployment Operation Count"
+                }
+              },
+              "queryRef": "Deployment Operations.Deployment Operation Count",
+              "nativeQueryRef": "Deployment Operation Count"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Fabric Monitor | Episode 3: Function App collection</title>
+  <link rel="stylesheet" href="slides.css">
+  <script src="slides.js" defer></script>
+</head>
+<body>
+  <main class="stage" aria-label="Episode 3 slide deck">
+    <section class="slide" aria-labelledby="slide-1">
+      <p class="eyebrow">Fabric Monitor / Episode 03</p>
+      <h1 id="slide-1">Host collection.<br>Operate it deliberately.</h1>
+      <p class="lead muted">The Azure Function App production path.</p>
+      <div class="callout">Deployment, identities, startup behavior and operational acceptance. No live provisioning or collection.</div>
+      <template class="speaker-notes">In Episode Two, we explored the local proof of concept. This episode moves the collector into an Azure Function App.
+
+The Function App provides a hosted timer invocation for the same Python monitoring code. It does not expand API permissions or create the downstream analytics workflow.
+
+This is an illustrative deployment walkthrough, not footage of an accepted production deployment. We will focus on what must be configured and verified before operating it.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-2">
+      <p class="eyebrow">The hosted collection path</p>
+      <h2 id="slide-2">Separate runtime needs from collected evidence.</h2>
+      <div class="cards">
+        <article class="card"><h3>Function host</h3><p>Documented Python 3.12 / Functions v4 Linux target. Select a suitable hosting plan and region.</p></article>
+        <article class="card"><h3>Runtime storage</h3><p>AzureWebJobsStorage supports the Functions runtime. Configure its access independently.</p></article>
+        <article class="card"><h3>Data destination</h3><p>Protected Blob / ADLS output for raw observations, retained state and collection controls.</p></article>
+      </div>
+      <div class="callout">Validate network reachability, invocation duration, quotas and costs for the selected environment.</div>
+      <template class="speaker-notes">Start with the hosted runtime, runtime storage, and the collector's data destination. They serve different purposes, even if a deployment chooses to share a storage account.
+
+The repository documents a Python 3.12 Linux Function App using Functions version four. Choose and validate a hosting plan for the actual collection duration, network requirements, quotas and cost.
+
+Do not assume that a timer-based application will fit every serverless hosting limit. Acceptance depends on the selected environment and enabled modules.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-3">
+      <p class="eyebrow">Identity is not one permission</p>
+      <h2 id="slide-3">API identity and storage identity are separate.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Collector API credentials</h3><p>TENANT_ID / CLIENT_ID / CLIENT_SECRET</p><p>Service-principal authorization remains endpoint-specific. Non-Admin features and Graph need separate approval.</p></article>
+        <article class="card"><h3>Function managed identity</h3><p>Use the documented identity-based storage pattern and approved Blob data access.</p><p>For a Key Vault reference, separately grant secret-read access under the vault's authorization model.</p></article>
+      </div>
+      <div class="callout">Managed identity for storage or Key Vault does not replace the current collector's API credentials.</div>
+      <template class="speaker-notes">The current collector builds its API identity from tenant, client and secret settings. Moving to Azure does not automatically replace that identity with the Function App's managed identity.
+
+The managed identity can authorize access to Blob Storage and resolve an approved Key Vault reference. Grant the appropriate data access at the intended scope. Runtime storage has its own requirements.
+
+For API collection, use the configuration reference's endpoint-specific boundaries. Admin API enablement is not universal item access, and Microsoft Graph requires its separate application permissions and consent.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-4">
+      <p class="eyebrow">Configure privately before deployment</p>
+      <h2 id="slide-4">Promote settings, not local PoC assumptions.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Approve the collection</h3><p>CLOUD_ENVIRONMENT<br>APPLICATION_MODULES<br>API identity and module-specific scopes</p><p>Keep CLIENT_SECRET in an approved secret store, referenced privately.</p></article>
+        <article class="card"><h3>Approve the destination</h3><p>STORAGE_ACCOUNT_URL<br>STORAGE_ACCOUNT_CONTAINER_NAME<br>STORAGE_ACCOUNT_CONTAINER_ROOT_PATH</p><p>Remove unintended LOCAL_OUTPUT_PATH and OUTPUT_PATH overrides.</p></article>
+      </div>
+      <div class="callout">Do not deploy credential files or carry local AZURE_* environment credentials into the intended managed-identity pattern.</div>
+      <template class="speaker-notes">Configure the Function App's environment explicitly. Choose the cloud, modules, resource scopes and data destination. Store the API secret through an approved mechanism, such as a Key Vault reference, rather than exposing it in a deployment command or recording.
+
+Remove local output overrides when the intended destination is Blob Storage; the configuration builder gives those paths precedence. Do not copy local environment credentials into an Azure deployment intended to use managed identity for storage.
+
+Key Vault access, storage access, private connectivity and secret-reference resolution all need validation. A saved setting is not proof that its value resolves or works.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-5">
+      <p class="eyebrow">Know when execution starts</p>
+      <h2 id="slide-5">The current trigger also runs on startup.</h2>
+      <pre><code>schedule="0 0 2 * * *"
+run_on_startup=True
+use_monitor=False</code></pre>
+      <div class="cards two">
+        <article class="card"><h3>Scheduled invocation</h3><p>Daily at 02:00 UTC in the current repository code.</p></article>
+        <article class="card"><h3>Startup invocation</h3><p>Host startup can invoke collection before the next timer boundary, including after deployment or restart.</p></article>
+      </div>
+      <div class="callout">Approve collection before publishing or restarting. This trigger is not proof of durable schedule monitoring or non-overlap.</div>
+      <template class="speaker-notes">Read the actual trigger before deploying. The current code schedules a daily invocation at two AM UTC, with startup execution enabled and timer schedule monitoring disabled.
+
+Starting or restarting the host can therefore invoke collection before the next scheduled time. Deployment is not necessarily a passive preparation step.
+
+Use the source as the authority: the deployment guide also contains an older four-hour schedule example. Review startup behavior and prevent unintended overlapping collection against shared destinations. This walkthrough does not change those settings.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-6">
+      <p class="eyebrow">Review the artifact, then publish</p>
+      <h2 id="slide-6">Deployment is an approved change.</h2>
+      <pre><code>func azure functionapp publish YOUR_FUNCTION_APP</code></pre>
+      <div class="cards two">
+        <article class="card"><h3>Core Tools path</h3><p>Publish from the reviewed checkout to the approved app. Inspect .funcignore and the actual package for secrets, raw evidence and video artifacts.</p></article>
+        <article class="card"><h3>Developer CLI path</h3><p>The repository also supplies azure.yaml and Bicep. Validate templates, required files and parameters before provisioning.</p></article>
+      </div>
+      <div class="callout">Illustrative command only. The infrastructure guide reports compile validation, not completed live deployment acceptance.</div>
+      <template class="speaker-notes">Once the environment and startup implications are approved, Core Tools can publish the reviewed function code to the intended app. Replace the illustrative app name with an approved target.
+
+Inspect the deployment package and exclusions. Local credential files, collected evidence and generated video assets do not belong in that package.
+
+The repository also has a Developer CLI and Bicep path. The infrastructure documentation reports compile validation, not live deployment acceptance. Check required template files and parameters, rather than treating those assets as a one-command production guarantee. We are not executing either deployment path.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-7">
+      <p class="eyebrow">Verify behavior, not just deployment</p>
+      <h2 id="slide-7">A successful publish is only the first check.</h2>
+      <div class="cards">
+        <article class="card"><h3>Host and identity</h3><p>Trigger registration, storage access, secret-reference resolution and network reachability.</p></article>
+        <article class="card"><h3>Collection outcome</h3><p>Module results, persisted state and applicable manifests or resource outcomes. Missing evidence is not zero.</p></article>
+        <article class="card"><h3>Operational visibility</h3><p>Configured logs, exceptions and alerts. Application Insights where deployed and connected.</p></article>
+      </div>
+      <div class="callout">Review logs privately. An outer invocation finishing does not prove complete, fresh collection.</div>
+      <template class="speaker-notes">After an approved deployment, verify trigger registration, identity, network access and real output persistence.
+
+Inspect module results and any applicable collection manifests, resource outcomes and checkpoints. Some collection can be incomplete even when the outer invocation finishes.
+
+Use configured logging and monitoring, including Application Insights where it is deployed and connected. Alerts and operational acceptance are responsibilities to establish, not features proved by this slide. Review logs privately because older logging paths may contain sensitive metadata or payloads.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-8">
+      <p class="eyebrow">Before enabling routine operation</p>
+      <h2 id="slide-8">Keep recovery and retention deliberate.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Execution and recovery</h3><p>Validate duration limits, startup behavior, overlapping writers, API cooldowns and failure recovery. Preserve checkpoints and quota controls.</p></article>
+        <article class="card"><h3>Evidence lifecycle</h3><p>Restrict data access, monitor storage growth and review retention. Keep monitored capacities available when collecting.</p></article>
+      </div>
+      <div class="callout">Optional Bicep retention replaces the storage account's management policy. Review it as a deletion change.</div>
+      <template class="speaker-notes">Before routine operation, validate duration limits, failure recovery and the effect of overlapping invocations. Preserve checkpoints and quota controls; do not clear them to force retries through a provider cooldown.
+
+Protect retained evidence and monitor storage growth. If using the optional Bicep retention feature, review it carefully: it replaces the account's existing management policy and deletes selected blobs. It is not anonymization.
+
+Keep required capacities available when collecting, and establish an operating owner for failures, freshness, costs and credential rotation.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-9">
+      <p class="eyebrow">Continue the series</p>
+      <h2 id="slide-9">Hosted collection is the beginning, not the model.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Alternative: Episode 4</h3><p>Use a collector notebook and pipeline when that execution pattern better fits your environment.</p></article>
+        <article class="card"><h3>Next stage: Episode 5</h3><p>Make evidence available in Lakehouse Files, then preview and publish curated Delta tables.</p></article>
+      </div>
+      <div class="callout">Blob output is not automatically transferred to the Lakehouse by this Function App. Validate the handoff separately.</div>
+      <template class="speaker-notes">You now have the Function App deployment path: an approved runtime, separate API and storage authorization, deliberate settings, and verified operational behavior.
+
+For an alternative production host, continue to Episode Four's collector notebook and pipeline approach.
+
+For analytics, continue to Episode Five after the required evidence is available in Lakehouse Files. Blob output does not automatically become Lakehouse input. Arrange and validate that handoff, then use the analytics notebooks to curate the retained evidence. Report visuals remain outside this series.</template>
+    </section>
+    <div class="footer"><span>FABRIC MONITOR / FUNCTION APP COLLECTION</span><span id="counter">01 / 09</span></div>
+  </main>
+  <nav class="controls" aria-label="Slide navigation">
+    <button id="previous" type="button" disabled>Previous</button>
+    <button id="next" type="button">Next</button>
+    <button id="toggle-notes" type="button" aria-expanded="false" aria-controls="notes">Speaker notes</button>
+    <span id="announcement" role="status" aria-live="polite">Slide 1 of 9</span>
+  </nav>
+  <aside class="review">
+    <h2>Episode 3 review draft</h2>
+    <p>Illustrative deployment guidance only. No Azure resource was provisioned, configuration changed, code deployed or collection triggered for this deck. Speaker notes contain draft narration, not synchronized audio or a finished video.</p>
+    <div id="notes" class="notes" hidden></div>
+    <p><a href="episode-02.html">Previous: Episode 2</a> /
+      <a href="../deployment.md">Deployment guide</a> /
+      <a href="../configuration-reference.md">Configuration and API boundaries</a> /
+      <a href="../../function_app.py">Current trigger source</a> /
+      <a href="storyboard.md">Series storyboard</a>.</p>
+  </aside>
+</body>
+</html>

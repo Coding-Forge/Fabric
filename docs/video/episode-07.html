@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Fabric Monitor | Episode 7: production operations and troubleshooting</title>
+  <link rel="stylesheet" href="slides.css">
+  <script src="slides.js" defer></script>
+</head>
+<body>
+  <main class="stage" aria-label="Episode 7 slide deck">
+    <section class="slide" aria-labelledby="slide-1">
+      <p class="eyebrow">Fabric Monitor / Episode 07</p>
+      <h1 id="slide-1">Operate deliberately.<br>Recover with evidence.</h1>
+      <p class="lead muted">Production checks, fault isolation and safe continuation.</p>
+      <div class="callout">An operations extension to the six-episode foundation. Illustrative only: no live incident, requests, repairs or dashboard walkthrough.</div>
+      <template class="speaker-notes">The first six episodes explained the collection-to-model foundation. This operations extension asks what happens after you schedule it.
+
+We will separate host execution from collection quality, locate failures along the evidence journey, and preserve the controls needed for safe continuation.
+
+These are illustrative operating patterns grounded in the repository, not a recording of a production incident or proof of a recovered deployment. Nothing in this episode starts a collector, changes a schedule, repairs a ledger or publishes data.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-2">
+      <p class="eyebrow">The operating contract</p>
+      <h2 id="slide-2">Know what should run before judging what ran.</h2>
+      <div class="cards">
+        <article class="card"><h3>Approved scope</h3><p>Record modules, permission mode, target scope, identities, code version and the intended output root.</p></article>
+        <article class="card"><h3>Expected cadence</h3><p>Confirm monitored capacities are on. Define freshness expectations per source and allow for bounded collection cycles.</p></article>
+        <article class="card"><h3>Ownership and alerts</h3><p>Assign an operator, failure route and recovery approval. Monitor duration, deferrals, coverage, storage growth and costs.</p></article>
+      </div>
+      <div class="callout">These are acceptance requirements, not an installed alerting system or a guarantee of complete tenant visibility.</div>
+      <template class="speaker-notes">Start with an operating contract: which version and modules run, the selected scopes and permission mode, the execution identities, and where evidence and controls are stored.
+
+Ensure all tenant capacities being monitored are turned on before collecting or assessing results. Define freshness expectations for each source rather than inventing one universal threshold.
+
+Assign an operator and an escalation route. Arrange alerts for failures, prolonged deferrals, stale coverage, duration, storage growth and costs. The supplied solution does not automatically implement all those alerts or your production service objectives.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-3">
+      <p class="eyebrow">Find the first broken handoff</p>
+      <h2 id="slide-3">Troubleshoot the layer that owns the failure.</h2>
+      <pre><code>Host invocation -> API collection -> retained raw evidence
+  -> explicit Lakehouse handoff -> curated Delta publication
+  -> derived model context, if used -> semantic model</code></pre>
+      <div class="cards two">
+        <article class="card"><h3>Collect the timeline</h3><p>Correlate UTC times, module/run/cycle, selected scope, manifests and the first relevant error.</p></article>
+        <article class="card"><h3>Keep evidence private</h3><p>Review and redact excerpts. Legacy logs, raw files, definitions and browser/network traces can contain sensitive metadata.</p></article>
+      </div>
+      <div class="callout">A model symptom is not permission to rerun APIs. Analytics notebooks do not collect fresh API data.</div>
+      <template class="speaker-notes">Walk the handoffs in order. Did the host invoke? Did the intended module run? Did it persist a usable observation? Did the same evidence reach the intended Lakehouse? Did publication finish before model refresh?
+
+Correlate the timeline using UTC timestamps and run or cycle identities. Locate the first failure, not only the final generic warning.
+
+Keep the investigation private. Some newer diagnostics are sanitized, but that does not make every log or artifact safe to share. Review excerpts before sharing them, and do not enable browser traces or publish raw tenant evidence just to make troubleshooting easier.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-4">
+      <p class="eyebrow">Execution is not coverage</p>
+      <h2 id="slide-4">Read the summary, then the evidence.</h2>
+      <div class="cards">
+        <article class="card"><h3>Succeeded</h3><p>The module reported success and its checkpoint can advance after state persistence. Inspect actual scope and coverage.</p></article>
+        <article class="card"><h3>Deferred</h3><p>Saved progress can continue later; lastRun stays unchanged. An invocation with only deferrals can finish without raising failure.</p></article>
+        <article class="card"><h3>Failed or incomplete</h3><p>The success checkpoint does not advance. Successful sibling resources may still exist; they do not prove whole-cycle success.</p></article>
+      </div>
+      <div class="callout">A finished, complete resource with records=[] is successful-empty. Missing, unfinished or failed evidence is not zero.</div>
+      <template class="speaker-notes">The audit records succeeded, deferred and failed module outcomes. Only successful modules receive a new success checkpoint, subject to state being saved.
+
+A deferred module retains its checkpoint and may preserve progress. If no module failed, an invocation can finish successfully even with deferrals. That is not proof of a completed permission cycle.
+
+Inspect the matching manifests and resource envelopes. Successful-empty evidence is different from a missing file, an unfinished write or an inaccessible target. A finished but incomplete run can contain usable successful resources without establishing whole-scope health. Do not turn those gaps into zero counts.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-5">
+      <p class="eyebrow">When nothing new appears</p>
+      <h2 id="slide-5">Check invocation, eligibility and progress separately.</h2>
+      <div class="cards">
+        <article class="card"><h3>Host wakeup</h3><p>The current Function trigger is daily at 02:00 UTC, with startup execution and use_monitor=False.</p></article>
+        <article class="card"><h3>Module eligibility</h3><p>Module cron is a UTC eligibility check at invocation time. It does not create another timer or continuous polling.</p></article>
+        <article class="card"><h3>Bounded continuation</h3><p>Permission scopes can need multiple invocations. Check persisted progress, cooldown and cycle health before resuming.</p></article>
+      </div>
+      <div class="callout">Restart or deployment can make real requests immediately. Use one scheduler per output root; do not loop restarts or overlap hosts.</div>
+      <template class="speaker-notes">Separate three questions: did the host wake up, was the module eligible, and did a bounded slice make progress?
+
+The current Function source schedules daily execution at two in the morning UTC and runs on startup, with timer monitoring disabled. A module cron checks eligibility only when the host invokes. A five-minute module cron does not create five-minute wakeups.
+
+Large permission scopes can need several invocations. Leaving the host idle does not supply continuous continuation. Plan and approve the host cadence explicitly. Startup or deployment may call real APIs immediately, so never restart repeatedly to bypass a cooldown or operate overlapping schedulers against one output root.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-6">
+      <p class="eyebrow">Authentication and authorization</p>
+      <h2 id="slide-6">Diagnose the identity and endpoint, not just the code.</h2>
+      <div class="cards two">
+        <article class="card"><h3>401: investigate authentication</h3><p>Check the actual settings, cloud audience and credential validity privately. Legacy token-provider requests allow one renewal retry, not every collector path.</p></article>
+        <article class="card"><h3>403/404: inspect context</h3><p>Check endpoint support, resource identity and actual permissions. A status alone does not establish missing consent, deletion or unsupported item type.</p></article>
+        <article class="card"><h3>Non-Admin boundaries</h3><p>Jobs need item access; connections are caller-visible; deployment history needs pipeline Admin; definition exports need item read/write.</p></article>
+        <article class="card"><h3>Separate identities</h3><p>API client credentials, storage/Key Vault identity, scheduled notebook identity and model access are separate checks. Graph has separate consent.</p></article>
+      </div>
+      <template class="speaker-notes">Investigate which identity and endpoint actually failed. A stale local setting or an unresolved secret reference can matter more than the value you intended to use. Never display credentials during diagnosis.
+
+Legacy token-provider requests permit one token-renewal retry on a four-oh-one response. That behavior is not a guarantee for definition exports or the separately gated collectors. A four-oh-three is not fixed by refreshing a token.
+
+Monitor is not Admin-only. Job history needs actual item access. Connections are caller-visible. Deployment history needs deployment-pipeline Admin, and definition exports require item read-write access. Consult the full scope matrix instead of granting broad roles by guesswork. Storage, Key Vault, scheduled notebooks and model access have separate identity requirements.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-7">
+      <p class="eyebrow">Throttling and transient responses</p>
+      <h2 id="slide-7">Waiting is part of the protocol.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Legacy request transport</h3><p>429/503/504 use a bounded retry budget. A valid Retry-After is not shortened by the fallback-delay cap. Shared cooldowns live within one runtime Context.</p></article>
+        <article class="card"><h3>Four gated Fabric collectors</h3><p>Request ledgers retain cooldowns across restarts. Permission retries defer to later invocations; other long waits can also defer.</p></article>
+      </div>
+      <div class="callout">Neither mechanism coordinates every tenant client. Do not increase concurrency or shorten server waits to force progress.</div>
+      <template class="speaker-notes">For throttling or transient service responses, distinguish legacy request transport from the four collectors with durable gates.
+
+Legacy requests retry four-twenty-nine, five-oh-three and five-oh-four within a bounded budget. They honor a valid server Retry-After in full. Their shared cooldown is held within one runtime Context, not across every process or restart.
+
+The four gated collectors persist request controls and server cooldowns. Permission retries defer to later invocations. Long waits can exceed a hosting budget, so review scheduling and duration rather than reducing the server delay. Neither mechanism reserves quota across all other applications in the tenant.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-8">
+      <p class="eyebrow">Blocked or ambiguous requests</p>
+      <h2 id="slide-8">Preserve the ledger. Do not guess a reset.</h2>
+      <pre><code>Under the configured output root:
+  state.yaml                       success checkpoints
+  &lt;gated-module&gt;/request_gate.json  cooldown / pending / blocked
+  permission progress files        cursor / cycle health
+  &lt;module&gt;/YYYY/MM/DD/runId/        manifests / resources</code></pre>
+      <div class="callout">Pending may mean the server received the request. Stop scheduling, preserve evidence and escalate if a safe next-request time cannot be established.</div>
+      <template class="speaker-notes">Root state and module-local request controls serve different purposes. A future next-request time is a cooldown. Pending can mean that the server received a request but the client could not acknowledge its result. Blocked or unreadable controls fail closed.
+
+Stop scheduling and preserve the ledgers, progress, manifests and relevant logs. Investigate request timing, storage failures, known cooldowns and other quota consumers before any approved repair. If a safe next-request time cannot be established, leave collection blocked and escalate to the service owner.
+
+There is no automatic repair command. Do not delete state, clear flags, move timestamps into the past or change scope merely to make the run appear successful. A ledger is not a distributed lock.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-9">
+      <p class="eyebrow">Raw evidence to curated tables</p>
+      <h2 id="slide-9">Repair the handoff, not the history.</h2>
+      <div class="cards">
+        <article class="card"><h3>Find the same evidence</h3><p>Confirm output precedence, approved copy/availability mechanism, default Lakehouse, RAW_ROOT, prefix and permission mode.</p></article>
+        <article class="card"><h3>Respect write guards</h3><p>Ownership, schema or hash rejection needs investigation. Do not drop tables, edit hashes or rewrite historical manifests.</p></article>
+        <article class="card"><h3>Resume publication serially</h3><p>After partial writes, investigate and rerun unchanged input/settings/prefix. Cross-table publication is not transactional.</p></article>
+      </div>
+      <div class="callout">Same-prefix concurrent notebook writers are unsupported. Preview first; approve writes separately. Bounded driver-side reads are not unlimited ingestion.</div>
+      <template class="speaker-notes">If collection succeeded but analytics appears empty, verify the actual output destination and the explicit handoff to Lakehouse Files. Local or Blob output is not automatically transferred by Monitor. Confirm the default Lakehouse, raw root, table prefix and permission mode.
+
+Preview before publication. A table ownership, schema or content rejection is a guardrail, not an invitation to drop a table or edit its hashes. The notebooks also enforce bounded driver-side reads, so investigate limits without blindly raising them.
+
+If publication failed after some inserts, first establish the cause. Then, with unchanged evidence and settings, rerun the writers serially against the same prefix. Inserts are idempotent by observation identity; publication across tables is not transactional.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-10">
+      <p class="eyebrow">Retention and recovery planning</p>
+      <h2 id="slide-10">Protect what continuation and validation need.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Raw evidence and controls</h3><p>Restrict access. Review lifecycle prefixes: module folders can contain both dated observations and durable controls.</p></article>
+        <article class="card"><h3>Delta and baselines</h3><p>Keep validation baselines immutable and retain their required Delta history. Do not vacuum or change retention during the experiment.</p></article>
+      </div>
+      <div class="callout">Optional Blob lifecycle deployment replaces the account policy. Root state exclusion does not mean every module-local control is protected.</div>
+      <template class="speaker-notes">Retention is a separate approved operating decision, not a cleanup step for a failed run.
+
+Review the exact deletion prefixes and dependencies. Optional Blob lifecycle rules match module folders, which can contain request gates and progress files as well as dated observations. Excluding root state does not protect all module-local controls. The optional deployment also replaces the storage account's existing lifecycle policy.
+
+Protect immutable validation baselines and the Delta history they reference. Changed evidence or scope is not comparable; unavailable history is unverified. Plan recovery and test it in an approved isolated environment. A backup or historical manifest is not permission to replay requests with stale quota controls.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-11">
+      <p class="eyebrow">When model results are blank or stale</p>
+      <h2 id="slide-11">Restore consistency before refreshing again.</h2>
+      <pre><code>Finish curated publication; keep competing writers idle
+  -> validate selected source versions
+  -> rebuild approved derived context, if that model uses it
+  -> confirm readiness -> refresh/reframe -> verify measures</code></pre>
+      <div class="cards two">
+        <article class="card"><h3>Check context and meaning</h3><p>Inspect source selection, observation grain, date roles and coverage. In the inspected local model, readiness guards can intentionally blank measures.</p></article>
+        <article class="card"><h3>Use a private target</h3><p>Verify model/source identity and permissions. Do not attach to or overwrite a shared model by assumption; remote edits can persist immediately.</p></article>
+      </div>
+      <template class="speaker-notes">For a blank or stale measure, inspect the model's source selection and readiness before refreshing repeatedly.
+
+In the local exploration pattern from Episode Six, derived context must align with curated source versions. An incomplete build or unmapped observations can deliberately blank business measures. That is different from a true zero or an API collection failure.
+
+Finish publication, keep competing writers idle, validate sources and rebuild context only if that model uses it and the write is approved. Then refresh or reframe and verify measures in an approved private target. Local artifact inspection still does not establish Desktop, DAX or production acceptance. Never assume closing a remote editing session rolls back its changes.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-12">
+      <p class="eyebrow">Close an incident with a bounded claim</p>
+      <h2 id="slide-12">Verify recovery at the layer that failed.</h2>
+      <div class="cards">
+        <article class="card"><h3>State the finding</h3><p>Record affected version, time, scope, first failure and known gaps. Separate confirmed causes from hypotheses.</p></article>
+        <article class="card"><h3>Approve and observe</h3><p>Resume one authorized invocation only when gates permit. Verify persistence, cycle/coverage and the downstream handoff.</p></article>
+        <article class="card"><h3>Retain the limits</h3><p>API history windows can leave unrecoverable gaps. Offline tests or a stable rerun do not establish live freshness or tenant completeness.</p></article>
+      </div>
+      <div class="callout">Return to Episode 3 or 4 for hosting, Episode 5 for curation/validation, and Episode 6 for modeling. Dashboarding remains out of scope.</div>
+      <template class="speaker-notes">Close with a precise record: what failed, which scope and time were affected, what evidence supports the cause, and what remains unknown.
+
+After an approved correction, resume only when the request controls permit. Observe the relevant module, saved evidence and cycle health, then verify the downstream handoff. One successful resource does not prove a full scope recovered, and an API's bounded history can leave permanent gaps.
+
+Use offline tests and controlled rerun validation for the claims they actually support. Return to the hosting episode for deployment, the analytics episode for publication and validation, or the model episode for semantic acceptance. Operational confidence comes from explicit evidence, not a green host status. Dashboarding remains outside this series.</template>
+    </section>
+    <div class="footer"><span>FABRIC MONITOR / PRODUCTION OPERATIONS</span><span id="counter">01 / 12</span></div>
+  </main>
+  <nav class="controls" aria-label="Slide navigation">
+    <button id="previous" type="button" disabled>Previous</button>
+    <button id="next" type="button">Next</button>
+    <button id="toggle-notes" type="button" aria-expanded="false" aria-controls="notes">Speaker notes</button>
+    <span id="announcement" role="status" aria-live="polite">Slide 1 of 12</span>
+  </nav>
+  <aside class="review">
+    <h2>Episode 7 review draft</h2>
+    <p>Illustrative production operations and troubleshooting, not an executed recovery procedure. No APIs, schedules, ledgers, notebooks, retention policies or models were changed or executed for this deck. Alerting, live recovery and environment acceptance remain operator responsibilities. This is draft narration and slides, not synchronized audio or a finished video.</p>
+    <div id="notes" class="notes" hidden></div>
+    <p><a href="episode-06.html">Previous: semantic-model foundation</a> /
+      <a href="../local-development.md">Collector operating guidance</a> /
+      <a href="../configuration-reference.md">API scope, settings and retry contracts</a> /
+      <a href="../../function_app.py">Current Function trigger</a> /
+      <a href="../../env/audit.py">Invocation outcomes and checkpoints</a> /
+      <a href="../deployment.md">Deployment and retention caveats</a> /
+      <a href="../../notebooks/notebook-guide.md">Analytics troubleshooting and validation</a> /
+      <a href="README.md">Series viewing guide</a> /
+      <a href="storyboard.md">Series storyboard</a>.</p>
+  </aside>
+</body>
+</html>

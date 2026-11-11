@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "fjh_card_canceled",
+  "position": {
+    "x": 770,
+    "y": 325,
+    "width": 230,
+    "height": 80,
+    "z": 9000,
+    "tabOrder": 9000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fabric Job History"
+                    }
+                  },
+                  "Property": "Canceled Fabric Jobs"
+                }
+              },
+              "queryRef": "Fabric Job History.Canceled Fabric Jobs",
+              "nativeQueryRef": "Canceled Fabric Jobs"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

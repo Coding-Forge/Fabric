@@ -1,0 +1,178 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.10.0/schema.json",
+  "name": "dd_measures",
+  "position": {
+    "x": 970,
+    "y": 405,
+    "z": 4000,
+    "height": 275,
+    "width": 880,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetMeasures"
+                    }
+                  },
+                  "Property": "TableName"
+                }
+              },
+              "queryRef": "DatasetMeasures.TableName",
+              "nativeQueryRef": "TableName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetMeasures"
+                    }
+                  },
+                  "Property": "MeasureName"
+                }
+              },
+              "queryRef": "DatasetMeasures.MeasureName",
+              "nativeQueryRef": "MeasureName"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetMeasures"
+                    }
+                  },
+                  "Property": "IsHidden"
+                }
+              },
+              "queryRef": "DatasetMeasures.IsHidden",
+              "nativeQueryRef": "IsHidden"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DatasetMeasures"
+                    }
+                  },
+                  "Property": "Expression"
+                }
+              },
+              "queryRef": "DatasetMeasures.Expression",
+              "nativeQueryRef": "Expression"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "grid": [
+        {
+          "properties": {
+            "textSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "9D"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Measures'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "90c48181740bed80d3b9",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetMeasures"
+              }
+            },
+            "Property": "TableName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "899198db0e3dd7070b06",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetMeasures"
+              }
+            },
+            "Property": "MeasureName"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "8aac608061085787cd10",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetMeasures"
+              }
+            },
+            "Property": "IsHidden"
+          }
+        },
+        "type": "Categorical"
+      },
+      {
+        "name": "368cb2ba2a0070940ea1",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "DatasetMeasures"
+              }
+            },
+            "Property": "Expression"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  },
+  "howCreated": "Copilot"
+}
