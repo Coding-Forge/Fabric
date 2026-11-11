@@ -1,0 +1,7 @@
+Welcome to Fabric Monitor. This series follows the journey from authorized collection to a model-ready data foundation.
+
+You can explore the solution locally on Windows or Linux. Windows users can work directly in PowerShell, or choose WSL2 for the best of both worlds: a Windows desktop with a Linux development environment.
+
+For production, we will compare an Azure Function App with notebook-based collection and orchestration. Then we will follow the retained evidence into curated Delta tables.
+
+Throughout the series, we will distinguish successful execution from complete collection. Missing evidence is not zero, and historical observations are not automatically current state.

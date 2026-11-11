@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Fabric Monitor | Episode 2: the local PoC</title>
+  <link rel="stylesheet" href="slides.css">
+  <script src="slides.js" defer></script>
+</head>
+<body>
+  <main class="stage" aria-label="Episode 2 slide deck">
+    <section class="slide" aria-labelledby="slide-1">
+      <p class="eyebrow">Fabric Monitor / Episode 02</p>
+      <h1 id="slide-1">Explore locally.<br>Keep the scope deliberate.</h1>
+      <p class="lead muted">A proof of concept on Windows, Linux or optional WSL2.</p>
+      <div class="callout">Prepare the environment, choose approved modules and understand the retained evidence.</div>
+      <template class="speaker-notes">In Episode One, we separated collection, storage, analytics and modeling. Now we will prepare a local proof of concept.
+
+The collector runs natively on Windows or Linux. Windows users can also choose WSL2 for the best of both worlds: a Windows desktop with Linux development tools.
+
+This walkthrough uses illustrative commands and an illustrative folder layout. It does not show a live collection or claim that a tenant was scanned successfully.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-2">
+      <p class="eyebrow">Before the first run</p>
+      <h2 id="slide-2">Local is a destination, not an offline mode.</h2>
+      <div class="cards">
+        <article class="card"><h3>Prepare the tools</h3><p>Python 3.12, Git and a repository checkout. Run commands from the repository root.</p></article>
+        <article class="card"><h3>Approve access</h3><p>Real API credentials, required tenant settings and endpoint-specific permissions.</p></article>
+        <article class="card"><h3>Protect the output</h3><p>A restricted local folder outside source control. Required monitored capacities available.</p></article>
+      </div>
+      <div class="callout">No Function App, storage account or Fabric notebook is required for standalone local collection.</div>
+      <template class="speaker-notes">Begin with Python, Git and a checkout of the repository. The documented setup recommends Python 3.12.
+
+Local collection still calls the real Microsoft APIs with a real identity. Approve permissions and the intended module scope before running it, and keep the monitored capacities available.
+
+For the standalone Python path, you do not need an Azure Function App, Azurite, a cloud storage account or a Fabric notebook. You do need the repository dependencies and a protected place to retain potentially sensitive metadata.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-3">
+      <p class="eyebrow">Native Windows / PowerShell</p>
+      <h2 id="slide-3">Create an isolated Python environment.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Set up from the repository root</h3><pre><code>python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt</code></pre></article>
+        <article class="card"><h3>Without script activation</h3><pre><code>.\.venv\Scripts\python.exe -m pip install -r requirements.txt</code></pre><p>Use that interpreter for later Python commands if activation is unavailable.</p></article>
+      </div>
+      <div class="callout">Native Windows does not require Linux or WSL. Follow your organization's execution policy.</div>
+      <template class="speaker-notes">On Windows, open PowerShell in the repository root. Create a virtual environment, activate it, and install the requirements into that environment.
+
+If your organization's policy prevents activation, you can invoke the virtual environment's Python executable directly. Use that same interpreter for subsequent Python commands. No execution-policy change is required for that approach.
+
+These are environment setup examples, not commands we are executing during this presentation. Never share a Windows virtual environment with a Linux runtime.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-4">
+      <p class="eyebrow">Linux / optional WSL2</p>
+      <h2 id="slide-4">The same collector, a different shell.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Set up from the repository root</h3><pre><code>python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt</code></pre></article>
+        <article class="card"><h3>WSL2: best of both worlds</h3><p>Keep Windows applications and use a Linux development environment. Maintain a separate Linux checkout and virtual environment.</p></article>
+      </div>
+      <div class="callout">Choose the environment you prefer. API scope and authorization rules do not change.</div>
+      <template class="speaker-notes">On Linux, including a Linux distribution in WSL2, create and activate a Linux virtual environment and install the same repository requirements.
+
+WSL2 is optional. It suits Windows users who prefer Linux tools while keeping their Windows desktop applications.
+
+Maintain a separate checkout and environment for each operating system. Choosing WSL2 does not grant extra permissions or change the collector's scope.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-5">
+      <p class="eyebrow">Choose the output destination</p>
+      <h2 id="slide-5">Make the local destination explicit.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Windows PowerShell</h3><pre><code>$env:LOCAL_OUTPUT_PATH =
+  "$HOME\monitor-poc-output"</code></pre></article>
+        <article class="card"><h3>Linux / WSL2</h3><pre><code>export LOCAL_OUTPUT_PATH="$HOME/monitor-poc-output"</code></pre></article>
+      </div>
+      <div class="callout">LOCAL_OUTPUT_PATH takes precedence over Blob and Lakehouse destinations. The application creates the folder if needed.</div>
+      <template class="speaker-notes">Set the local output path explicitly in the shell that will run the collector. Keep the folder outside source control and restrict who can read it.
+
+This setting takes precedence over Blob and Lakehouse output settings. Startup checks that the folder is writable and creates it when needed.
+
+It selects the output destination, not a workspace allowlist. Collection boundaries still depend on the enabled modules.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-6">
+      <p class="eyebrow">Configure privately</p>
+      <h2 id="slide-6">Credentials stay out of the recording.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Required API identity</h3><p>TENANT_ID<br>CLIENT_ID<br>CLIENT_SECRET</p><p>Select the intended CLOUD_ENVIRONMENT. Commercial is the default.</p></article>
+        <article class="card"><h3>Scope is a separate choice</h3><p>Admin API authorization is not universal resource access. Non-Admin features and Graph have their own permissions and collection boundaries.</p></article>
+      </div>
+      <div class="callout">Use an approved private configuration source. Never display secret values, credential profiles or authentication output.</div>
+      <template class="speaker-notes">Configure the tenant, client identity and secret privately using an approved mechanism. Select the intended cloud environment and review the endpoint-specific authorization requirements.
+
+Standalone Python can load a dot-env file or a saved configuration profile. Profile values take precedence over environment values. Commercial local mode also accepts the documented Commercial credential aliases, which take precedence over canonical environment names.
+
+Do not mix stale configurations or show credential values. The detailed configuration guide is the reference for precedence and cloud-specific behavior.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-7">
+      <p class="eyebrow">Approve, then collect</p>
+      <h2 id="slide-7">Select modules explicitly.</h2>
+      <pre><code>python -m app.monitor --modules Activity,Catalog</code></pre>
+      <div class="cards two">
+        <article class="card"><h3>Illustrative selection</h3><p>Activity and Catalog are examples, not a universally approved or workspace-limited scope.</p></article>
+        <article class="card"><h3>Before execution</h3><p>Confirm permissions, API boundaries, output destination and collection approval.</p></article>
+      </div>
+      <div class="callout">This starts a real collector invocation. We are showing the command, not executing it.</div>
+      <template class="speaker-notes">Once the environment, credentials, destination and scope are approved, the standalone command invokes the selected modules.
+
+Activity and Catalog are examples, not a recommendation to scan every environment. The command-line module list selects features; it does not apply a universal workspace filter. Full catalog discovery and incremental behavior also depend on the documented configuration and retained state.
+
+Do not enable additional collectors merely to fill a missing result. Review their API families and permissions first. This example does not run during the presentation.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-8">
+      <p class="eyebrow">Inspect and retain</p>
+      <h2 id="slide-8">Keep the evidence and its context.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Illustrative layout</h3><pre><code>monitor-poc-output/
+  state.yaml
+  activity/
+    YYYY/MM/DD/
+      ...</code></pre></article>
+        <article class="card"><h3>Check the outcome</h3><p>Review module results, applicable coverage and freshness. A completed invocation does not establish a complete current tenant inventory.</p></article>
+      </div>
+      <div class="callout">Preserve state, progress controls and cooldowns. Do not delete them to force retries.</div>
+      <template class="speaker-notes">Inspect the retained files and the collection outcomes, not only the final log line. This folder tree is illustrative, not fabricated evidence of a successful run.
+
+The output includes state used for incremental operation. Some collectors also maintain module-specific progress and quota controls. Preserve them; deleting root state does not reset those controls and must not be used to bypass cooldowns.
+
+Missing or failed collection is unknown, not zero. Older dated folders are retained observations, not proof of an exact collection time or current completeness. Protect the evidence and review logs privately before sharing excerpts.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-9">
+      <p class="eyebrow">An alternative local host</p>
+      <h2 id="slide-9">Standalone Python is not the Functions host.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Standalone Python</h3><p>Invoke the application directly. No Azurite or Functions runtime is needed for local-folder output.</p></article>
+        <article class="card"><h3>Local Functions host</h3><p>Requires Core Tools and runtime storage. Core Tools loads local.settings.json. Collection runs on host startup.</p></article>
+      </div>
+      <div class="callout">DRY_RUN is not an offline switch. Do not start a host or collector just to preview configuration.</div>
+      <template class="speaker-notes">There is a second local path: running the Azure Functions host with Core Tools. That path needs runtime storage, commonly Azurite, even when collector output goes to a local folder.
+
+Core Tools loads local settings, which can override shell values, and the current trigger invokes collection on startup. Review the effective configuration before starting it.
+
+Dry-run is not a no-network guarantee. Legacy collectors ignore it in local mode, while the strict Fabric collectors reject it. Use the standalone path when that is all your proof of concept needs.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-10">
+      <p class="eyebrow">Choose the next path</p>
+      <h2 id="slide-10">From exploration to hosted collection.</h2>
+      <div class="cards">
+        <article class="card"><h3>Episode 3</h3><p>Function App: hosted timer-based execution and operational acceptance.</p></article>
+        <article class="card"><h3>Episode 4</h3><p>Collector notebook: runtime setup and pipeline orchestration.</p></article>
+        <article class="card"><h3>Episode 5</h3><p>Analytics: existing Lakehouse evidence, Delta publication and validation.</p></article>
+      </div>
+      <div class="callout">Local or Blob evidence needs an explicitly arranged and validated Lakehouse handoff before analytics.</div>
+      <template class="speaker-notes">You now have the local proof-of-concept workflow: choose Windows or Linux, isolate dependencies, configure privately, select approved modules, and retain evidence with its operational context.
+
+For hosted collection, continue to Episode Three for a Function App, or Episode Four for collector notebooks and orchestration. These are alternative deployment paths.
+
+If the evidence is already available in Lakehouse Files, continue to Episode Five. Local files do not automatically become Lakehouse inputs. Arrange and validate that handoff before running analytics.</template>
+    </section>
+    <div class="footer"><span>FABRIC MONITOR / LOCAL PROOF OF CONCEPT</span><span id="counter">01 / 10</span></div>
+  </main>
+  <nav class="controls" aria-label="Slide navigation">
+    <button id="previous" type="button" disabled>Previous</button>
+    <button id="next" type="button">Next</button>
+    <button id="toggle-notes" type="button" aria-expanded="false" aria-controls="notes">Speaker notes</button>
+    <span id="announcement" role="status" aria-live="polite">Slide 1 of 10</span>
+  </nav>
+  <aside class="review">
+    <h2>Episode 2 review draft</h2>
+    <p>Illustrative setup and collection commands only. No collector was run to produce this deck. Speaker notes contain the full draft narration; no synchronized audio or finished video is included.</p>
+    <div id="notes" class="notes" hidden></div>
+    <p><a href="episode-01.html">Previous: Episode 1</a> /
+      <a href="../local-development.md">Local operation</a> /
+      <a href="../windows-development.md">Windows setup</a> /
+      <a href="../configuration-reference.md">Configuration and API boundaries</a> /
+      <a href="storyboard.md">Series storyboard</a>.</p>
+  </aside>
+</body>
+</html>

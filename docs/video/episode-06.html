@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Fabric Monitor | Episode 6: the semantic-model foundation</title>
+  <link rel="stylesheet" href="slides.css">
+  <script src="slides.js" defer></script>
+</head>
+<body>
+  <main class="stage" aria-label="Episode 6 slide deck">
+    <section class="slide" aria-labelledby="slide-1">
+      <p class="eyebrow">Fabric Monitor / Episode 06</p>
+      <h1 id="slide-1">Model the evidence.<br>Preserve its meaning.</h1>
+      <p class="lead muted">Sources, grain, relationships, measures and access.</p>
+      <div class="callout">The semantic-model foundation only. No dashboard walkthrough, report visuals or live model changes.</div>
+      <template class="speaker-notes">Episode Five turned retained evidence into curated Delta tables. This episode completes the foundation by explaining how a semantic model can organize it without losing its meaning.
+
+We will distinguish collected model metadata from a model over Monitor's own evidence, then examine sources, observation grain, relationships, measures and access.
+
+Some examples come from a local Direct Lake exploration model. They explain an inspected design, not a production-ready deployment or a completed live acceptance test.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-2">
+      <p class="eyebrow">Two meanings of model metadata</p>
+      <h2 id="slide-2">Describing a model is not deploying one.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Models in the estate</h3><p>Notebook 08 retains returned tables, columns, measures and relationships as observations about collected semantic models.</p></article>
+        <article class="card"><h3>A model over Monitor</h3><p>A separately designed semantic layer connects curated evidence, context, keys, date roles and explicit measures.</p></article>
+      </div>
+      <div class="callout">Publishing the 48 curated datasets does not automatically create a semantic model.</div>
+      <template class="speaker-notes">Notebook Eight describes semantic models observed in the estate. Its tables contain returned schema metadata. That is different from building a semantic model over Monitor's own curated tables.
+
+The latter is a separate design, deployment and acceptance step. The analytics notebooks do not create it automatically.
+
+Collected measure metadata also does not supply executable measure expressions, and item inventory is not physical Lakehouse or Warehouse schema discovery. Keep those boundaries visible when choosing what the model can answer.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-3">
+      <p class="eyebrow">An inspected local model pattern</p>
+      <h2 id="slide-3">Keep curated facts and derived context separate.</h2>
+      <div class="cards">
+        <article class="card"><h3>Curated evidence</h3><p>The 48 historical source datasets remain the analytics contract. For example, monitor_job_observations supplies Job History.</p></article>
+        <article class="card"><h3>Derived model context</h3><p>The local exploration model adds 20 separate monitor_report_* lookup/context Delta tables. They do not replace curated evidence.</p></article>
+        <article class="card"><h3>Direct Lake model</h3><p>The inspected TMDL uses Direct Lake. Source connection, framing, capacity and Desktop behavior still require environment acceptance.</p></article>
+      </div>
+      <div class="callout">This is an exploration implementation, not a mandatory hosting/storage choice or a claim of completed production acceptance.</div>
+      <template class="speaker-notes">One inspected local implementation uses the forty-eight curated datasets alongside twenty separate derived lookup and context tables. A source such as job observations becomes the model's Job History table.
+
+The model uses Direct Lake. Those definitions are not proof that its source connection, Desktop evaluation or business queries have passed acceptance in the target environment.
+
+The lookup layer is additional derived data, not a change to the immutable curated facts and not a replacement for Notebook Six's validation baselines. No local exploration files are changed or promoted by this episode.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-4">
+      <p class="eyebrow">Identity and relationships</p>
+      <h2 id="slide-4">Join through context, not repeated labels.</h2>
+      <pre><code>Workspace / Item / other entity lookups
+  -> Observation Context
+  -> Historical source tables, by Observation ID</code></pre>
+      <div class="cards two">
+        <article class="card"><h3>Stable identities</h3><p>Use observation identity for fact/context joins. Item identity includes its workspace. Names are descriptive labels, not join keys.</p></article>
+        <article class="card"><h3>Distinct relationship roles</h3><p>Source and related workspace/item roles remain separate. Validate unique lookup keys and filter direction.</p></article>
+      </div>
+      <div class="callout">The diagram describes model filter structure, not runtime data lineage or guaranteed change impact.</div>
+      <template class="speaker-notes">The inspected model uses a unique observation context table between entity lookups and source facts. Source tables connect through observation identity rather than repeated business IDs across historical snapshots.
+
+Item keys include workspace context, and source versus related-item roles are separate. Names remain descriptive, not authoritative join keys.
+
+Validate uniqueness, unmatched keys, relationship direction and filter behavior. Do not repair duplicated historical IDs by blindly enabling many-to-many or bidirectional relationships. This is a semantic filter diagram, not runtime lineage.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-5">
+      <p class="eyebrow">Observation grain and scope</p>
+      <h2 id="slide-5">Count the thing the measure actually describes.</h2>
+      <div class="cards">
+        <article class="card"><h3>Retained observations</h3><p>Two statuses observed for one job are two observations, not two jobs.</p></article>
+        <article class="card"><h3>Observed entities</h3><p>Distinct retained workspace/item identities are not automatically a certified current inventory.</p></article>
+        <article class="card"><h3>Selected evidence</h3><p>Choose the appropriate source, version, mode and cycle. Do not union historical snapshots as current state.</p></article>
+      </div>
+      <div class="callout">Missing, failed or stale collection remains visible alongside business counts.</div>
+      <template class="speaker-notes">Define each measure's grain before choosing its aggregation. A job seen running and later completed is one job with multiple observations.
+
+Distinct entity counts across retained evidence still do not establish today's complete estate. For a current-style analysis, define and validate the selected source, scope and observation policy.
+
+Keep coverage attached to the interpretation. A failed latest poll does not make an older successful status current. Likewise, a successful-empty collection is different from an uncollected or failed domain.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-6">
+      <p class="eyebrow">Time and permission roles</p>
+      <h2 id="slide-6">Different dates answer different questions.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Collection versus folder date</h3><p>Use trustworthy observation time when present. Source Folder Date is the retained partition day, not a fabricated exact timestamp.</p></article>
+        <article class="card"><h3>Event versus metric query date</h3><p>Event Date describes provider events. Metric Query Date describes the capacity query period. Neither is automatically collection time.</p></article>
+        <article class="card"><h3>Explicit permission mode</h3><p>Choose Scoped or Tenant. The inspected model's mode filter applies to permission facts, not unrelated workspace-role observations.</p></article>
+        <article class="card"><h3>Separate access evidence</h3><p>Observed item grants, workspace roles and group membership do not automatically compute effective access.</p></article>
+      </div>
+      <template class="speaker-notes">The local model separates Collection Date, Source Folder Date, Event Date and Metric Query Date. They answer different questions and must not silently substitute for one another.
+
+Legacy evidence may have a folder day without an exact observation time. Preserve that unknown.
+
+Permission mode is also an explicit scope. In the inspected design it filters permission tables, not unrelated workspace roles. Selecting a mode does not expand collection, fill gaps from the other mode, or compute effective access through groups.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-7">
+      <p class="eyebrow">Explicit measures and readiness</p>
+      <h2 id="slide-7">Do not turn every number into a total.</h2>
+      <div class="cards">
+        <article class="card"><h3>Named semantics</h3><p>Retained observations, observed items and failed polls are different measures. Counts, durations and provider units need deliberate aggregation.</p></article>
+        <article class="card"><h3>Readiness checks</h3><p>The inspected model checks Unmapped Observations and lookup-build state before returning business measures.</p></article>
+        <article class="card"><h3>Blank is not zero</h3><p>Incomplete builds or source/context mismatch can blank measures. A readiness gate is not proof of fresh, complete API collection.</p></article>
+      </div>
+      <div class="callout">Review measure definitions and run acceptance queries in the real engine. No DAX query is executed for this deck.</div>
+      <template class="speaker-notes">Use explicit measures with names that describe what they count. Retained observations, observed items and failed polling outcomes are different quantities.
+
+In the inspected local model, readiness checks compare source and context observation identities in both directions. Business measures are blanked when the lookup build is incomplete or observations no longer align.
+
+That guard helps avoid interpreting an inconsistent model; it does not certify fresh or complete collection. Validate DAX behavior in the intended engine, including empty states, filters, date roles and provider units.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-8">
+      <p class="eyebrow">Refresh order for the inspected pattern</p>
+      <h2 id="slide-8">Keep facts, context and model framing aligned.</h2>
+      <pre><code>Finish curated publication; keep competing writers idle
+  -> Profile and validate the selected source versions
+  -> Preview, then approve derived lookup publication
+  -> Confirm lookup readiness and source consistency
+  -> Refresh/reframe the semantic model; verify measures</code></pre>
+      <div class="callout">The derived lookup build is not a cross-table transaction and is not Notebook 06's rerun experiment.</div>
+      <template class="speaker-notes">For this inspected pattern, finish curated publication before rebuilding derived context, with collectors and competing writers idle.
+
+The local tools check source versions and cache integrity, preview lookup results, and publish only after approval. A readiness state guards an incomplete build, and the source versions are rechecked.
+
+Then refresh or reframe the semantic model and verify its measures. There is no cross-table transaction guarantee. This lifecycle is distinct from Notebook Six's unchanged-input rerun experiment. No profiling, lookup publication or model refresh is performed here.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-9">
+      <p class="eyebrow">Accept access and deployment separately</p>
+      <h2 id="slide-9">Test privately before sharing a model.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Source and audience access</h3><p>Verify model identity, OneLake permissions, capacity, licensing and any required RLS/OLS or export policy. Hidden fields are not an authorization boundary.</p></article>
+        <article class="card"><h3>Private acceptance target</h3><p>Use an approved isolated model for testing. Do not attach to or overwrite a shared model by assumption. Remote modeling can persist changes immediately.</p></article>
+      </div>
+      <div class="callout">Local artifact inspection does not prove Desktop source evaluation, DAX correctness, access isolation or production performance.</div>
+      <template class="speaker-notes">Verify source access and the identity that serves model queries separately from collector credentials. Review intended audiences, OneLake permissions, security requirements and export policy. Sensitive identifiers remain sensitive even when fields are hidden.
+
+Use an approved private target for acceptance. Remote modeling can update a model without a traditional publish step, so do not select an existing shared model casually. Closing Desktop without saving is not a rollback of remote edits.
+
+The local guide records incomplete Desktop acceptance. This episode neither resolves that issue nor claims successful live model queries or production readiness.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-10">
+      <p class="eyebrow">The collection-to-model foundation</p>
+      <h2 id="slide-10">One evidence journey. Explicit boundaries.</h2>
+      <div class="cards">
+        <article class="card"><h3>Explore and collect</h3><p>Start on Windows, Linux or optional WSL2. Choose approved modules and protect retained evidence.</p></article>
+        <article class="card"><h3>Host and curate</h3><p>Choose Function App or notebook hosting. Validate the Lakehouse handoff, preview, publish serially and test reruns.</p></article>
+        <article class="card"><h3>Model with context</h3><p>Preserve observation grain, dates, coverage and scope. Verify relationships, measures, access and refresh behavior.</p></article>
+      </div>
+      <div class="callout">This completes the six-episode foundation. Continue to Episode 7 for production operations and troubleshooting, not dashboarding.</div>
+      <template class="speaker-notes">This completes the collection-to-model foundation. Begin with a deliberate local proof of concept, choose a production collection host, validate the raw evidence handoff, and publish curated observations safely.
+
+At the semantic-model layer, preserve grain, dates, source context and coverage. Validate the actual relationships, measures, access and refresh lifecycle rather than treating a model definition as production acceptance.
+
+Return to the relevant episode as you implement each stage. Next, Episode Seven extends the foundation with production checks, troubleshooting and safe recovery. Dashboarding and visual report design remain outside this series.</template>
+    </section>
+    <div class="footer"><span>FABRIC MONITOR / THE SEMANTIC-MODEL FOUNDATION</span><span id="counter">01 / 10</span></div>
+  </main>
+  <nav class="controls" aria-label="Slide navigation">
+    <button id="previous" type="button" disabled>Previous</button>
+    <button id="next" type="button">Next</button>
+    <button id="toggle-notes" type="button" aria-expanded="false" aria-controls="notes">Speaker notes</button>
+    <span id="announcement" role="status" aria-live="polite">Slide 1 of 10</span>
+  </nav>
+  <aside class="review">
+    <h2>Episode 6 review draft</h2>
+    <p>Model-only explanation grounded in the curated contracts and read-only inspection of a local Direct Lake exploration model. No local exploration files were changed, no remote model was opened or modified, and no data was published or queried for this deck. This is draft narration and slides, not synchronized audio or a finished video.</p>
+    <div id="notes" class="notes" hidden></div>
+    <p><a href="episode-05.html">Previous: analytics and Delta publication</a> /
+      <a href="episode-07.html">Next: production operations and troubleshooting</a> /
+      <a href="../../notebooks/README.md">Curated table contracts</a> /
+      <a href="../../notebooks/notebook-guide.md">Observation scope and notebook guidance</a> /
+      <a href="README.md">Series viewing guide and local source notes</a> /
+      <a href="storyboard.md">Series storyboard</a>.</p>
+  </aside>
+</body>
+</html>
