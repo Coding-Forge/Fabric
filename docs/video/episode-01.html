@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Fabric Monitor | Episode 1: the foundation</title>
+  <style>
+    :root {
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: #edf5fc;
+      background: #080f1c;
+      --muted: #b6c8dc;
+      --accent: #61dfcc;
+      --panel: #14233a;
+      --line: #30455f;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    button, audio { font: inherit; }
+    button {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      color: inherit;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .4; cursor: default; }
+    button:focus-visible, a:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 4px;
+    }
+    a { color: var(--accent); }
+    .stage {
+      width: min(100%, 1600px);
+      aspect-ratio: 16 / 9;
+      margin: 0 auto;
+      position: relative;
+      background: linear-gradient(135deg, #10243b, #0b1425 70%);
+      border-bottom: 3px solid var(--accent);
+    }
+    .slide {
+      height: 100%;
+      padding: 4.5% 6%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 20px;
+    }
+    [hidden] { display: none !important; }
+    .eyebrow {
+      margin: 0;
+      color: var(--accent);
+      font-size: clamp(12px, 1.3vw, 21px);
+      letter-spacing: .13em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: clamp(32px, 5vw, 80px); line-height: 1.08; max-width: 1100px; }
+    h2 { font-size: clamp(26px, 3.4vw, 54px); line-height: 1.15; }
+    h3 { font-size: clamp(18px, 1.8vw, 29px); }
+    .lead { font-size: clamp(18px, 2vw, 32px); line-height: 1.45; max-width: 1100px; }
+    .muted, .card p, .flow p { color: var(--muted); }
+    .cards, .flow { display: grid; gap: 18px; margin-top: 12px; }
+    .cards { grid-template-columns: repeat(3, 1fr); }
+    .cards.two { grid-template-columns: repeat(2, 1fr); }
+    .flow { grid-template-columns: repeat(4, 1fr); }
+    .card, .flow article {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 24px;
+    }
+    .card p, .flow p {
+      font-size: clamp(15px, 1.45vw, 23px);
+      line-height: 1.5;
+      margin-top: 12px;
+    }
+    .number { display: block; color: var(--accent); margin-bottom: 20px; font-size: 24px; }
+    .callout {
+      border-left: 4px solid var(--accent);
+      padding: 14px 20px;
+      background: #102c37;
+      font-size: clamp(16px, 1.65vw, 26px);
+      line-height: 1.45;
+    }
+    .footer {
+      position: absolute;
+      bottom: 3%;
+      left: 6%;
+      right: 6%;
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: clamp(11px, 1vw, 16px);
+    }
+    .controls, .review {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 0 24px;
+    }
+    .controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .review { line-height: 1.6; color: var(--muted); }
+    .review h2 { font-size: 22px; color: #edf5fc; }
+    .review p { margin: 12px 0; }
+    .notes {
+      margin: 16px 0;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      white-space: pre-line;
+    }
+    audio { width: min(100%, 560px); }
+    body.capture .controls, body.capture .review { display: none; }
+    body.capture .stage { width: 100vw; max-width: none; }
+    @media (max-width: 850px) {
+      .stage { aspect-ratio: auto; min-height: 640px; }
+      .slide { min-height: 640px; padding: 36px 24px 70px; }
+      .cards, .cards.two, .flow { grid-template-columns: 1fr; }
+      .card, .flow article { padding: 16px; }
+      .number { margin-bottom: 8px; }
+      .footer { left: 24px; right: 24px; bottom: 18px; }
+    }
+    @media print {
+      .controls, .review { display: none; }
+      .stage { width: 100%; aspect-ratio: auto; border: 0; }
+      .slide, .slide[hidden] {
+        display: flex !important;
+        min-height: 95vh;
+        break-after: page;
+        background: #0b1425;
+      }
+      .footer { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" aria-label="Episode 1 slide deck">
+    <section class="slide" aria-labelledby="slide-1">
+      <p class="eyebrow">Fabric Monitor / Episode 01</p>
+      <h1 id="slide-1">Understand the estate.<br>Start with the evidence.</h1>
+      <p class="lead muted">From authorized collection to a model-ready data foundation.</p>
+      <div class="callout">In this episode: architecture, execution options and permission boundaries.</div>
+      <template class="speaker-notes">Welcome to Fabric Monitor. This series explains how to collect authorized metadata, retain the evidence, and prepare a model-ready foundation.
+
+We begin with the architecture and the permissions behind it. Later episodes cover local exploration, two production hosting options, analytics notebooks, and the semantic-model layer.
+
+Our focus is the data foundation, not report design. We will distinguish what the evidence establishes from what remains unknown.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-2">
+      <p class="eyebrow">The architecture</p>
+      <h2 id="slide-2">Four layers. Different responsibilities.</h2>
+      <div class="flow">
+        <article><span class="number">01 / Collect</span><h3>Authorized APIs</h3><p>Selected Power BI, Fabric and Microsoft Graph evidence.</p></article>
+        <article><span class="number">02 / Retain</span><h3>Raw observations</h3><p>Local files, Blob / ADLS or Lakehouse Files, plus collection controls.</p></article>
+        <article><span class="number">03 / Curate</span><h3>Analytics notebooks</h3><p>Existing Lakehouse evidence becomes curated Delta tables.</p></article>
+        <article><span class="number">04 / Model</span><h3>Analytical structure</h3><p>Define grain, source selection, relationships and measures.</p></article>
+      </div>
+      <template class="speaker-notes">Think of Monitor as four distinct layers. Collectors call the APIs you have authorized. Storage retains the returned observations and collection controls. Analytics notebooks transform existing Lakehouse files into curated Delta tables. A semantic model is then a separate design and deployment step.
+
+Collection and transformation are not the same operation. Running an analytics notebook does not request fresh API data. Equally, publishing Delta tables does not automatically create a reporting semantic model.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-3">
+      <p class="eyebrow">Choose an execution host</p>
+      <h2 id="slide-3">Start locally. Choose production deliberately.</h2>
+      <div class="cards">
+        <article class="card"><h3>Local PoC</h3><p>Native Windows or Linux. Optional WSL2: Windows desktop, Linux tooling.</p></article>
+        <article class="card"><h3>Function App</h3><p>Hosted timer-based collector execution, with environment-specific configuration.</p></article>
+        <article class="card"><h3>Collector notebook</h3><p>Python collection in a notebook runtime, coordinated by an approved pipeline.</p></article>
+      </div>
+      <div class="callout">A different host does not grant different API permissions.</div>
+      <template class="speaker-notes">For a proof of concept, run locally on Windows or Linux. Windows users can use PowerShell directly, or choose WSL2 for a Windows desktop with Linux development tools.
+
+For production, an Azure Function App provides timer-based collection. Alternatively, a collector notebook can run the Python code as part of an orchestrated workflow.
+
+These are execution choices, not permission shortcuts. Each needs configuration and acceptance in its target environment. Production scheduling and orchestration are not created simply by importing the analytics notebooks.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-4">
+      <p class="eyebrow">Make the handoff explicit</p>
+      <h2 id="slide-4">Collection output must reach Lakehouse Files.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Collector destination</h3><p>Local folder, Blob / ADLS or a configured Lakehouse path.</p></article>
+        <article class="card"><h3>Analytics input</h3><p>Existing files under the selected raw root in the attached default Lakehouse.</p></article>
+      </div>
+      <div class="callout">Validate the copy, shortcut or other chosen handoff separately. This is not an automatic transfer supplied by Monitor.</div>
+      <template class="speaker-notes">The analytics notebooks expect evidence in Lakehouse Files. If your collector writes locally or to Blob Storage, explicitly arrange how those required files become available to analytics.
+
+Validate that handoff, the raw root, and the execution identity. Do not interpret an architecture arrow as an automatic transfer implemented by Monitor.
+
+This Fabric and OneLake path is the Commercial-cloud walkthrough. Do not assume the same Fabric runtime and storage path are available across sovereign-cloud configurations.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-5">
+      <p class="eyebrow">Authorization boundaries</p>
+      <h2 id="slide-5">Admin visibility is not universal access.</h2>
+      <div class="cards two">
+        <article class="card"><h3>API authorization</h3><p>Endpoint-specific tenant settings, application permissions and consent.</p></article>
+        <article class="card"><h3>Resource access</h3><p>Item, connection, dataset, gateway or deployment-pipeline permissions.</p></article>
+        <article class="card"><h3>Storage access</h3><p>Separate authorization to read raw evidence and write intended outputs.</p></article>
+        <article class="card"><h3>Execution identity</h3><p>Validate the identity actually used by manual and scheduled runs.</p></article>
+      </div>
+      <template class="speaker-notes">Monitor is not an Admin-API-only solution. Catalog uses Admin Scanner APIs, but some modules use non-Admin Fabric or Power BI endpoints. Directory collection uses separate Microsoft Graph application permissions and consent.
+
+Keep four boundaries separate: API authorization, resource access, storage access, and execution identity. Enabling Admin API access does not automatically authorize item history, definitions, storage writes or scheduled notebook execution.
+
+Start with an explicitly approved set of modules. Adding features can mean adding permissions and expanding the collection scope.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-6">
+      <p class="eyebrow">Scope before enablement</p>
+      <h2 id="slide-6">Know what each feature can observe.</h2>
+      <div class="cards">
+        <article class="card"><h3>Job history</h3><p>Configured supported items. Actual job-history access. Recent observations, not an unlimited archive.</p></article>
+        <article class="card"><h3>Connections</h3><p>Caller-visible connections. Connection permission. Not tenant-complete discovery.</p></article>
+        <article class="card"><h3>Definitions</h3><p>Tenant-discovered notebooks and data pipelines. Item read/write access. Sensitive exported source.</p></article>
+      </div>
+      <div class="callout">See the configuration reference for all API families, exact permissions, collection boundaries and limitations.</div>
+      <template class="speaker-notes">Three examples show why scope matters. Job history reads configured supported items with actual job-history access. Connections are caller-visible, not a complete tenant inventory.
+
+Definition collection discovers active notebooks and data pipelines across the tenant, then requires item read-write access to export definitions. Contributor is the least workspace role supplying that access, even though collection does not execute or update those workloads. Those exports may contain sensitive source.
+
+Other modules have different boundaries, including deployment-pipeline Admin, dataset Write, Gateway Admin, or separate Graph consent. Review the full configuration reference before enabling them.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-7">
+      <p class="eyebrow">Interpret evidence honestly</p>
+      <h2 id="slide-7">Execution success is not collection completeness.</h2>
+      <div class="cards">
+        <article class="card"><h3>Missing is not zero</h3><p>Uncollected or failed evidence remains unknown.</p></article>
+        <article class="card"><h3>History is not current state</h3><p>Do not add snapshots together as current inventory.</p></article>
+        <article class="card"><h3>Metadata is sensitive</h3><p>Protect identities, definitions and retained observations.</p></article>
+      </div>
+      <template class="speaker-notes">A successful execution can still report incomplete or stale collection. Read coverage alongside the observations. Missing evidence is not zero, and successive historical snapshots are not automatically a current inventory.
+
+Retained metadata can be sensitive, including identities and exported source. Protect it even in a local proof of concept.
+
+The aim is an understandable, auditable foundation for investigation, not a claim of complete real-time visibility.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-8">
+      <p class="eyebrow">Continue the series</p>
+      <h2 id="slide-8">Next: run a local proof of concept.</h2>
+      <p class="lead muted">Windows PowerShell / Linux / optional WSL2</p>
+      <div class="cards two">
+        <article class="card"><h3>What you now know</h3><p>The layers, execution options and authorization boundaries.</p></article>
+        <article class="card"><h3>What comes next</h3><p>Configure a local destination, select approved modules and inspect retained evidence.</p></article>
+      </div>
+      <div class="callout">Local execution still calls real APIs. Credentials and collection approval come before a live run.</div>
+      <template class="speaker-notes">You now have the architecture: authorized collection, retained evidence, curated Delta tables, and a separately designed semantic-model layer.
+
+In the next episode, we will explore the local proof of concept on Windows or Linux, with WSL2 as an optional Windows workflow. We will prepare configuration, select approved modules, and inspect retained evidence.
+
+Local does not mean offline. Configure credentials privately and approve the collection scope before starting real API requests.</template>
+    </section>
+    <div class="footer"><span>FABRIC MONITOR / THE DATA FOUNDATION</span><span id="counter">01 / 08</span></div>
+  </main>
+  <nav class="controls" aria-label="Slide navigation">
+    <button id="previous" type="button" disabled>Previous</button>
+    <button id="next" type="button">Next</button>
+    <button id="toggle-notes" type="button" aria-expanded="false" aria-controls="notes">Speaker notes</button>
+    <span id="announcement" role="status" aria-live="polite">Slide 1 of 8</span>
+  </nav>
+  <aside class="review">
+    <h2>Review draft / voice audition</h2>
+    <p>This is the Episode 1 slide deck, not a finished video. The short audio sample auditions the offline Microsoft Zira voice; it is not synchronized to the slides. Use the arrow keys or navigation buttons to review.</p>
+    <audio controls preload="none" src="output/narration-preview.wav" aria-label="Offline Zira narration audition"></audio>
+    <div id="notes" class="notes" hidden></div>
+    <p>Source: <a href="../configuration-reference.md">API scope and configuration</a> /
+      <a href="../../notebooks/notebook-guide.md">Analytics notebook runbook</a> /
+      <a href="storyboard.md">Series storyboard</a>.</p>
+  </aside>
+  <script>
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const previous = document.querySelector("#previous");
+    const next = document.querySelector("#next");
+    const notes = document.querySelector("#notes");
+    const noteToggle = document.querySelector("#toggle-notes");
+    const announcement = document.querySelector("#announcement");
+    const counter = document.querySelector("#counter");
+    const parameters = new URLSearchParams(location.search);
+    let active = 0;
+
+    function showSlide(index) {
+      active = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((slide, position) => { slide.hidden = position !== active; });
+      previous.disabled = active === 0;
+      next.disabled = active === slides.length - 1;
+      notes.textContent = slides[active].querySelector(".speaker-notes").content.textContent.trim();
+      announcement.textContent = `Slide ${active + 1} of ${slides.length}`;
+      counter.textContent = `${String(active + 1).padStart(2, "0")} / ${String(slides.length).padStart(2, "0")}`;
+      history.replaceState(null, "", `${location.pathname}${location.search}#slide-${active + 1}`);
+    }
+
+    previous.addEventListener("click", () => showSlide(active - 1));
+    next.addEventListener("click", () => showSlide(active + 1));
+    noteToggle.addEventListener("click", () => {
+      notes.hidden = !notes.hidden;
+      noteToggle.setAttribute("aria-expanded", String(!notes.hidden));
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.target.closest("button, audio, input, textarea, select, a")) return;
+      if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
+        event.preventDefault();
+        showSlide(active + (event.key === "ArrowRight" ? 1 : -1));
+      }
+    });
+    if (parameters.get("capture") === "1") document.body.classList.add("capture");
+    const requested = /^#slide-(\d+)$/.exec(location.hash);
+    showSlide(requested ? Number(requested[1]) - 1 : 0);
+  </script>
+</body>
+</html>

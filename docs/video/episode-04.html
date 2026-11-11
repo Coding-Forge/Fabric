@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Fabric Monitor | Episode 4: collector notebooks and orchestration</title>
+  <link rel="stylesheet" href="slides.css">
+  <script src="slides.js" defer></script>
+</head>
+<body>
+  <main class="stage" aria-label="Episode 4 slide deck">
+    <section class="slide" aria-labelledby="slide-1">
+      <p class="eyebrow">Fabric Monitor / Episode 04</p>
+      <h1 id="slide-1">Collect in a notebook.<br>Orchestrate the handoff.</h1>
+      <p class="lead muted">An alternative production execution path to the Function App.</p>
+      <div class="callout">Runtime preparation, private settings, Lakehouse evidence and pipeline acceptance. No live execution.</div>
+      <template class="speaker-notes">Episode Three covered hosted collection with an Azure Function App. This episode presents the alternative: running the Python collector inside a Fabric notebook and coordinating the workflow with a pipeline.
+
+The hosting choice does not expand collection permissions or prove production readiness. We will explain runtime preparation, the evidence destination, and the dependency between collection and analytics.
+
+All examples are illustrative. No notebook or pipeline is executed or changed for this deck.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-2">
+      <p class="eyebrow">Two notebook roles</p>
+      <h2 id="slide-2">Collection and analytics are different jobs.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Collector notebook</h3><p>Runs the Python monitoring code through env.notebook.run. Calls approved APIs and retains raw evidence plus collection controls.</p></article>
+        <article class="card"><h3>Analytics notebooks</h3><p>The numbered suite transforms existing Lakehouse files. Embedded helpers; no collector checkout or API credentials required.</p></article>
+      </div>
+      <div class="callout">nb_orchestrator runs transformations. It does not collect API data or schedule itself.</div>
+      <template class="speaker-notes">Do not confuse two roles that happen to use notebooks. A collector notebook hosts the Python application and calls approved APIs. The numbered analytics notebooks consume files already collected.
+
+The optional analytics orchestrator runs transformation notebooks. It does not start collectors or create a schedule.
+
+These are separate stages with separate runtime and identity requirements. Importing the generated analytics suite does not install or configure a collector notebook.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-3">
+      <p class="eyebrow">Prepare the collector runtime</p>
+      <h2 id="slide-3">Make the code and dependencies available.</h2>
+      <div class="cards">
+        <article class="card"><h3>Approved code</h3><p>Provide the repository's collector package in the notebook environment. Pin the version used for acceptance.</p></article>
+        <article class="card"><h3>Runtime dependencies</h3><p>Validate the collector's requirements against the chosen environment. Check imports and network access before scheduling.</p></article>
+        <article class="card"><h3>Default Lakehouse</h3><p>Attach and verify the intended Lakehouse. Keep required execution and monitored capacities available.</p></article>
+      </div>
+      <div class="callout">The collector needs repository code and dependencies; generated analytics notebooks are self-contained.</div>
+      <template class="speaker-notes">Prepare an approved collector code version and its dependencies in the notebook runtime. The helper is an entry point, not an installer or self-contained notebook artifact.
+
+Validate imports and network reachability in the chosen environment, then confirm the attached default Lakehouse and required capacity availability.
+
+Use your organization's deployment and environment-management process. This walkthrough does not prescribe an unvalidated runtime bootstrap or treat older experimental notebooks as a production collector package.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-4">
+      <p class="eyebrow">Configure privately</p>
+      <h2 id="slide-4">Call the helper with approved settings.</h2>
+      <pre><code>from env.notebook import run
+
+# settings is prepared privately.
+await run(settings)</code></pre>
+      <div class="cards two">
+        <article class="card"><h3>API identity and scope</h3><p>Resolve tenant, client and secret settings through an approved private mechanism. Select modules deliberately.</p></article>
+        <article class="card"><h3>Runtime identity</h3><p>Verify secret access, Lakehouse access and the identity actually used by manual and scheduled runs.</p></article>
+      </div>
+      <div class="callout">The helper does not load a .env file automatically. Environment settings can still participate in configuration.</div>
+      <template class="speaker-notes">Prepare settings privately, then await the asynchronous notebook helper. The excerpt assumes those settings already exist; it is not a complete credential setup.
+
+Resolve secrets through an approved store. Do not embed secret values in notebook source, parameters visible to viewers, or executed outputs.
+
+The helper does not automatically load a dot-env file, but the configuration builder still reads environment settings where appropriate. Validate the effective configuration and distinguish the collector's API identity from the notebook execution identity.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-5">
+      <p class="eyebrow">Match the raw evidence destination</p>
+      <h2 id="slide-5">Align collection with analytics input.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Illustrative collector settings</h3><pre><code>LAKEHOUSE_NAME: lh_monitor
+WORKSPACE_NAME: FabricMonitor
+PATH_IN_LAKEHOUSE: monitor
+ON_FABRIC: True</code></pre></article>
+        <article class="card"><h3>Matching analytics root</h3><pre><code>/lakehouse/default/Files/monitor</code></pre><p>Example names only. Verify the actual mounted default Lakehouse; configured names alone do not prove the target.</p></article>
+      </div>
+      <div class="callout">Local output and Blob settings take precedence over Lakehouse selection. Remove unintended overrides.</div>
+      <template class="speaker-notes">Here is a deliberately matched example: the collector writes under monitor in Lakehouse Files, and analytics reads that same raw root.
+
+In the on-Fabric path, the implementation uses the mounted default Lakehouse. Verify the mount rather than assuming that a configured Lakehouse name selects it.
+
+Local output settings, and then Blob settings, take precedence over Lakehouse selection. Remove unintended overrides and confirm the actual destination. This Fabric and OneLake path is the Commercial-cloud walkthrough, not a sovereign-cloud parity claim.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-6">
+      <p class="eyebrow">Design the pipeline explicitly</p>
+      <h2 id="slide-6">Execution dependencies are not quality gates.</h2>
+      <pre><code>Collector notebook
+  -> Review persisted evidence and coverage
+  -> nb_orchestrator: selected transformations
+  -> Review publication and validation</code></pre>
+      <div class="cards two">
+        <article class="card"><h3>Deployment pattern</h3><p>Create and accept the intended activities, dependencies, parameters, identity and failure behavior.</p></article>
+        <article class="card"><h3>Coverage policy</h3><p>Define how incomplete or stale collection affects downstream work. The supplied orchestrator does not implement that collection-quality gate.</p></article>
+      </div>
+      <div class="callout">Illustrative architecture, not a supplied or already deployed production pipeline.</div>
+      <template class="speaker-notes">A production pipeline can coordinate collector execution, evidence review and transformation. You must configure and accept those activities and dependencies in your environment.
+
+A successful execution dependency is not a collection-quality gate. Define how missing, failed or stale evidence affects downstream work. The supplied analytics orchestrator does not enforce that policy.
+
+The collector helper raises when the monitor reports failure, but an execution finishing still does not establish complete coverage. Inspect persisted evidence and applicable outcomes before interpreting the result.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-7">
+      <p class="eyebrow">The downstream analytics entry point</p>
+      <h2 id="slide-7">Preview first. Publish serially.</h2>
+      <div class="cards two">
+        <article class="card"><h3>Shared parameters</h3><p>RAW_ROOT / TABLE_PREFIX<br>WRITE_TABLES = False first<br>Explicit permission mode<br>Selected notebook names and timeout</p></article>
+        <article class="card"><h3>Execution contract</h3><p>Same default Lakehouse for parent and children. Serial transformations. Visualization 05 and validation 06 are excluded.</p></article>
+      </div>
+      <div class="callout">Do not overlap orchestrators or other writers targeting the same prefix; domain notebooks share estate_coverage.</div>
+      <template class="speaker-notes">After accepting the raw evidence handoff, preview selected transformations through the analytics orchestrator. Match the raw root, table prefix, permission mode, imported notebook names and timeout.
+
+Attach the same intended default Lakehouse to the parent and its children. The orchestrator runs selected transformations serially, attempts each child and raises after its summary if any child failed.
+
+Visualization and controlled validation are excluded. Avoid overlapping writers, because domain notebooks share coverage tables. Detailed publication and validation are the subject of Episode Five.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-8">
+      <p class="eyebrow">Accept the scheduled execution path</p>
+      <h2 id="slide-8">Manual success is not scheduled acceptance.</h2>
+      <div class="cards">
+        <article class="card"><h3>Identity and access</h3><p>Verify scheduled code, secret, API and data access. Non-Admin features and Graph retain their separate permission boundaries.</p></article>
+        <article class="card"><h3>Recovery and overlap</h3><p>Validate timeouts, retries and failure propagation. Preserve checkpoints and cooldowns. Prevent competing collection and publication.</p></article>
+        <article class="card"><h3>Operational outcomes</h3><p>Review child-run details, coverage, freshness, costs and restricted logs. Define ownership and alerts.</p></article>
+      </div>
+      <div class="callout">A child marked Succeeded establishes execution success, not fresh or complete collection.</div>
+      <template class="speaker-notes">Before enabling a schedule, test the actual pipeline execution identity and environment. Manual success does not prove that the scheduled identity can resolve secrets, call the approved APIs, or read and write the intended data.
+
+Accept timeout, retry and failure behavior. Preserve checkpoints and provider cooldowns, and prevent competing collectors or same-prefix writers.
+
+Review child-run details and coverage separately. Logs and notebook outputs can contain sensitive operational metadata. Establish an owner for alerts, freshness, capacity availability and cost rather than assuming the schedule provides those controls.</template>
+    </section>
+    <section class="slide" hidden aria-labelledby="slide-9">
+      <p class="eyebrow">Continue the series</p>
+      <h2 id="slide-9">Next: turn retained evidence into Delta tables.</h2>
+      <div class="cards two">
+        <article class="card"><h3>What you now know</h3><p>The collector runtime, private settings, Lakehouse handoff and pipeline acceptance boundaries.</p></article>
+        <article class="card"><h3>Episode 5</h3><p>Import analytics notebooks, inspect preview coverage, approve serial publication and validate unchanged-input reruns.</p></article>
+      </div>
+      <div class="callout">Choose Function App or notebook hosting for the intended collection path. Do not run both against shared controls without validating coordination.</div>
+      <template class="speaker-notes">You now have the notebook-hosted collection pattern: prepare code and dependencies, configure secrets privately, verify the mounted destination, and accept the actual pipeline path.
+
+This is an alternative to the Function App approach, not a requirement to operate both collectors against the same evidence and controls.
+
+Continue to Episode Five once raw evidence is available in the intended Lakehouse. We will focus on preview, curated Delta publication and controlled validation, staying within the data foundation rather than report visuals.</template>
+    </section>
+    <div class="footer"><span>FABRIC MONITOR / NOTEBOOK COLLECTION AND ORCHESTRATION</span><span id="counter">01 / 09</span></div>
+  </main>
+  <nav class="controls" aria-label="Slide navigation">
+    <button id="previous" type="button" disabled>Previous</button>
+    <button id="next" type="button">Next</button>
+    <button id="toggle-notes" type="button" aria-expanded="false" aria-controls="notes">Speaker notes</button>
+    <span id="announcement" role="status" aria-live="polite">Slide 1 of 9</span>
+  </nav>
+  <aside class="review">
+    <h2>Episode 4 review draft</h2>
+    <p>Illustrative notebook-hosted deployment pattern only. No notebook, pipeline, schedule, permission or cloud resource was changed or executed. Speaker notes contain draft narration, not synchronized audio or a finished video.</p>
+    <div id="notes" class="notes" hidden></div>
+    <p><a href="episode-03.html">Alternative production host: Episode 3</a> /
+      <a href="../../env/notebook.py">Collector helper</a> /
+      <a href="../configuration-reference.md">Configuration and API boundaries</a> /
+      <a href="../../notebooks/README.md">Analytics and orchestrator reference</a> /
+      <a href="storyboard.md">Series storyboard</a>.</p>
+  </aside>
+</body>
+</html>
