@@ -24,7 +24,7 @@ SUBJECTS = {
         "preview_jobs(spark, display, tables)",
     ),
     "04_monitor_lineage": (
-        "Scanner relationships and static definition references",
+        "Scanner, static references and configured Lakehouse/shortcut/Eventstream relationships",
         ("lineage_resources", "lineage_edges", "lineage_diagnostics"),
         "preview_lineage(spark, display, tables)",
     ),
@@ -33,6 +33,8 @@ CONFIG = """# Attach lh_monitor as this notebook's DEFAULT Lakehouse before runn
 RAW_ROOT = "/lakehouse/default/Files/monitor"
 TABLE_PREFIX = "monitor_"
 WRITE_TABLES = False  # Preview first; set True only for the curated Delta writes.
+INCLUDE_SHORTCUTS = False  # Opt in to retained fabricshortcuts evidence in 01-04.
+INCLUDE_EVENTSTREAM_TOPOLOGY = False  # Opt in to retained Eventstream configuration.
 PERMISSION_MODE = "Scoped"  # Choose "Scoped" or "Tenant"; never combined.
 MAX_RAW_FILES = 50000
 MAX_RAW_BYTES = 128 * 1024 * 1024
@@ -58,6 +60,9 @@ MAX_RAW_BYTES = 128 * 1024 * 1024
 MAX_FILE_BYTES = 8 * 1024 * 1024
 INCLUDE_ESTATE_TABLES = False  # True only after publishing all of 07-11.
 INCLUDE_MODULE_TABLES = False  # True after publishing 12-21; includes estate tables.
+INCLUDE_PIPELINE_ACTIVITY_TABLES = False  # True only after publishing notebook 22.
+INCLUDE_SHORTCUTS = False  # Match 01-04; adds raw evidence, not new tables.
+INCLUDE_EVENTSTREAM_TOPOLOGY = False  # Match 01-04; no new tables.
 """
 ESTATE_CONFIG = """# Attach lh_monitor as DEFAULT. Existing raw data only; no API calls.
 RAW_ROOT = "/lakehouse/default/Files/monitor"
@@ -110,6 +115,57 @@ MODULE_SUBJECTS = {
         "deployments",
     ),
 }
+ORCHESTRATOR_RUN = """if (
+    not isinstance(NOTEBOOKS, list)
+    or not NOTEBOOKS
+    or any(not isinstance(name, str) or not name.strip() for name in NOTEBOOKS)
+    or len(set(NOTEBOOKS)) != len(NOTEBOOKS)
+):
+    raise ValueError("NOTEBOOKS must be a nonempty list of unique notebook names")
+if type(WRITE_TABLES) is not bool:
+    raise ValueError("WRITE_TABLES must be True or False")
+if type(INCLUDE_SHORTCUTS) is not bool:
+    raise ValueError("INCLUDE_SHORTCUTS must be True or False")
+if type(INCLUDE_EVENTSTREAM_TOPOLOGY) is not bool:
+    raise ValueError("INCLUDE_EVENTSTREAM_TOPOLOGY must be True or False")
+if PERMISSION_MODE not in {"Scoped", "Tenant"}:
+    raise ValueError("Choose Scoped or Tenant explicitly")
+if type(NOTEBOOK_TIMEOUT_SECONDS) is not int or NOTEBOOK_TIMEOUT_SECONDS <= 0:
+    raise ValueError("NOTEBOOK_TIMEOUT_SECONDS must be a positive integer")
+
+print("Publication enabled." if WRITE_TABLES else "PREVIEW ONLY: no Delta writes.")
+results = []
+for name in NOTEBOOKS:
+    print(f"Running {name}")
+    try:
+        notebookutils.notebook.run(
+            name,
+            NOTEBOOK_TIMEOUT_SECONDS,
+            {
+                "RAW_ROOT": RAW_ROOT,
+                "TABLE_PREFIX": TABLE_PREFIX,
+                "WRITE_TABLES": WRITE_TABLES,
+                "PERMISSION_MODE": PERMISSION_MODE,
+                "INCLUDE_SHORTCUTS": INCLUDE_SHORTCUTS,
+                "INCLUDE_EVENTSTREAM_TOPOLOGY": INCLUDE_EVENTSTREAM_TOPOLOGY,
+            },
+        )
+        results.append({"notebook": name, "status": "Succeeded", "error": ""})
+    except Exception as exc:  # noqa: BLE001 - Attempt every child, then fail overall.
+        results.append(
+            {
+                "notebook": name,
+                "status": "Failed",
+                "error": str(exc),
+            }
+        )
+
+display(spark.createDataFrame(results, "notebook string, status string, error string"))
+failed = [result["notebook"] for result in results if result["status"] == "Failed"]
+if failed:
+    raise RuntimeError("Failed notebooks: " + ", ".join(failed))
+print("All selected notebooks succeeded. Review collection coverage separately.")
+"""
 
 
 def cell(kind, source, index, *, parameters=False):
@@ -124,6 +180,72 @@ def cell(kind, source, index, *, parameters=False):
     if kind == "code":
         result.update(execution_count=None, outputs=[])
     return result
+
+
+def orchestrator_notebook():
+    orchestrator_config = (
+        "# Attach the SAME default Lakehouse as the child notebooks.\n"
+        'RAW_ROOT = "/lakehouse/default/Files/monitor"\n'
+        'TABLE_PREFIX = "monitor_"\n'
+        "WRITE_TABLES = False  # Preview first; set True to publish Delta tables.\n"
+        'PERMISSION_MODE = "Scoped"  # Choose "Scoped" or "Tenant".\n'
+        "INCLUDE_PIPELINE_ACTIVITY = False  # Opt in after importing notebook 22.\n"
+        "INCLUDE_SHORTCUTS = False  # Opt in to shortcut evidence in 01-04.\n"
+        "INCLUDE_EVENTSTREAM_TOPOLOGY = False  # Opt in to topology evidence in 01-04.\n"
+        "NOTEBOOK_TIMEOUT_SECONDS = 3600\n"
+        "# Edit this list to match the imported notebook names in your workspace.\n"
+        "NOTEBOOKS = [\n"
+        + "".join(
+            f"    {json.dumps(name)},\n"
+            for name in (*SUBJECTS, *ESTATE_SUBJECTS, *MODULE_SUBJECTS)
+        )
+        + "]\n"
+        + 'if INCLUDE_PIPELINE_ACTIVITY:\n    NOTEBOOKS.append("22_monitor_pipeline_activity")\n'
+    )
+    return notebook(
+        [
+            (
+                "markdown",
+                """# Monitor: serial notebook orchestrator
+
+Import this notebook as **nb_orchestrator** alongside the 19 transformation
+notebooks. Attach the same default Lakehouse (for example **lh_monitor**) to
+the orchestrator and every child. Match the names in NOTEBOOKS to the imported
+Fabric notebook names; remove entries for domains you do not want to process.
+Notebooks 05 (visualization) and 06 (controlled rerun validation) are excluded.
+Notebook 22 is excluded unless INCLUDE_PIPELINE_ACTIVITY=True; import it first.
+INCLUDE_SHORTCUTS=True includes retained shortcut evidence in 01-04, without
+adding writers or tables. Use the same flag in rerun validation notebook 06.
+INCLUDE_EVENTSTREAM_TOPOLOGY=True includes retained Eventstream configuration
+in 01-04, also without new tables/writers. Match this flag in notebook 06.
+
+Run manually with WRITE_TABLES=False first. After reviewing coverage, set it
+to True to publish. The executing identity needs raw-data read access and,
+for publication, curated-table write access. Shell credentials are not used.
+The child notebooks must retain their marked parameter cells.
+
+Execution is serial because concurrent same-prefix publication is unsupported
+and domain notebooks share estate_coverage. Each child is attempted even after
+another fails. The final summary identifies failures by notebook name; any
+failure raises after the summary so a calling pipeline is marked failed.
+Use Fabric's child-run snapshots for detailed diagnostics.
+
+Succeeded means execution succeeded, not that collection coverage is complete
+or fresh. Missing/failed collection may be reported without an exception.
+The orchestrator makes no collection API calls and does not save a separate
+status table. Review run outputs as potentially sensitive operational metadata.
+
+After manual acceptance, call this notebook from a scheduled pipeline and verify
+the pipeline execution identity. Run after collection has finished; avoid
+overlapping orchestrator runs or other writers to the same table prefix.
+Generated notebook: edit build_monitor_notebooks.py and regenerate, not these cells.
+""",
+                False,
+            ),
+            ("code", orchestrator_config, True),
+            ("code", ORCHESTRATOR_RUN, False),
+        ]
+    )
 
 
 def notebook(cells):
@@ -180,14 +302,24 @@ contract, limitations and execution order. Local checks do not prove Fabric exec
 The embedded implementation is generated; edit its Python sources in Git, not
 these generated cells. Never copy collected rows or credentials into this file.
 """
-        execute = f"""documents = load_documents(
+        execute = f"""source_prefixes = set(CORE_SOURCE_PREFIXES)
+if INCLUDE_SHORTCUTS:
+    source_prefixes |= SHORTCUT_PREFIXES
+if INCLUDE_EVENTSTREAM_TOPOLOGY:
+    source_prefixes |= EVENTSTREAM_PREFIXES
+documents = load_documents(
     RAW_ROOT,
     max_files=MAX_RAW_FILES,
     max_bytes=MAX_RAW_BYTES,
     max_file_bytes=MAX_FILE_BYTES,
-    source_prefixes=CORE_SOURCE_PREFIXES,
+    source_prefixes=source_prefixes,
 )
-tables = transform(documents, scanner_extractor=scan_snapshot)
+tables = transform(
+    documents,
+    scanner_extractor=scan_snapshot,
+    include_shortcuts=INCLUDE_SHORTCUTS,
+    include_eventstream_topology=INCLUDE_EVENTSTREAM_TOPOLOGY,
+)
 counts = publish(
     spark,
     tables,
@@ -275,6 +407,13 @@ and retained-coverage reports. Never commit executed outputs or baseline files.
 The default scope remains the original ten tables. INCLUDE_ESTATE_TABLES=True
 selects the previous 25-table scope. After publishing all transformation notebooks,
 INCLUDE_MODULE_TABLES=True selects all 48 tables (including estate tables).
+These existing scopes are unchanged. After publishing notebook 22, explicitly
+enable INCLUDE_PIPELINE_ACTIVITY_TABLES to add its two activity datasets.
+INCLUDE_SHORTCUTS must match 01-04; it adds shortcut raw evidence to the same
+table scope. Its default is False. A changed evidence scope is NOT_COMPARABLE.
+INCLUDE_EVENTSTREAM_TOPOLOGY must also match 01-04 and defaults to False.
+It adds raw evidence to existing tables, not new datasets. Use a new baseline
+when changing either flag, even if no corresponding raw files have arrived.
 Use a new baseline name when changing scope and rerun all writers in that scope.
 """,
                 False,
@@ -297,6 +436,9 @@ Use a new baseline name when changing scope and rerun all writers in that scope.
     max_file_bytes=MAX_FILE_BYTES,
     include_estate_tables=INCLUDE_ESTATE_TABLES,
     include_module_tables=INCLUDE_MODULE_TABLES,
+    include_pipeline_activity_tables=INCLUDE_PIPELINE_ACTIVITY_TABLES,
+    include_shortcuts=INCLUDE_SHORTCUTS,
+    include_eventstream_topology=INCLUDE_EVENTSTREAM_TOPOLOGY,
 )
 """,
                 False,
@@ -369,14 +511,86 @@ print(counts)
                 ),
             ]
         )
+    result["22_monitor_pipeline_activity.ipynb"] = notebook(
+        [
+            (
+                "markdown",
+                """# Monitor: pipeline activity metrics and query coverage
+
+Optional, self-contained Fabric PySpark notebook. Attach the same default Lakehouse,
+preview first and explicitly enable WRITE_TABLES to publish two additional tables.
+Read existing fabricpipelineactivityruns files only; no APIs, credentials or workload
+execution. Notebook 03 remains item job history; 21 remains deployment operations.
+
+Inspect coverage before metrics: successful empty pipeline job history means no run
+IDs were returned, not that zero activities ran. Failed, missing, unfinished or
+malformed queries have unknown counts. Query windows filter last updates, not starts.
+Recent API history and resource permissions limit coverage.
+
+Historical observations retain query window, mode and source identity. The preview
+selects the latest query attempt before admitting its activities, never falling back
+to old metrics after a failed or empty query. Repeated polls are not additive facts.
+ACTIVITY_SOURCE_PATH can select one exact historical successful query instead.
+Inputs, arbitrary outputs and errors are not exported. IDs and activity names may
+still be sensitive; chart labels use status/type, not those names.
+
+Reported throughput keeps native engine/activity units; never sum rates or treat
+chained activity counts as distinct end-to-end data movement. These metrics do not
+establish runtime lineage or tenant-complete history. The existing notebook 06
+10/25/48-table scopes stay unchanged unless its activity-table flag is enabled.
+Generated notebook: edit Python sources, not these cells.
+""",
+                False,
+            ),
+            (
+                "code",
+                ESTATE_CONFIG
+                + 'ACTIVITY_SOURCE_PATH = ""  # Optional exact historical query source.\n',
+                True,
+            ),
+            ("code", embedded_library(pipeline=True), False),
+            (
+                "code",
+                """documents = load_documents(
+    RAW_ROOT,
+    max_files=MAX_RAW_FILES,
+    max_bytes=MAX_RAW_BYTES,
+    max_file_bytes=MAX_FILE_BYTES,
+    source_prefixes=PIPELINE_ACTIVITY_PREFIXES,
+    allow_empty=True,
+)
+tables = transform(documents, pipeline_extractor=pipeline_activity_tables)
+counts = publish(
+    spark,
+    tables,
+    tuple(PIPELINE_ACTIVITY_SCHEMAS),
+    TABLE_PREFIX,
+    write=WRITE_TABLES,
+)
+print(counts)
+preview_pipeline_activity(spark, display, tables, ACTIVITY_SOURCE_PATH)
+""",
+                False,
+            ),
+        ]
+    )
+    result["nb_orchestrator.ipynb"] = orchestrator_notebook()
     return result
 
 
 def embedded_library(
-    *, visualizations=False, validation=False, estate=False, modules=False
+    *,
+    visualizations=False,
+    validation=False,
+    estate=False,
+    modules=False,
+    pipeline=False,
 ):
     paths = [
         REPO / "env/utility/lineage_edges.py",
+        REPO / "env/utility/notebook_relationships.py",
+        REPO / "env/utility/shortcut_relationships.py",
+        REPO / "env/utility/eventstream_topology.py",
         ROOT / "monitor_analytics.py",
         ROOT / "monitor_fabric_runtime.py",
     ]
@@ -388,6 +602,8 @@ def embedded_library(
         paths.append(ROOT / "monitor_estate_analytics.py")
     if modules:
         paths.append(ROOT / "monitor_module_analytics.py")
+    if pipeline:
+        paths.append(ROOT / "monitor_pipeline_activity.py")
     imports, from_imports, bodies = set(), {}, []
     for path in paths:
         source = path.read_text().splitlines(keepends=True)
@@ -395,7 +611,15 @@ def embedded_library(
             import_node = isinstance(node, (ast.Import, ast.ImportFrom))
             if import_node and not (
                 isinstance(node, ast.ImportFrom)
-                and (node.module or "").startswith("notebooks.")
+                and (
+                    (node.module or "").startswith("notebooks.")
+                    or node.module
+                    in {
+                        "env.utility.notebook_relationships",
+                        "env.utility.shortcut_relationships",
+                        "env.utility.eventstream_topology",
+                    }
+                )
             ):
                 if isinstance(node, ast.ImportFrom):
                     aliases = from_imports.setdefault((node.module, node.level), set())

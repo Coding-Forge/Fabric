@@ -14,6 +14,7 @@ from env.config import run_monitor
 from env.context import Context, utc_stamp
 from env.modules import FabricItemDefinitions
 from env.utility.file_management import File_Management
+from notebooks import monitor_analytics as analytics
 from tests.fabric_helpers import ROOT, WORKSPACE, CollectorTestCase, inventory, item
 from tests.test_context import _FakeResponse, _FakeSession
 from tests.test_notebook_references import notebook
@@ -249,6 +250,32 @@ class DefinitionsTests(CollectorTestCase):
         self.assertNotIn("pipelineReferences", resources[1]["records"][0])
         self.assert_finished(MODULE, True)
         self.assertEqual(self.files[MODULE + "/progress.json"], {"finished": True})
+
+    async def test_retained_notebook_metadata_adds_associations_without_more_requests(
+        self,
+    ):
+        raw = notebook()
+        raw["metadata"] = {
+            "dependencies": {"lakehouse": {"default_lakehouse": OPERATION}}
+        }
+        ctx = self.context(inventory(item()), definition(raw))
+        self.assertTrue(await FabricItemDefinitions(ctx))
+        self.assertEqual(ctx._safe_get.await_count, 1)
+        self.assertEqual(ctx._safe_definition_request.await_count, 1)
+        documents = [
+            analytics.document(path, json.dumps(value).encode())
+            for path, value in self.files.items()
+            if path.startswith(MODULE + "/")
+            and Path(path).name not in {"request_gate.json", "progress.json"}
+        ]
+        output = analytics.transform(documents)
+        self.assertEqual(len(output["lineage_edges"]), 1)
+        configured = output["lineage_edges"][0]
+        self.assertEqual(configured["related_item_id"], OPERATION)
+        self.assertIsNone(configured["related_workspace_id"])
+        self.assertEqual(configured["direction"], "association")
+        captured = self.resources(MODULE)[1]["records"][0]
+        self.assertEqual(captured["decodedParts"]["notebook-content.ipynb"], raw)
 
     async def test_pipeline_capture_adds_references_without_mutation_or_more_requests(
         self,

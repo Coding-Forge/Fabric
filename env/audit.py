@@ -17,10 +17,13 @@ from env.modules import (
     Domains,
     FabricConnections,
     FabricDeploymentPipelineOperations,
+    FabricEventstreamTopology,
     FabricItemAccessPermissions,
     FabricItemDefinitions,
     FabricItemJobHistory,
     FabricItems,
+    FabricPipelineActivityRuns,
+    FabricShortcuts,
     Gateway,
     GitConnections,
     Graph,
@@ -39,7 +42,9 @@ FABRIC_ONLY_MODULES = frozenset({
     "Domains", "FabricItems", "Tenant", "Roles", "Workspaces",
     "GitConnections", "Tags", "DelegatedSettings", "FabricConnections",
     "FabricDeploymentPipelineOperations", "FabricItemAccessPermissions",
-    "FabricItemJobHistory", "FabricItemDefinitions",
+    "FabricItemJobHistory", "FabricItemDefinitions", "FabricPipelineActivityRuns",
+    "FabricShortcuts",
+    "FabricEventstreamTopology",
 })
 
 # Retain only names, resolving globals at dispatch time for runtime injection.
@@ -54,10 +59,13 @@ _MODULES = frozenset(
         "Domains": Domains,
         "FabricConnections": FabricConnections,
         "FabricDeploymentPipelineOperations": FabricDeploymentPipelineOperations,
+        "FabricEventstreamTopology": FabricEventstreamTopology,
         "FabricItemAccessPermissions": FabricItemAccessPermissions,
         "FabricItemJobHistory": FabricItemJobHistory,
         "FabricItemDefinitions": FabricItemDefinitions,
         "FabricItems": FabricItems,
+        "FabricPipelineActivityRuns": FabricPipelineActivityRuns,
+        "FabricShortcuts": FabricShortcuts,
         "Gateway": Gateway,
         "GitConnections": GitConnections,
         "Graph": Graph,
@@ -467,6 +475,18 @@ class Audits:
     def set_FabricItemDefinitions_cron(self, cron: str) -> None:
         """Configure the UTC schedule for tenant item definition collection."""
         self.context.set_FabricItemDefinitions_cron(cron)
+
+    def set_FabricPipelineActivityRuns_cron(self, cron: str) -> None:
+        """Configure the UTC schedule for explicit activity-run queries."""
+        self.context.set_FabricPipelineActivityRuns_cron(cron)
+
+    def set_FabricShortcuts_cron(self, cron: str) -> None:
+        """Configure the UTC schedule for shortcut configuration discovery."""
+        self.context.set_FabricShortcuts_cron(cron)
+
+    def set_FabricEventstreamTopology_cron(self, cron: str) -> None:
+        """Configure the UTC schedule for Eventstream topology discovery."""
+        self.context.set_FabricEventstreamTopology_cron(cron)
 
     def set_FabricConnections_cron(self, cron: str) -> None:
         """Configure the UTC schedule for caller-visible Fabric connections."""

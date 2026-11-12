@@ -28,6 +28,8 @@ config.json
 !notebooks/19_monitor_tags.ipynb
 !notebooks/20_monitor_broad_sharing.ipynb
 !notebooks/21_monitor_deployment_pipelines.ipynb
+!notebooks/22_monitor_pipeline_activity.ipynb
+!notebooks/nb_orchestrator.ipynb
 
 
 **/__pycache__/

@@ -150,6 +150,9 @@ class AuditRunTests(unittest.IsolatedAsyncioTestCase):
         old = _ts(3)
         fabric_modules = [
             "FabricItemDefinitions", "FabricItemAccessPermissions", "FabricItemJobHistory",
+            "FabricPipelineActivityRuns",
+            "FabricShortcuts",
+            "FabricEventstreamTopology",
             "FabricConnections", "FabricDeploymentPipelineOperations", "GitConnections",
             "Tags", "DelegatedSettings", "Domains", "FabricItems", "Tenant", "Roles", "Workspaces",
         ]

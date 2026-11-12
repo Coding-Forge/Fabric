@@ -1,6 +1,6 @@
 # Monitor analytics notebooks
 
-The 21 numbered notebooks transform, visualize and validate **existing collected
+The 22 numbered notebooks transform, visualize and validate **existing collected
 evidence**, not API responses fetched by a second collector. They are
 self-contained `.ipynb` files:
 upload the notebooks themselves, with no repository checkout, Python helper
@@ -9,11 +9,28 @@ upload, credentials, `%run` dependency or package installation cell.
 Existing `activity.ipynb`, `catalog.ipynb`, `Deconstruct.ipynb` and `nbk.ipynb`
 are older experiments and are unchanged. They are not prerequisites for this suite.
 
+## Optional serial orchestrator
+
+Import [nb_orchestrator.ipynb](nb_orchestrator.ipynb) as **nb_orchestrator** to
+run all 19 transformation notebooks from one entry point. Attach the same default
+Lakehouse to it and its children. Its parameter cell lets you select notebook
+names, raw root, table prefix, permission mode, timeout and `WRITE_TABLES`
+(False by default). Preview manually, then enable writes when ready.
+Notebook 22 is a separate opt-in: import it, then set the orchestrator's
+`INCLUDE_PIPELINE_ACTIVITY = True` to add it to the existing 19 writers.
+
+It attempts every selected notebook serially, displays a named success/failure
+summary and raises if any failed so a calling pipeline fails too. Collection
+coverage warnings are separate from execution failures; inspect child-run
+outputs. Notebooks 05 and 06 are intentionally excluded. Avoid overlapping runs
+and other writers to the same prefix. After manual acceptance, test it through
+a pipeline under the intended execution identity before scheduling.
+
 ## Choose a guide
 
 | Need | Read |
 |---|---|
-| Understand what each of 01-21 does, choose a notebook, or follow the run order | [Notebook walkthrough](notebook-guide.md) |
+| Understand what each of 01-22 does, choose a notebook, or follow the run order | [Notebook walkthrough](notebook-guide.md) |
 | Look up tables, observation grain, scope, limits or baseline semantics | This technical reference |
 | Distinguish Eventhouse/KQL access from Event Hubs/Splunk delivery | [Integration options and implementation status](../docs/analytics-integration.md) |
 | Change collection/API authorization rather than transform existing files | [Collector configuration](../docs/configuration-reference.md) |
@@ -62,7 +79,7 @@ All names below have the configured prefix, for example `monitor_inventory`.
 | 01 Inventory/health | `collection_health`, `inventory` | One source/run coverage observation; one observed workspace/item per source |
 | 02 Permissions | `permission_cycles`, `permission_resources`, `permission_grants` | One cycle-tip observation; one slice/resource outcome; one distinct principal/access-detail observation |
 | 03 Jobs | `job_resources`, `job_observations` | One polled item outcome; one job per source observation |
-| 04 Lineage | `lineage_resources`, `lineage_edges`, `lineage_diagnostics` | One item/evidence observation, including zero-edge items; one directional edge; one static-analysis diagnostic |
+| 04 Lineage | `lineage_resources`, `lineage_edges`, `lineage_diagnostics` | One item/evidence observation, including zero-edge items; one directional reference or configured association; one diagnostic |
 | 05 Visualizations | None | Coverage charts, permission-assignment counts, retained job status/durations, evidence charts and a bounded directed lineage graph |
 | 06 Validation | None | Saved baseline, exact rerun comparison, identity/schema checks, freshness and retained coverage |
 | 07 Activity events | `activity_events`, shared `estate_coverage` | One event observation per retained source/version |
@@ -80,8 +97,10 @@ All names below have the configured prefix, for example `monitor_inventory`.
 | 19 Tags | `tags`, shared `estate_coverage` | One tag definition and scope per source/version |
 | 20 Broad sharing | `organization_shares`, `publish_to_web_shares`, shared `estate_coverage` | One artifact/access/share-type observation per source/version |
 | 21 Deployment pipelines | `deployment_pipelines`, `deployment_operation_resources`, `deployment_operations`, shared `estate_coverage` | One discovered pipeline, history-resource outcome and operation per immutable poll |
+| 22 Pipeline activity (optional) | `pipeline_activity_resources`, `pipeline_activity_observations` | One collection/resource outcome; one activity run per retained successful query observation |
 
-There are **48 managed datasets** across 19 transformation notebooks. Notebook 05
+There are **50 managed datasets** across 20 transformation notebooks when optional
+22 is included; the existing 19 writers still publish their original 48. Notebook 05
 is read-only visualization; 06 validates and optionally saves baseline metadata.
 
 The notebooks do **not** export to Splunk, ingest into KQL/Eventhouse or provision
@@ -168,11 +187,87 @@ batch keys are internal only; source provenance remains the actual raw file.
 Missing/excluded workspaces are never inferred as deleted.
 
 Notebook/pipeline definition references use the collector's saved static
-analysis; no source code or SQL is executed. Scanner relationships and
-`static_inference` remain separate. **Neither proves runtime I/O.** Job
+analysis; no source code or SQL is executed. Scanner relationships,
+`static_inference`, `configuration_metadata` and optional
+`shortcut_configuration` and `eventstream_configuration` remain separate.
+**None proves runtime I/O.** Job
 execution status does not verify a lineage edge. Dynamic/unsupported expressions
 remain diagnostics rather than guessed dependencies. Raw definition contents,
 connection payloads and failure messages are not copied to the curated tables.
+
+**Configured Lakehouses:** notebook 04 also reads
+`decodedParts["notebook-content.ipynb"].metadata.dependencies.lakehouse` from
+retained successful definitions, including captures made before this analytics
+update. It adds `configuration_metadata` resource/edge observations to the
+existing lineage tables, without adding tables, collection requests or permissions.
+`relation_type` is `default_lakehouse` or `known_lakehouse`,
+`direction="association"`, `resolution="configured_id"` and
+`runtime_verified=false`. These declarations do not establish read/write activity,
+existence, access rights or effective permissions. A known Lakehouse is not
+necessarily used by the notebook.
+
+Identifiers are UUID-validated and duplicate Lakehouses are collapsed, preferring
+the default role. Workspace IDs come only from explicit metadata, including a
+duplicate declaration; missing IDs stay null rather than assuming the notebook's
+workspace. Names and arbitrary metadata are not exported. Missing decoded notebook
+content produces `missing` configuration coverage; absent attachment declarations
+in available content produce a successful zero. Malformed/conflicting declarations
+produce `invalid` coverage and no configuration edges, without discarding independent
+static references. Failed resources remain failed, not successful empty associations.
+
+Regenerate/import the updated notebooks, run 04 in preview and inspect its
+configuration coverage before enabling `WRITE_TABLES`. After publication, 05 draws
+configured associations as dashed green lines without dataflow arrows. Scanner
+and potential static references retain their existing styles. Historical rows
+remain observations, not proof of current configuration; unchanged-input reruns
+are insert-only and do not duplicate them. Dashboard/PBIP integration is not added.
+
+**Optional shortcuts:** enable the `FabricShortcuts` collector separately, then
+set `INCLUDE_SHORTCUTS=True` consistently in 01-04 (or `nb_orchestrator`) and 06.
+The default is False. Notebook 01 includes collection health, and 04 appends
+`shortcut_configuration` evidence to the existing lineage tables. Table counts
+and default raw scopes do not change; changing this flag requires a new baseline.
+Old baselines remain readable as shortcut-disabled.
+
+OneLake target workspace/item UUIDs are configured identities, not verified
+existence, access or runtime I/O. External references are fingerprints; missing
+target details and unsupported types remain unresolved edges with diagnostics.
+Names, paths, URLs and arbitrary payloads are not exported. Shortcut transforms
+are reported only as nullable configuration flags. Fingerprints are not anonymity
+or a guarantee of matching physical storage.
+
+Notebook 05 draws shortcut associations as dashed green, non-directional lines.
+Automatic selection requires shortcut collection health from 01, uses the
+latest successful collection attempt's exclusion scope, and selects latest item
+attempts before filtering success. A latest partial/failed collection suppresses
+automatic shortcut edges rather than falling back; empty item observations clear
+older selected edges. Historical rows remain available with an exact
+`LINEAGE_SOURCE_PATH`. No target traversal, bucket/table scan, access test or
+runtime lineage is performed. See [collector permissions, scope and
+quotas](../docs/configuration-reference.md#lakehouse-shortcut-relationships-fabricshortcuts).
+
+**Optional Eventstream topology:** separately enable `FabricEventstreamTopology`
+for collection, then set `INCLUDE_EVENTSTREAM_TOPOLOGY=True` in 01-04 or
+`nb_orchestrator`, and match it in 06. It defaults to False, adds raw evidence
+to the existing health/lineage tables and changes no table/writer counts.
+Changing it requires a new baseline, even with no new raw files.
+
+`eventstream_configuration` separates node membership (`topology_node`),
+declared input links (`topology_input`) and selected targets (`topology_target`).
+`record_count` counts these graph records, not events or executions. Sources,
+streams, operators and destinations are represented without connector payloads,
+names, URLs, queries or schemas. Names become fingerprints scoped to the owning
+item; selected reported statuses are not measured runtime health. Explicit
+supported target workspace/item IDs are configuration only; event-source targets
+can be subscription scope, not data dependencies. Missing workspaces are never
+inferred. Missing inputs, dangling names and unsupported targets remain diagnostics.
+
+Notebook 05 draws membership in dashed gray, declared inputs as dashed purple
+configuration arrows, and targets as non-directional dashed green associations.
+Latest successful sweep selection prevents fallback after newer failed/empty
+attempts; exact historical source selection remains available. No events are
+read, operators executed, targets traversed or permissions tested.
+See [API permissions and collection boundaries](../docs/configuration-reference.md#eventstream-topology-fabriceventstreamtopology).
 
 **Legacy inventory:** `items/...` and `workspaces/...` rows have no immutable
 completion manifest or exact observation timestamp. They remain
@@ -285,6 +380,49 @@ flag. Capture another new baseline name, rerun all transformation notebooks in
 that scope, then compare. The default ten-table and opt-in 25-table scopes retain
 their previous table/source selections; neither silently expands to 48.
 
+Notebook 22 is excluded from all three scopes by default. After publishing it,
+set **`INCLUDE_PIPELINE_ACTIVITY_TABLES = True`** to add its two tables and raw
+source prefix to whichever scope you selected (12, 27 or 50 tables). Capture a
+new baseline name: changed table/source scope is `NOT_COMPARABLE`, not a rerun
+failure or permission to replace an older baseline. No existing table schema,
+contract version or default validation/orchestrator scope is changed.
+
+## Optional notebook 22: Data Factory pipeline activity
+
+Import `22_monitor_pipeline_activity.ipynb`, attach the same default Lakehouse,
+match `RAW_ROOT`/`TABLE_PREFIX`, and preview before enabling `WRITE_TABLES`.
+It reads only retained `fabricpipelineactivityruns` snapshots. It neither
+collects data nor executes pipelines; the executing Fabric identity needs raw
+read access and, for publication, Delta-table write access.
+
+`pipeline_activity_resources` separates collection, inventory, pipeline-job
+history and activity-query coverage. A successful empty job list has a known
+zero job count but **does not invent an activity-query result or zero activity
+metrics**. Missing/failed/unfinished/invalid evidence remains unknown.
+`pipeline_activity_observations` has one activity per successful query source,
+not repeated rows per endpoint. Explicit mode never invents an owning item ID.
+Both tables retain mode, source hashes/times and `scope_id`; query rows also
+retain the explicit UTC last-updated window. Activity facts retain reported
+status/timing, selected native output metrics and optional child-run identity.
+No inputs, error text or arbitrary outputs are exported; activity names and IDs
+still require restricted storage.
+
+Historical polls remain separate. The preview selects the latest configured
+scope in each mode, then the latest query attempt per workspace/run **before**
+admitting metrics. Failed or successful-empty queries never fall back to older
+metrics. Unknown-time/invalid/unfinished collection attempts block automatic
+selection; `ACTIVITY_SOURCE_PATH` can explicitly select one valid historical
+query. Different query windows are not a complete current-state or lifetime
+history guarantee. Discovery sweep-health flags are not independently certified
+tenant completeness.
+
+Missing metrics stay null; explicit zero stays zero. Throughput retains its
+reported engine/activity units; do not sum rates, infer throughput from query
+window length, or add chained activity row/byte counts as distinct pipeline
+movement. Runtime activity facts do not establish runtime lineage.
+Notebook 03 remains item job history; 21 remains deployment operations.
+The existing notebook 05 charts do not automatically include these extra tables.
+
 ## Question-driven notebooks 07-11
 
 Import the five additional notebooks, attach **lh_monitor** as the default
@@ -347,7 +485,8 @@ Legacy snapshots cannot establish pagination completeness or exact collection ti
 
 ## Registered collector coverage
 
-Every one of the **23 registered modules** now has a curated business-data path.
+Every one of the **26 registered modules** has a curated business-data path
+when its corresponding optional notebook is included.
 This matrix describes selected fields, not every raw field, successful collection
 or tenant-complete coverage. Raw JSON and controls remain unchanged.
 
@@ -362,10 +501,13 @@ or tenant-complete coverage. Raw JSON and controls remain unchanged.
 | Domains | `domains` | 17 / `domains`, `domain_workspaces` | Domains without workspaces absent upstream |
 | FabricConnections | `fabricconnections` | 09 / `connection_observations` | Caller-visible; no connection paths or credentials |
 | FabricDeploymentPipelineOperations | `fabricdeploymentpipelineoperations` | 21 / `deployment_*` | Caller-visible recent history and resource outcomes |
+| FabricEventstreamTopology | `fabriceventstreamtopology` | 01, 04, 05 with `INCLUDE_EVENTSTREAM_TOPOLOGY=True` / health, lineage | Eventstream Read required; declared nodes/inputs and selected targets, never runtime/target-access proof |
 | FabricItemAccessPermissions | `fabricitemaccesspermissions`, `fabricitemaccesspermissions_tenant` | 02 / `permission_*` | Selected mode/cycle; no effective-access/group expansion |
 | FabricItemDefinitions | `fabricitemdefinitions` | 04 / `lineage_*` | Static references/diagnostics only, not a complete definition-part catalog |
 | FabricItemJobHistory | `fabricitemjobhistory` | 03 / `job_*` | Retained polling history, not every historical execution |
 | FabricItems | `items` | 01, 08 / `inventory`, `catalog_items` | Selected inventory fields |
+| FabricPipelineActivityRuns | `fabricpipelineactivityruns` | Optional 22 / `pipeline_activity_*` | Mixed Admin/non-Admin collection; recent API history, query windows and workspace opt-outs; no runtime-lineage inference |
+| FabricShortcuts | `fabricshortcuts` | 01, 04, 05 with `INCLUDE_SHORTCUTS=True` / health, lineage | Lakehouses only; item Read required; configured IDs or unresolved fingerprints, never runtime/target-access proof |
 | Gateway | `gateways` | 10 / `gateway_*` | Selected inventory/connectivity; gateway users/access deliberately excluded |
 | GitConnections | `gitconnections` | 18 / `workspace_git_connections` | Selected integration metadata |
 | Graph | `graph` | 14 / directory, membership, license, SKU tables | Optional/capped memberships; selected non-name fields |
@@ -380,16 +522,21 @@ or tenant-complete coverage. Raw JSON and controls remain unchanged.
 ## Development
 
 The `.py` files are tested source; the generated `.ipynb` files are the upload
-artifacts. Shared code and the existing pure scanner normalizer are embedded
+artifacts. Shared code, the pure scanner normalizer and the configured-Lakehouse
+extractor are embedded
 into each notebook, so no repository imports remain in the upload.
 
 ```bash
 .venv/bin/python notebooks/build_monitor_notebooks.py
-.venv/bin/python -m unittest tests.test_monitor_notebooks tests.test_monitor_module_notebooks -q
+.venv/bin/python -m unittest tests.test_monitor_notebooks tests.test_monitor_module_notebooks tests.test_monitor_pipeline_activity tests.test_shortcut_relationships tests.test_eventstream_topology -q
 ruff check --target-version py310 notebooks/monitor_analytics.py \
+  env/utility/notebook_relationships.py \
+  env/utility/shortcut_relationships.py \
+  env/utility/eventstream_topology.py \
   notebooks/monitor_fabric_runtime.py notebooks/monitor_visualizations.py \
   notebooks/monitor_validation.py notebooks/monitor_estate_analytics.py \
   notebooks/monitor_module_analytics.py \
+  notebooks/monitor_pipeline_activity.py \
   notebooks/build_monitor_notebooks.py \
   tests/test_monitor_notebooks.py tests/test_monitor_module_notebooks.py
 ruff check --target-version py310 --config 'builtins = ["spark", "display"]' \

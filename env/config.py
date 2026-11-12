@@ -250,6 +250,9 @@ def build_audit(
         ): audit.set_FabricItemAccessPermissions_cron,
         ("FABRICITEMJOBHISTORY_CRON",): audit.set_FabricItemJobHistory_cron,
         ("FABRICITEMDEFINITIONS_CRON",): audit.set_FabricItemDefinitions_cron,
+        ("FABRICPIPELINEACTIVITYRUNS_CRON",): audit.set_FabricPipelineActivityRuns_cron,
+        ("FABRICSHORTCUTS_CRON",): audit.set_FabricShortcuts_cron,
+        ("FABRICEVENTSTREAMTOPOLOGY_CRON",): audit.set_FabricEventstreamTopology_cron,
         ("FABRICCONNECTIONS_CRON",): audit.set_FabricConnections_cron,
         (
             "FABRICDEPLOYMENTPIPELINEOPERATIONS_CRON",
