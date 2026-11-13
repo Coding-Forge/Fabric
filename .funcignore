@@ -12,6 +12,7 @@ __pycache__
 *.pyo
 .pytest_cache
 notebooks/
+dashboard/
 schema_examples/
 containers/
 images/

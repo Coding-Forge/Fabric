@@ -9,10 +9,13 @@ from .fabricconnections import main as FabricConnections
 from .fabricdeploymentpipelineoperations import (
     main as FabricDeploymentPipelineOperations,
 )
+from .fabriceventstreamtopology import main as FabricEventstreamTopology
 from .fabricitemaccesspermissions import main as FabricItemAccessPermissions
 from .fabricitemdefinitions import main as FabricItemDefinitions
 from .fabricitemjobhistory import main as FabricItemJobHistory
 from .fabricitems import main as FabricItems
+from .fabricpipelineactivityruns import main as FabricPipelineActivityRuns
+from .fabricshortcuts import main as FabricShortcuts
 from .gateway import main as Gateway
 from .gitconnections import main as GitConnections
 from .graph import main as Graph
@@ -34,10 +37,13 @@ __all__ = [
     "Domains",
     "FabricConnections",
     "FabricDeploymentPipelineOperations",
+    "FabricEventstreamTopology",
     "FabricItemAccessPermissions",
     "FabricItemDefinitions",
     "FabricItemJobHistory",
     "FabricItems",
+    "FabricPipelineActivityRuns",
+    "FabricShortcuts",
     "Gateway",
     "GitConnections",
     "Graph",

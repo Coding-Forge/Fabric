@@ -2,12 +2,15 @@
 
 import copy
 import json
+import os
 import unittest
+from unittest.mock import patch
 
+from env.modules import FabricPipelineActivityRuns
 from notebooks import monitor_analytics as analytics
 from notebooks import monitor_pipeline_activity as activity_reports
-from tests.fabric_helpers import WORKSPACE, item
-from tests.pipeline_activity_fixtures import ACTIVITY, CHILD, PARENT, RUN, activity
+from tests.fabric_helpers import WORKSPACE, CollectorTestCase, inventory, item
+from tests.test_pipeline_activity import ACTIVITY, CHILD, PARENT, RUN, activity
 
 MODULE = "fabricpipelineactivityruns"
 ITEM = item(2, "DataPipeline")
@@ -262,3 +265,50 @@ class PipelineActivityReportingTests(unittest.TestCase):
         self.assertEqual(row["mode"], "explicit")
         self.assertIsNone(row["item_id"])
         self.assertEqual(row["item_type"], "DataPipeline")
+
+
+class CollectorReportingIntegrationTests(CollectorTestCase):
+    async def test_real_collector_snapshots_transform_at_activity_not_resource_grain(
+        self,
+    ):
+        record = activity(output={"rowsRead": 0})
+        ctx = self.context({"value": [record]})
+        ctx._safe_activity_query = ctx._safe_get
+        with patch.dict(
+            os.environ, {"FABRIC_PIPELINE_ACTIVITY_SCOPE": json.dumps([PARENT])}
+        ):
+            self.assertTrue(await FabricPipelineActivityRuns(ctx))
+        documents = [
+            document(path, value)
+            for path, value in self.files.items()
+            if path.endswith("/manifest.json") or "requestPath" in value
+        ]
+        output = transform(documents)
+        self.assertEqual(len(output["pipeline_activity_observations"]), 1)
+        self.assertEqual(output["pipeline_activity_observations"][0]["rows_read"], 0)
+        self.assertEqual(ctx._safe_activity_query.await_count, 1)
+
+    async def test_real_discovery_empty_history_remains_successful_job_coverage_only(
+        self,
+    ):
+        ctx = self.context(inventory(ITEM), {"value": []})
+        ctx._safe_activity_query = ctx._safe_get
+        with patch.dict(os.environ):
+            os.environ.pop("FABRIC_PIPELINE_ACTIVITY_SCOPE", None)
+            os.environ["FABRIC_PIPELINE_ACTIVITY_EXCLUDE_WORKSPACE_IDS"] = ""
+            self.assertTrue(await FabricPipelineActivityRuns(ctx))
+        output = transform(
+            [
+                document(path, value)
+                for path, value in self.files.items()
+                if path.endswith("/manifest.json") or "requestPath" in value
+            ]
+        )
+        self.assertEqual(output["pipeline_activity_observations"], [])
+        jobs = next(
+            row
+            for row in output["pipeline_activity_resources"]
+            if row["observation_unit"] == "pipeline_jobs"
+        )
+        self.assertEqual(jobs["record_count"], 0)
+        self.assertEqual(jobs["coverage_status"], "success")

@@ -17,6 +17,7 @@ import aiohttp
 from env.cloud import get_cloud_profile
 from env.utility import http_retry
 from env.utility.file_management import File_Management
+from env.utility.pipeline_activity import validate_activity_query
 
 # Format of the timestamps stored in state.yaml; the values are always UTC
 STATE_TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
@@ -87,8 +88,15 @@ def log_validation_failure(
 _CONNECTOR_KWARGS = {"family": socket.AF_INET} if platform.system() != "Windows" else {}
 _TIMEOUT = aiohttp.ClientTimeout(total=300, connect=60)
 
-# Documented by Fabric Admin List Item Access Details and Core Get Item.
-_FABRIC_ERROR_CODES = frozenset({"ItemNotFound", "InvalidItemType"})
+# Documented or observed Fabric codes; never persist arbitrary server messages.
+_FABRIC_ERROR_CODES = frozenset(
+    {
+        "ItemNotFound",
+        "EntityNotFound",
+        "InvalidItemType",
+        "RequestDeniedByInboundPolicy",
+    }
+)
 _FABRIC_ERROR_BODY_LIMIT = 16 * 1024
 
 
@@ -98,7 +106,7 @@ def _safe_http_status(status: object) -> int | None:
 
 
 def safe_fabric_error_code(payload: object) -> str:
-    """Return only a documented static Fabric error code or a fixed safe label.
+    """Return only an allowlisted static Fabric error code or a fixed safe label.
 
     :param payload: Untrusted error object. A nonempty string errorCode takes
         precedence; a missing or malformed value falls back to error.code.
@@ -203,6 +211,9 @@ class Context:
         self.WidelySharedLinks_cron = None
         self.FabricItemAccessPermissions_cron = None
         self.FabricItemJobHistory_cron = None
+        self.FabricPipelineActivityRuns_cron = None
+        self.FabricShortcuts_cron = None
+        self.FabricEventstreamTopology_cron = None
         self.FabricItemDefinitions_cron = None
         self.FabricConnections_cron = None
         self.FabricDeploymentPipelineOperations_cron = None
@@ -372,6 +383,18 @@ class Context:
         """Set the opt-in definition collector's UTC cron expression."""
         self.FabricItemDefinitions_cron = cron
 
+    def set_FabricPipelineActivityRuns_cron(self, cron: str) -> None:
+        """Set the opt-in activity query collector's UTC cron expression."""
+        self.FabricPipelineActivityRuns_cron = cron
+
+    def set_FabricShortcuts_cron(self, cron: str) -> None:
+        """Configure the UTC schedule for Lakehouse shortcut discovery."""
+        self.FabricShortcuts_cron = cron
+
+    def set_FabricEventstreamTopology_cron(self, cron: str) -> None:
+        """Configure the UTC schedule for Eventstream topology discovery."""
+        self.FabricEventstreamTopology_cron = cron
+
     def set_FabricConnections_cron(self, cron: str) -> None:
         """Set the opt-in connection inventory collector's UTC cron expression."""
         self.FabricConnections_cron = cron
@@ -484,6 +507,12 @@ class Context:
             return self.FabricItemAccessPermissions_cron
         elif cron_name == "FabricItemJobHistory":
             return self.FabricItemJobHistory_cron
+        elif cron_name == "FabricPipelineActivityRuns":
+            return self.FabricPipelineActivityRuns_cron
+        elif cron_name == "FabricShortcuts":
+            return self.FabricShortcuts_cron
+        elif cron_name == "FabricEventstreamTopology":
+            return self.FabricEventstreamTopology_cron
         elif cron_name == "FabricItemDefinitions":
             return self.FabricItemDefinitions_cron
         elif cron_name == "FabricConnections":
@@ -546,6 +575,7 @@ class Context:
         request_gate: Callable[[], Awaitable[None]] | None = None,
         response_gate: Callable[[dict[str, Any], int], Awaitable[bool]] | None = None,
         definition_method: str | None = None,
+        activity_query: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """Invoke a REST API, honouring throttling.
 
@@ -561,17 +591,30 @@ class Context:
         :param json: Optional JSON body; when set the request is a POST.
         :param request_gate: Optional asynchronous gate called before every HTTP
             attempt, including retries. Enables safe response handling, GET-only
-            unless definition_method selects the restricted export transport.
+            unless definition_method or activity_query selects an allowlisted
+            retrieval-only POST transport.
         :param response_gate: Optional gated-response observer, called even on the
             final attempt. It must reserve any cooldown before returning; False
             defers retries to a later collection. Legacy requests instead share
             full server cooldowns per origin within this Context.
         :param definition_method: GET/POST for the allowlisted, retrieval-only
             definition/LRO transport. Requires a request gate and no JSON body.
+        :param activity_query: Fixed read-only pipeline activity query body.
+            Requires a request gate and excludes other POST/definition modes.
         :return: The decoded JSON, or an error dict (see ``_error_result``).
         :raises ValueError: If a response observer lacks a request gate or a
             gated request contains a POST body.
         """
+        if activity_query is not None:
+            if (
+                request_gate is None
+                or json is not None
+                or definition_method is not None
+            ):
+                raise ValueError(
+                    "Activity queries require an exclusive gated transport"
+                )
+            validate_activity_query(rest_api, activity_query)
         if response_gate is not None and request_gate is None:
             raise ValueError("A response gate requires a request gate")
         if definition_method is not None and (
@@ -608,7 +651,11 @@ class Context:
                 if request_gate is None and self._api_cooldowns.remaining(url) > 0:
                     continue
                 if request_gate is not None:
-                    if definition_method is None:
+                    if activity_query is not None:
+                        result = await self._safe_activity_query(
+                            rest_api, request_headers, activity_query
+                        )
+                    elif definition_method is None:
                         result = await self._safe_get(rest_api, request_headers)
                     else:
                         result = await self._safe_definition_request(
@@ -657,7 +704,7 @@ class Context:
             )
             if request_gate is not None:
                 self.logger.warning(
-                    "Fabric GET HTTP %d; retrying in %.0fs (%d/%d)",
+                    "Fabric retrieval HTTP %d; retrying in %.0fs (%d/%d)",
                     status,
                     delay,
                     attempt + 1,
@@ -719,6 +766,34 @@ class Context:
                 )
                 return {"ERROR": "Expected JSON object"}
             return result
+
+    async def _safe_activity_query(self, url, headers, body):
+        """POST only allowlisted retrieval queries; never follow redirects."""
+        validate_activity_query(url, body)
+        async with (
+            aiohttp.ClientSession(
+                connector=aiohttp.TCPConnector(**_CONNECTOR_KWARGS),
+                timeout=aiohttp.ClientTimeout(total=30, connect=10),
+            ) as session,
+            session.post(
+                url, headers=headers, json=body, allow_redirects=False
+            ) as response,
+        ):
+            self.logger.info("Fabric activity query: HTTP %d", response.status)
+            if response.status != 200:
+                return {
+                    "ERROR": "Activity query failed",
+                    "status": response.status,
+                    "retryAfter": response.headers.get("Retry-After"),
+                    "errorCode": await _fabric_response_error_code(response),
+                }
+            try:
+                result = await response.json()
+            except (ValueError, aiohttp.ContentTypeError, RecursionError):
+                return {"ERROR": "Invalid activity query JSON"}
+            if not isinstance(result, list):
+                return {"ERROR": "Expected documented activity query array"}
+            return {"value": result}
 
     async def _safe_definition_request(
         self, url: str, headers: dict[str, str] | None, method: str

@@ -313,6 +313,9 @@ All available module names for `APPLICATION_MODULES`:
 | `FabricItems` | All Fabric items across the tenant |
 | `FabricItemAccessPermissions` | Preview Admin item access observations: explicit scopes by default, opt-in tenant-wide discovery |
 | `FabricItemJobHistory` | Non-Admin recent jobs for explicitly scoped supported Fabric items (opt-in) |
+| `FabricPipelineActivityRuns` | Admin pipeline discovery followed by non-Admin run/activity queries, with workspace opt-outs and rolling UTC windows (opt-in, read-only) |
+| `FabricShortcuts` | Admin Lakehouse discovery followed by non-Admin shortcut configuration listing, with workspace opt-outs (opt-in, read-only) |
+| `FabricEventstreamTopology` | Admin Eventstream discovery followed by non-Admin configured topology reads, with workspace opt-outs (opt-in, read-only) |
 | `FabricItemDefinitions` | Admin discovery followed by non-Admin notebook/pipeline definition exports and static references (opt-in) |
 | `FabricConnections` | Non-Admin caller-visible, metadata-only connection inventory (opt-in) |
 | `FabricDeploymentPipelineOperations` | Non-Admin caller-visible deployment pipelines and recent operations (opt-in, read-only) |
@@ -346,6 +349,9 @@ Admin authorization is endpoint-specific, not one universal permission.
 | **Admin APIs:** `Activity`, `Apps`, `Capacity`, `Catalog`, `DelegatedSettings`, `Domains`, `FabricItems`, `FabricItemAccessPermissions`, `GitConnections`, `Refreshables`, `Roles`, `Tags`, `Tenant`, `WidelySharedLinks`, `Workspaces` | Power BI/Fabric `/admin/...` routes. Catalog uses `admin/workspaces/modified`, `getInfo`, `scanStatus` and `scanResult`; optional Scanner lineage reuses those responses without extra calls. | Appropriate admin API authorization and tenant settings, including the read-only admin API service-principal allowlist where required. No workspace role is added by Monitor. `FabricItemAccessPermissions` defaults to explicit item scopes, with a separate opt-in tenant discovery mode; neither mode expands groups or establishes effective access. Scanner metadata is not notebook/pipeline definition export. |
 | **Mixed Admin / non-Admin:** `FabricItemDefinitions` | Fabric `GET admin/items` discovery, then `POST workspaces/{workspaceId}/notebooks/{notebookId}/getDefinition?format=ipynb` or `.../dataPipelines/{pipelineId}/getDefinition`, plus `GET operations/{operationId}` and `/result` for asynchronous exports. Selects **all discovered active Notebook/DataPipeline items across the tenant**, not a configured workspace/item allowlist. | Opt-in through `APPLICATION_MODULES`. Exports require **item read/write access**; Contributor is the least workspace role supplying it. Member/Admin also work; Viewer does not. No documented public Admin definition-export equivalent. Encrypted labels can add restrictions. Raw source/definitions may contain sensitive values; exports do not execute or update workloads. See [full scope and quotas](#notebook-and-data-pipeline-definitions). |
 | **Non-Admin Fabric:** `FabricItemJobHistory` | `GET workspaces/{workspaceId}/items/{itemId}/jobs/instances`, only the 1-100 configured `FABRIC_ITEM_JOB_SCOPE` entries of type Notebook, DataPipeline or SparkJobDefinition. | Opt-in; actual item/job-history access is required, not just admin visibility. Observes recent job metadata, never starts/cancels a job. Most items expose 100 recently completed jobs plus active jobs; polling is not an unlimited historical archive. |
+| **Mixed Admin / non-Admin Fabric:** `FabricPipelineActivityRuns` | By default, `GET admin/items?type=DataPipeline`, then `GET workspaces/{workspaceId}/items/{itemId}/jobs/instances`, then retrieval-only `POST workspaces/{workspaceId}/datapipelines/pipelineruns/{pipelineRunId}/queryactivityruns`. Workspace opt-outs apply before resource calls. Optional explicit-run scope bypasses discovery. | Opt-in through module selection. Tenant Admin inventory authorization does not supply resource-level job/activity access. Default rolling 24-hour last-updated window; limited API history, not unlimited backfill. No execution or automatic child-run traversal. See [activity collection scope](#pipeline-activity-run-metrics-fabricpipelineactivityruns). |
+| **Mixed Admin / non-Admin Fabric:** `FabricShortcuts` | `GET admin/items?type=Lakehouse`, then paginated `GET workspaces/{workspaceId}/items/{itemId}/shortcuts` for discovered, non-excluded Lakehouses, including subfolders. | Opt-in; shortcut listing requires item **Read**, not merely Admin inventory visibility. SPNs/MIs are supported. No target traversal, data reads, shortcut mutation or access verification. See [shortcut scope](#lakehouse-shortcut-relationships-fabricshortcuts). |
+| **Mixed Admin / non-Admin Fabric:** `FabricEventstreamTopology` | `GET admin/items?type=Eventstream`, then `GET workspaces/{workspaceId}/eventstreams/{eventstreamId}/topology` for non-excluded discovered Eventstreams. | Opt-in; topology requires Eventstream **Read**, not merely Admin inventory visibility. SPNs/MIs are supported. Reads configured sources, streams, operators, destinations and declared inputs, not event data or runtime movement. See [topology scope](#eventstream-topology-fabriceventstreamtopology). |
 | **Non-Admin Fabric:** `FabricConnections` | `GET connections`, paginated caller-visible connections, with no configured connection allowlist. | Opt-in; caller must have connection permission. This is not a tenant-complete inventory and does not imply a workspace role requirement. Saves only allowlisted metadata; credentials and connection paths/strings are excluded. No credential or connection-permissions API is called. |
 | **Non-Admin Fabric:** `FabricDeploymentPipelineOperations` | `GET deploymentPipelines`, then `GET deploymentPipelines/{deploymentPipelineId}/operations`, for caller-visible deployment pipelines; no configured pipeline allowlist. | Opt-in; operation history requires **deployment-pipeline Admin**, distinct from workspace Admin. Up to 20 recent deployments per pipeline; gaps can age out. No deployment, stage assignment or other mutation is requested. These are deployment pipelines, not Data Factory pipeline definitions. |
 | **Mixed Admin / non-Admin Power BI:** `RefreshHistory` | `GET admin/groups?$expand=datasets&$top=5000`, then `GET groups/{groupId}/datasets/{datasetId}/refreshes` for returned datasets with `isRefreshable=true` and `addRowsAPIEnabled=false`. No configured workspace/item allowlist or discovery pagination. | Enabled when selected in `APPLICATION_MODULES`, including the default list. The history endpoint requires dataset **Write** permission; admin discovery does not supply it. Reads available refresh history, never triggers refresh. OneDrive history is excluded; the API defaults to up to 60 entries. Not proof of tenant-complete history. |
@@ -399,6 +405,322 @@ Recheck Microsoft's current contract before customer deployment; network/private
 endpoint restrictions apply independently of identity permissions. The current
 definition transport is restricted to `api.fabric.microsoft.com`, not
 workspace-specific private-link API hostnames.
+
+### Eventstream topology (`FabricEventstreamTopology`)
+
+**Mixed Admin / non-Admin API exception; off by default.** Append
+`FabricEventstreamTopology` to your existing `APPLICATION_MODULES` value for
+automatic active Eventstream discovery. No workspace allowlist is required.
+Optional strings under `Values` in `local.settings.json`:
+
+```json
+{
+  "FABRIC_EVENTSTREAM_EXCLUDE_WORKSPACE_IDS": "",
+  "FABRICEVENTSTREAMTOPOLOGY_CRON": "0 2 * * *"
+}
+```
+
+Exclusions accept comma-separated workspace UUIDs. They apply to **owning**
+workspaces before topology requests and retained inventory, not to target
+references in included items. Admin discovery can still encounter excluded
+owners. Changing exclusions begins a new discovery sweep without clearing the
+durable cooldown. Malformed exclusions and malformed unchanged-scope progress
+fail before authentication or writes.
+
+Discovery uses the preview [Admin List Items API](https://learn.microsoft.com/en-us/rest/api/fabric/admin/items/list-items).
+The [Get Eventstream Topology API](https://learn.microsoft.com/en-us/rest/api/fabric/eventstream/topology/get-eventstream-topology)
+is **non-Admin**, requires Eventstream **Read**, and supports users, service
+principals and managed identities. Delegated calls require
+`Eventstream.Read.All`, `Eventstream.ReadWrite.All`, `Item.Read.All` or
+`Item.ReadWrite.All`. Admin inventory authorization does not supply item access;
+Monitor does not grant roles. No target item, connection, broker, event preview,
+execution, updateDefinition, publish, start/stop or data-read API is called.
+
+Admin inventory is paginated, with 18-second attempt spacing plus the existing
+five-second durable reservation margin. The documented inventory limits are
+10/minute and 200/hour, shared with other tenant applications/collectors; the
+module-local ledger does **not** coordinate their quota use. Topology is an
+unpaged object, not a `value` array; unexpected pagination fails the resource.
+Topology attempts use one-second spacing plus the margin, shared retry logic
+and durable server cooldowns. Each bounded invocation admits work for up to
+85 seconds before its network/storage reserve. Progress resumes inventory
+tokens or the next item, committing cursors only after the finished immutable
+`fabriceventstreamtopology/YYYY/MM/DD/runId/manifest.json`.
+Interrupted slices replay; denied or malformed items do not starve later ones.
+
+All four topology containers (`sources`, `streams`, `operators`, `destinations`)
+must be lists. Four empty lists are successful empty configuration; absent or
+malformed containers are not. Duplicate node names/UUIDs and malformed selected
+target identities fail the item. Missing input declarations and dangling input
+names remain explicit diagnostics; they are never guessed into resolved links.
+Only explicitly declared `inputNodes` links are retained.
+
+Node names become SHA-256 identities, scoped to the owning Eventstream in the
+graph. Selected role/type, nullable allowlisted reported status, and declared
+input structure survive. Unrecognized statuses become `Other`; `Running` is
+provider-reported node status, not verified event delivery or current health.
+For supported source/destination property shapes, explicit workspace/item UUID
+pairs survive as configured targets; missing workspaces are never inferred from
+the owner. Event-source item references may be **subscription scope**, not data
+reads. Related item type/existence/access are not inferred. A selected
+`dataConnectionId` becomes a fingerprint, not a resolved external system.
+Unrecognized item-target types remain unsupported diagnostics. Connector
+properties, names, URLs, credentials, schemas, SQL, filter expressions, table
+names, arbitrary configurations and error messages are not retained.
+Fingerprints are correlation aids, not anonymization; IDs and types remain
+sensitive metadata.
+
+For reporting, regenerate/import 01-06. Set
+`INCLUDE_EVENTSTREAM_TOPOLOGY=True` in notebooks **01-04** or **nb_orchestrator**,
+and match it in **06**. These Python notebook parameters are **not**
+`local.settings.json` collection settings; they default to False. No notebook,
+table or default writer count is added. Notebook 01 publishes collection health;
+04 adds `eventstream_configuration` to the existing lineage tables:
+
+- `topology_node`: owning-item membership, including disconnected nodes.
+- `topology_input`: explicit node-to-node input links; unresolved inputs stay marked.
+- `topology_target`: supported configured item IDs or connection fingerprints.
+
+`record_count` is the count of these graph records, not events, distinct items
+or runtime executions. Notebook 05 draws membership in dashed gray, declared
+inputs in dashed purple with configuration-direction arrows, and targets as
+non-directional dashed green associations. All carry `runtime_verified=false`.
+Each sweep has a distinct selection mode; only the latest successful sweep's
+retained item attempts are admitted automatically. An empty newer sweep removes
+older selected topology; a newer failed/incomplete attempt does not fall back.
+Invalid/unfinished lineage evidence blocks automatic graph selection. Exact
+historical `LINEAGE_SOURCE_PATH` selection is available after investigation.
+This is retained configuration, not complete tenant lineage, target-access
+proof, end-to-end movement or guaranteed change-impact analysis.
+
+Changing the reporting flag requires a new rerun baseline even if no Eventstream
+files exist yet. Existing baselines remain readable as topology-disabled.
+Collection and actual Fabric notebook execution still require environment
+validation; offline tests do not establish live API/resource access.
+
+### Lakehouse shortcut relationships (`FabricShortcuts`)
+
+**Mixed Admin / non-Admin API exception; off by default.** Append `FabricShortcuts`
+to your existing `APPLICATION_MODULES` value to enable automatic active Lakehouse
+discovery. No workspace allowlist is required. Optional string settings under
+`Values` in `local.settings.json`:
+
+```json
+{
+  "FABRIC_SHORTCUT_EXCLUDE_WORKSPACE_IDS": "",
+  "FABRICSHORTCUTS_CRON": "0 2 * * *"
+}
+```
+
+The exclusion setting accepts comma-separated workspace UUIDs; malformed values
+fail before authentication or writes. Exclusions remove **owning** workspaces
+before shortcut requests and retained inventory. Admin discovery can still see
+their identities. A shortcut in an included workspace can reference an excluded
+workspace; that configured target ID remains evidence, but is never queried.
+Changing exclusions resets discovery, without clearing the durable request gate.
+
+Discovery uses the preview [Admin List Items API](https://learn.microsoft.com/en-us/rest/api/fabric/admin/items/list-items).
+Listing uses the [non-Admin List Shortcuts API](https://learn.microsoft.com/en-us/rest/api/fabric/core/onelake-shortcuts/list-shortcuts).
+Admin API authorization does **not** supply item Read access. User, service
+principal and managed-identity callers are supported; delegated calls require
+`OneLake.Read.All` or `OneLake.ReadWrite.All`. Monitor does not assign roles or
+grant access. Lakehouses only are selected; this is not all shortcut-capable
+item types or tenant-complete dependency discovery.
+
+The list endpoint returns shortcuts exhaustively beneath the item, with
+continuation tokens. No `parentPath` filter is applied. Every page must succeed
+before that item's relationships are retained. Empty success, inaccessible,
+malformed and deferred requests remain distinct; one denied item does not
+prevent subsequent items. Resumable invocation slices use the existing shared
+transport, durable cooldown/reservation ledger and immutable
+`fabricshortcuts/YYYY/MM/DD/runId/` manifests. Cursors advance after the finished
+manifest commits; an interrupted slice is replayed rather than skipped.
+Malformed unchanged-scope progress blocks requests. Admin attempts are paced at 18 seconds plus
+the five-second reservation margin; resource attempts at one second plus that
+margin. Admin inventory's 10/minute and 200/hour quotas are shared with other
+collectors/apps; these module-local gates are **not** distributed quota coordination.
+
+Only allowlisted configuration fields survive collection. Shortcut names and
+owning paths become SHA-256 identities. OneLake target workspace/item UUIDs are
+retained, without guessing their item type, existence or access. External locations
+have URL query/fragment removed and are fingerprinted with selected locator
+metadata; raw locations, paths, names, credentials, transforms and arbitrary
+payloads are not stored. `isShortcutTransform` is retained as a nullable flag,
+not executed. Fingerprints are correlation aids, not anonymization or guaranteed
+physical-storage identities. UUIDs remain sensitive metadata.
+
+The API can return only the target type when details are inaccessible. Such
+shortcuts remain unresolved observations, not missing shortcuts or successful
+target access. Unsupported future target types remain explicit diagnostics.
+Neither configuration, external fingerprints nor transform flags prove runtime
+I/O, effective access, end-to-end lineage or actual change impact.
+
+For curated reporting, regenerate/import notebooks 01-06. Set
+`INCLUDE_SHORTCUTS=True` consistently in 01-04 (or `nb_orchestrator`) and 06.
+The default is False. Notebook 01 adds collection health; 04 adds
+`shortcut_configuration` evidence to the **existing** three lineage tables.
+No new tables or writers are added. Notebook 05 draws dashed, non-directional
+associations. Its automatic shortcut graph requires the latest collection
+attempt to be successful, uses that attempt's exclusion scope, and selects the
+latest item attempt before success filtering. Failed/empty latest observations
+do not reuse old edges. Invalid/unfinished lineage evidence blocks automatic
+selection; an exact historical `LINEAGE_SOURCE_PATH` remains available.
+This is retained configuration, not a current-complete estate guarantee.
+Use a new rerun baseline when changing the shortcut evidence scope; older
+baselines remain readable as shortcut-disabled. No collection settings or
+credentials are changed by notebook execution.
+
+### Pipeline activity-run metrics (`FabricPipelineActivityRuns`)
+
+**Mixed Admin / non-Admin API exception; off by default.** Enable the exact module
+name `FabricPipelineActivityRuns` only after approving resource access and scope.
+With no explicit run scope, collection automatically discovers active Data
+Pipelines across the tenant, lists their available recent job IDs and uses the
+documented retrieval-only
+[`queryactivityruns` POST](https://learn.microsoft.com/en-us/fabric/data-factory/pipeline-rest-api-capabilities#query-activity-runs).
+It never starts, cancels, schedules or updates a pipeline. All workspaces are
+eligible by default; opt out using workspace IDs, not an item/run allowlist.
+
+The [Admin inventory endpoint](https://learn.microsoft.com/en-us/rest/api/fabric/admin/items/list-items)
+is preview, requires Fabric administrator or authorized service-principal access,
+and documents delegated `Tenant.Read.All`/`Tenant.ReadWrite.All` scopes. This is
+discovery authorization only.
+The [job-history endpoint](https://learn.microsoft.com/en-us/rest/api/fabric/core/job-scheduler/list-item-job-instances)
+is non-Admin, supports service principals/managed identities, and documents
+delegated `Item.Read.All`/`Item.ReadWrite.All` or item-type-specific equivalents.
+Actual resource access is still required. Microsoft's pipeline capabilities
+article gives broad `Workspace.ReadWrite.All`/`Item.ReadWrite.All` token examples,
+not a least-privilege permission contract specific to the activity query.
+This implementation uses the existing Fabric-audience service-principal client;
+it grants no roles or consent. Activity-query service-principal acceptance and
+end-to-end authorization remain live-unverified.
+
+| Environment setting | Contract |
+|---|---|
+| `FABRIC_PIPELINE_ACTIVITY_EXCLUDE_WORKSPACE_IDS` | Optional comma-separated workspace UUIDs. Empty/unset includes all discovered workspaces. Exclusions win in discovery **and** explicit-run mode. Applies to this collector only, not the other Monitor modules. |
+| `FABRIC_PIPELINE_ACTIVITY_LOOKBACK_HOURS` | Positive integer; default **24**. Each new discovery sweep freezes a rolling UTC last-updated window ending at sweep start. |
+| `FABRIC_PIPELINE_ACTIVITY_SCOPE` | Optional investigation override: JSON array of 1-100 unique workspace/run UUID pairs, each with exactly `workspaceId`, `pipelineRunId`, `lastUpdatedAfter`, `lastUpdatedBefore`. When present, bypasses both inventory and job discovery; the rolling lookback is not used. Invalid/empty values fail closed, never enable discovery. **Remove this key** to use automatic discovery. |
+| `FABRICPIPELINEACTIVITYRUNS_CRON` | Optional UTC schedule against the last successful module checkpoint; unset means eligible on every host invocation. |
+| Existing `API_MAX_*` settings | Shared retry/concurrency behavior; per-attempt durable request/cooldown controls use a separate module ledger. Server cooldowns are never shortened. |
+
+Automatic discovery follows all inventory/job continuation tokens on fixed
+validated routes; it never follows server-supplied continuation URLs. Workspace
+opt-outs are applied before any job/activity resource call. Tenant inventory can
+still return identifiers from opted-out workspaces, but those items are neither
+retained nor processed. `ALL_WORKSPACES` does not control this collector. You do
+not need to enable `FabricItems` or `FabricItemJobHistory` alongside it: discovery
+and querying are ordered within this module, not dependent on concurrent modules.
+
+Add these **string values** under `Values` in `local.settings.json`, merging the
+module name into your existing `APPLICATION_MODULES` list. UUIDs are placeholders;
+use an empty exclusion string to include all discovered workspaces:
+
+```json
+{
+  "APPLICATION_MODULES": "FabricPipelineActivityRuns",
+  "FABRIC_PIPELINE_ACTIVITY_LOOKBACK_HOURS": "24",
+  "FABRIC_PIPELINE_ACTIVITY_EXCLUDE_WORKSPACE_IDS": "11111111-1111-1111-1111-111111111111,22222222-2222-2222-2222-222222222222"
+}
+```
+
+For the CLI, equivalent additions to a private `.env` are:
+
+```dotenv
+FABRIC_PIPELINE_ACTIVITY_LOOKBACK_HOURS=24
+FABRIC_PIPELINE_ACTIVITY_EXCLUDE_WORKSPACE_IDS=
+```
+
+Keep existing credentials/destination settings and run
+`python -m app.monitor --env-file .env --modules FabricPipelineActivityRuns`.
+The CLI does not load `local.settings.json`; Azure Functions Core Tools does.
+
+**Window and completeness.** The 24-hour window filters activity **last updates**,
+not pipeline starts. Every job returned by the recent-history API is queried,
+including older-started jobs that may have recent activity updates; no start-time
+cutoff or inferred duration substitutes for the API filter. Most items expose
+only 100 recent completed jobs plus active jobs. Runs already aged out cannot be
+recovered, so "all" means discovered, accessible, API-retained evidence, **not
+complete tenant-wide or lifetime history**. Permission failures stay failed,
+never successful zero activity.
+
+An unfinished discovery sweep retains its original window, IDs and pagination/
+activity cursor in `progress.json`. Later host invocations resume it rather than
+repeating completed resources; the next completed sweep starts a fresh rolling
+window. A changed exclusion list or lookback starts a new sweep before resource
+calls, without bypassing the shared cooldown. Long sweeps, polling gaps and
+changing API inventory can produce gaps: there is no incremental watermark or
+automatic catch-up guarantee. Explicit overrides require increasing UTC
+timestamps (`Z`/`+00:00`); their windows do not advance automatically.
+
+Discovery uses an 85-second admission budget plus HTTP/storage completion
+reserve, yielding resumable slices instead of unbounded Function invocations.
+Admin inventory attempts are paced at least 18 seconds apart plus the durable
+write allowance, against documented limits of 10 requests/minute and 200/hour.
+Those quotas are tenant-shared: other modules, roots or applications are **not**
+coordinated by this ledger. Server cooldowns are respected in full.
+
+**Retained evidence and interpretation.** Output is relative to that configured
+destination:
+
+```text
+fabricpipelineactivityruns/request_gate.json
+fabricpipelineactivityruns/progress.json
+fabricpipelineactivityruns/YYYY/MM/DD/runId/manifest.json
+fabricpipelineactivityruns/YYYY/MM/DD/runId/inventory.json
+fabricpipelineactivityruns/YYYY/MM/DD/runId/jobs_{workspaceId}_{itemId}.json
+fabricpipelineactivityruns/YYYY/MM/DD/runId/{workspaceId}_{pipelineRunId}.json
+```
+
+Snapshots retain the parent/window, request path, UTC observation time
+and complete/failed outcome. A successful empty query has `records=[]`; a denied,
+malformed, incomplete or deferred query never becomes a successful zero.
+Run only one scheduler per output root; the ledger is not a distributed limiter.
+Interrupted writes retain an unfinished manifest. Same-day reruns use new run
+folders rather than replacing earlier observations; downstream consumers must
+select observation context before counting activities or summing metrics.
+Discovery inventory retains pipeline IDs only; job observations retain run IDs
+under their pipeline parent. Activity parents additionally include the discovered
+pipeline item ID. Explicit-mode parents do not infer an item ID.
+Manifest `execution` records mode, exclusions, window, sweep completeness/health
+and linked manifest `evidence` across slices. Only a wholly healthy completed
+sweep advances the module checkpoint. A denied pipeline does not prevent other
+pipelines from being collected. Intermediate slices remain incomplete.
+
+Progress is committed only after its slice manifest is finished. A crash replays
+that invocation's uncommitted work, rather than skipping resources from an
+unfinished manifest. Respect each linked manifest's `finished` flag when consuming
+evidence. The progress/ledger files are mutable controls, not analytical evidence;
+retention of the whole module prefix can also remove those controls.
+
+Records contain activity/run IDs, name/type/status, reported timing/duration and
+only `rowsRead`, `rowsCopied`, `dataRead`, `dataWritten`, `throughput` from output.
+Missing metrics stay null; explicit zero stays zero. Metric availability and units
+are engine/activity-specific; throughput is retained as reported, not recomputed.
+Inputs, error messages, source/destination payloads and arbitrary outputs are
+discarded. Activity names and identifiers may still be sensitive: restrict access.
+For `ExecutePipeline`/`InvokePipeline`, an available `output.pipelineRunId` is
+retained as `childPipelineRunId`, but it is
+**not followed**. A child can be collected through normal discovery of its owning
+pipeline's recent jobs, or through an explicit run override; the relationship
+itself never authorizes or triggers an additional request.
+
+The documented response is a JSON array, not the `value` wrapper assumed by the
+copied helper. Unexpected wrappers/pagination or more than 10,000 returned rows
+fail closed rather than silently presenting partial/empty success. The article
+does not establish an unlimited history or pagination guarantee: a successful
+response proves only what was returned for that query, not complete lifetime run
+history. Repeated activity IDs are deduplicated only when selected fields agree.
+Failed identity/metric validation fails the resource rather than inventing facts.
+
+Optional [notebook 22](../notebooks/README.md#optional-notebook-22-data-factory-pipeline-activity)
+consumes these retained files into activity-grain observations and separate
+query/resource coverage. It makes no API calls and never invents activities
+from empty job history. Existing notebook 06 scopes and the serial orchestrator
+include its two extra tables/writer only through their explicit activity flags.
+No existing table schema is migrated. Dashboards and the copied ControlPlane
+module do not automatically consume the prefix or new tables. Validate actual
+activity queries, curated metrics and Fabric notebook execution before
+scheduling, with monitored capacities turned on.
 
 ### Notebook and data pipeline definitions
 
@@ -515,11 +837,29 @@ diagnostics, not guessed targets. This is not exhaustive language analysis:
 aliases, helper functions, parameters, JDBC/options-based targets, Python
 filesystem/Pandas calls, Delta merge builders, Writer V2, Scala/R and notebook
 orchestration are not resolved. A reference can be a temporary view, relative
-path or unexecuted branch; namespaces/default lakehouses are not resolved.
+path or unexecuted branch; table/path namespaces are not resolved from configured
+Lakehouse attachments.
 An empty reference list is **not proof of no I/O**. No captured code or SQL is
 executed. Source definitions and lineage inference are separate from actual run
 history, and these outputs are **not automatically added to existing PBIP graphs
 or MonitorRaw**.
+
+**Configured notebook Lakehouses.** Analytics notebook 04 separately extracts
+`metadata.dependencies.lakehouse.default_lakehouse`,
+`default_lakehouse_workspace_id` and `known_lakehouses[].id/workspaceId` from
+the retained decoded notebook content. No extra collection endpoint, API permission
+or definition export is introduced; the existing definition-export authorization
+and sensitive-source storage requirements still apply.
+
+Curated relationships use `evidence_type="configuration_metadata"` and
+`direction="association"`, never inferred reads/writes. Configured UUIDs do not
+prove that a Lakehouse exists, is accessible or was used at runtime. Missing
+workspace IDs are not inferred from the notebook workspace, and names are not
+used to resolve IDs. Duplicate declarations are collapsed; conflicting explicit
+workspaces or malformed identifiers produce invalid configuration coverage.
+Unavailable decoded content is missing evidence, not proof of no attachments.
+The original definition and the separate static reference analysis are unchanged.
+See [notebook interpretation and usage](../notebooks/README.md#evidence-and-coverage-rules).
 
 **Static pipeline references (E15).** New pipeline captures add
 `records[0].pipelineReferences` with `schemaVersion=1`,
@@ -659,7 +999,8 @@ no 50-item limit in tenant mode; discovery follows API visibility and active-sta
 coverage, not a promise that every tenant object is supported or returned.
 
 **Budget and recovery.** Each cycle needs one request per inventory page and one
-per distinct discovered item, with retries adding requests. The existing limit
+per distinct discovered item, with retries and Dataflow fallback lookups adding
+requests. The existing limit
 of six single-attempt slices per invocation, 150-second budget with a 35-second
 reserve, 19-second spacing plus five-second storage margin, durable Retry-After
 and fail-closed pending/blocked controls still applies. The resulting spacing
@@ -714,6 +1055,16 @@ Tenant manifests identify `execution.scopeMode="tenant"`, `phase`,
 `resourceOutcome` is `succeeded`, `unsupported`, `denied`, `not_found`, `failed`
 or `deferred`; numeric HTTP status and allowlisted error code are retained in
 manifest errors. A deferred attempt can still make cycle health false.
+An expected typed Dataflow 404 may instead queue a single untyped Admin lookup:
+`execution.dataflowFallback="pending"` retains the failed HTTP observation but
+holds the item cursor and prior cycle health. The later lookup uses
+`dataflowFallback="request"` and the same gate/budget. An unattempted cooldown
+keeps that lookup pending; a denied, malformed or otherwise failed final lookup
+makes the cycle unhealthy and advances fairly. The notebook validators check the
+linked transition and exact request paths; the marker cannot excuse a 403, an
+unrelated type/error, or a skipped item. This collector change does not update
+MonitorRaw's Power Query validation; use the updated notebooks for these pending
+fallback slices.
 Follow the single-link `cycleEvidence` chain for the whole cycle; the final
 slice's resources alone are not all discovered items. An unsuccessful item has
 no `records`; `records: []` with resource `complete=true` is a genuine empty success.
@@ -722,7 +1073,10 @@ no `records`; `records: []` with resource `complete=true` is a genuine empty suc
 phase, cursor, token/history, health and previous manifest. Cursor commits occur
 only after immutable evidence is saved; missing/uncommitted linked evidence or
 invalid control data blocks requests. It is not a consumer snapshot. Scoped
-`progress.json` is left untouched, and both modes share the existing
+and tenant progress accept existing controls without `dataflowUntyped` (default
+false); the new boolean preserves a queued untyped lookup across restarts.
+It never changes existing failed cycle health.
+Tenant mode leaves scoped `progress.json` untouched, and both modes share the existing
 `fabricitemaccesspermissions/request_gate.json` so switching modes cannot bypass
 cooldowns. Mode changes preserve each mode's progress; the same module cron and
 `lastRun` govern eligibility. Do not delete/reset controls to force collection.
@@ -752,6 +1106,30 @@ All requests are read-only GETs under `https://api.fabric.microsoft.com/v1`, usi
 | `FabricDeploymentPipelineOperations` | `deploymentPipelines`, then `deploymentPipelines/{pipelineId}/operations` | **Non-Admin APIs.** Caller-visible discovery, **not tenant-complete**; operation history requires **deployment-pipeline Admin**, not workspace Admin. Up to **20 recent deployments** per pipeline. No deployment is initiated. |
 
 For item access, `?type={type}` is appended for the five Power BI types **`Report`, `Dashboard`, `SemanticModel`, `App`, `Dataflow`**; it is omitted for other Fabric types. Default scoped mode uses workspace-filtered admin discovery and matches only configured identities; opt-in tenant mode follows tenant inventory as described above. A missing item, type mismatch, malformed response or inaccessible resource is a failure, not proof of no permissions. Access output is the API's `accessDetails` (principal and item access details), **not fully expanded effective access**: groups are not expanded, even in tenant mode.
+
+**Dataflow endpoint ambiguity.** The documented typed request remains first,
+preserving Power BI Dataflow behavior. Observed Fabric Dataflows can return
+HTTP 404 `EntityNotFound` on that route while the same Admin endpoint without
+`?type=Dataflow` returns valid access details. In either collection mode, only a
+Dataflow typed 404 with `EntityNotFound` or `ItemNotFound` queues one untyped
+lookup, in a separate durable single-attempt slice. No other types or errors
+trigger this fallback; validation, quota spacing, request budgets and resource
+identity stay unchanged. Both requests are **Admin APIs**: no new non-Admin API,
+scope, resource grant, group expansion or permissions mutation is introduced.
+The actual request path and original HTTP error remain retained evidence.
+Use updated generated notebooks when processing these new intermediate slices.
+
+**Existing failed sweeps and network blocks.** Updating the collector does not
+replay already visited items or repair old failed observations. Definitions and
+permissions resume their saved cursors; an unhealthy sweep/cycle must finish
+before a new healthy one can advance `lastRun`. Shortcuts starts a new sweep
+after a finished marker. Repeated invocations may be needed; a host restart is
+not a full-estate retry. Keep progress, gates and evidence intact.
+`RequestDeniedByInboundPolicy` is retained as a safe error code rather than
+`unrecognized`; it remains a failure, not a fallback or empty result. Have an
+administrator inspect the applicable [inbound network rules](https://learn.microsoft.com/en-us/fabric/security/security-inbound-overview)
+and provide an approved collector network path. Capacity readiness and workspace
+roles do not bypass inbound restrictions. The code does not disable those rules.
 
 For these explicitly query-typed Power BI items, observed HTTP 200 responses can
 contain `itemAccessDetails.type: null` and `additionalPermissions: null`. Both

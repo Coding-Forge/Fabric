@@ -397,6 +397,13 @@ class FabricCollection:
                 "status": safe_status,
                 "errorCode": error_code,
             }
+        if self._list_key is None:
+            if (
+                response.get("continuationToken") is not None
+                or response.get("continuationUri") is not None
+            ):
+                return {"ERROR": "Unexpected pagination on an object endpoint"}
+            return response
         records = response.get(self._list_key)
         list_path = {
             "value": "$.value",
@@ -452,6 +459,13 @@ class FabricCollection:
             )
             return {"ERROR": "Continuation URI without token; collection incomplete"}
         return response
+
+    async def object_response(self, endpoint: str) -> JsonObject:
+        """Read an unpaged JSON object through the same safe GET and durable gates."""
+        self._list_key = None
+        self._page_count = 0
+        self._allow_paging = False
+        return await self.invokeAPI(f"{FABRIC_ROOT}/{endpoint}", {})
 
     async def page(
         self, endpoint: str, list_key: str = "value", *, paged: bool = True

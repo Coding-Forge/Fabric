@@ -1,10 +1,17 @@
-"""Offline minimized shortcut evidence and notebook lineage integration."""
+"""Offline shortcut collection, minimized evidence and lineage integration."""
 
 import copy
 import json
+import os
 import unittest
-from unittest.mock import MagicMock
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock, patch
 
+from env import audit as audit_module
+from env.audit import Audits
+from env.config import build_audit
+from env.modules import fabricshortcuts as collector
+from env.utility import fabric_collection as gates
 from env.utility.shortcut_relationships import (
     SHORTCUT_MODULE,
     shortcut_fingerprint,
@@ -13,7 +20,7 @@ from env.utility.shortcut_relationships import (
 from notebooks import monitor_analytics as analytics
 from notebooks import monitor_validation as validation
 from notebooks.build_monitor_notebooks import generated_notebooks
-from tests.fabric_helpers import WORKSPACE, item
+from tests.fabric_helpers import WORKSPACE, CollectorTestCase, inventory, item
 from tests.test_monitor_notebooks import run
 
 PRIVATE = "SYNTHETIC_PRIVATE_SHORTCUT"
@@ -202,3 +209,201 @@ class ShortcutEvidenceTests(unittest.TestCase):
                     if row["module"] == SHORTCUT_MODULE
                 )
                 self.assertEqual(health["coverage_status"], "invalid")
+
+
+class ShortcutCollectorTests(CollectorTestCase):
+    def setUp(self):
+        super().setUp()
+        patcher = patch.dict(os.environ, {"FABRIC_SHORTCUT_EXCLUDE_WORKSPACE_IDS": ""})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    async def collect(self, context):
+        scheduler = SimpleNamespace(
+            **{
+                **vars(gates.asyncio),
+                "get_running_loop": lambda: SimpleNamespace(time=lambda: self.elapsed),
+                "sleep": self.sleep,
+            }
+        )
+        with (
+            patch.object(collector, "asyncio", scheduler),
+            patch.object(gates, "asyncio", scheduler),
+        ):
+            return await collector.main(context)
+
+    def documents(self):
+        return [
+            analytics.document(path, json.dumps(value).encode())
+            for path, value in self.files.items()
+            if path.startswith(SHORTCUT_MODULE + "/")
+            and path.rsplit("/", 1)[-1] not in {"request_gate.json", "progress.json"}
+        ]
+
+    async def test_admin_discovery_opt_out_and_paginated_non_admin_listing(self):
+        allowed, excluded = item(kind="Lakehouse"), item(11, "Lakehouse", TARGET)
+        context = self.context(
+            inventory(allowed, token="a /+?"),
+            inventory(excluded),
+            {"value": [shortcut()], "continuationToken": "next /"},
+            {"value": [shortcut("second", "AmazonS3")]},
+        )
+        with patch.dict(os.environ, {"FABRIC_SHORTCUT_EXCLUDE_WORKSPACE_IDS": TARGET}):
+            self.assertTrue(await self.collect(context))
+        urls = self.urls(context)
+        self.assertTrue(urls[0].endswith("admin/items?type=Lakehouse"))
+        self.assertTrue(urls[1].endswith("continuationToken=a%20%2F%2B%3F"))
+        self.assertTrue(
+            urls[2].endswith(
+                f"workspaces/{WORKSPACE}/items/{allowed['itemId']}/shortcuts"
+            )
+        )
+        self.assertTrue(urls[3].endswith("continuationToken=next%20%2F"))
+        self.assertEqual(len(urls), 4)
+        self.assertGreaterEqual(
+            (self.request_times[1] - self.request_times[0]).total_seconds(), 23
+        )
+        resource = self.resources(SHORTCUT_MODULE)[-1]
+        self.assertEqual(len(resource["records"]), 2)
+        self.assertNotIn(PRIVATE, json.dumps(self.writes))
+        output = analytics.transform(self.documents(), include_shortcuts=True)
+        self.assertEqual(len(output["lineage_edges"]), 2)
+        self.assert_finished(SHORTCUT_MODULE, True)
+
+    async def test_denial_does_not_starve_next_item_and_empty_is_explicit(self):
+        targets = [item(10, "Lakehouse"), item(11, "Lakehouse")]
+        context = self.context(
+            inventory(*targets), {"ERROR": "denied", "status": 403}, {"value": []}
+        )
+        self.assertFalse(await self.collect(context))
+        resources = self.resources(SHORTCUT_MODULE)[1:]
+        self.assertEqual(
+            [resource["complete"] for resource in resources], [False, True]
+        )
+        self.assertNotIn("records", resources[0])
+        self.assertEqual(resources[1]["records"], [])
+        output = analytics.transform(self.documents(), include_shortcuts=True)
+        item_resources = [row for row in output["lineage_resources"] if row["item_id"]]
+        self.assertEqual(
+            {row["item_id"]: row["record_count"] for row in item_resources},
+            {targets[0]["itemId"]: None, targets[1]["itemId"]: 0},
+        )
+        self.assert_finished(SHORTCUT_MODULE, False)
+
+    async def test_later_page_failure_never_exports_partial_relationships(self):
+        context = self.context(
+            inventory(item(kind="Lakehouse")),
+            {"value": [shortcut()], "continuationToken": "next"},
+            {"ERROR": "denied", "status": 403},
+        )
+        self.assertFalse(await self.collect(context))
+        self.assertNotIn("records", self.resources(SHORTCUT_MODULE)[-1])
+        self.assertEqual(
+            analytics.transform(self.documents(), include_shortcuts=True)[
+                "lineage_edges"
+            ],
+            [],
+        )
+
+    async def test_deferred_page_resumes_without_repeating_inventory_or_losing_rows(
+        self,
+    ):
+        context = self.context(
+            inventory(item(kind="Lakehouse")),
+            {"value": [shortcut()], "continuationToken": "next"},
+        )
+        original = context._safe_get.side_effect
+
+        async def slow_page(*args, **kwargs):
+            result = await original(*args, **kwargs)
+            if len(self.request_times) == 2:
+                self.advance(80)
+            return result
+
+        context._safe_get.side_effect = slow_page
+        self.assertFalse(await self.collect(context))
+        saved = self.files[SHORTCUT_MODULE + "/progress.json"]
+        self.assertEqual(saved["continuationToken"], "next")
+        self.assertEqual(len(saved["records"]), 1)
+        self.assertIn(SHORTCUT_MODULE, context.deferred_modules)
+        resumed = self.context({"value": [shortcut("second")]})
+        self.assertTrue(await self.collect(resumed))
+        self.assertEqual(len(self.urls(resumed)), 1)
+        self.assertTrue(
+            self.urls(resumed)[0].endswith("shortcuts?continuationToken=next")
+        )
+        self.assertEqual(len(self.resources(SHORTCUT_MODULE)[-1]["records"]), 2)
+
+    async def test_manifest_failure_replays_uncommitted_cursors(self):
+        context = self.context(
+            inventory(item(kind="Lakehouse")), {"value": [shortcut()]}
+        )
+        original = context.fm.save_snapshot.side_effect
+
+        async def fail_manifest(path, name, value):
+            if name == "manifest.json" and value["finished"]:
+                raise RuntimeError("Synthetic storage failure")
+            await original(path, name, value)
+
+        context.fm.save_snapshot.side_effect = fail_manifest
+        with self.assertRaisesRegex(RuntimeError, "Synthetic storage"):
+            await self.collect(context)
+        self.assertEqual(
+            self.files[SHORTCUT_MODULE + "/progress.json"]["phase"], "inventory"
+        )
+        replay = self.context(
+            inventory(item(kind="Lakehouse")), {"value": [shortcut()]}
+        )
+        self.assertTrue(await self.collect(replay))
+        self.assertTrue(self.urls(replay)[0].endswith("admin/items?type=Lakehouse"))
+
+    async def test_invalid_exclusions_or_progress_fail_before_requests(self):
+        for saved, exclusions in (
+            (None, PRIVATE),
+            ({}, ""),
+            ({"settings": {"excludeWorkspaceIds": []}}, ""),
+        ):
+            with self.subTest(saved=saved, exclusions=exclusions):
+                self.files.clear()
+                if saved is not None:
+                    self.files[SHORTCUT_MODULE + "/progress.json"] = saved
+                context = self.context()
+                with (
+                    patch.dict(
+                        os.environ,
+                        {"FABRIC_SHORTCUT_EXCLUDE_WORKSPACE_IDS": exclusions},
+                    ),
+                    self.assertRaises((ValueError, TypeError)),
+                ):
+                    await self.collect(context)
+                context._safe_get.assert_not_awaited()
+                context.clients["tenant"].get_headers.assert_not_called()
+                context.fm.save_snapshot.assert_not_awaited()
+
+    async def test_public_registration_cron_and_successful_checkpoint(self):
+        audit = Audits()
+        context = self.context(inventory())
+        audit.context, audit.fm = context, context.fm
+        old = "2025-12-01T00:00:00.000000Z"
+        state = {SHORTCUT_MODULE: {"lastRun": old}}
+        audit.fm.read = AsyncMock(return_value=state)
+        audit.fm.save = AsyncMock()
+        build_audit(
+            settings={
+                "TENANT_ID": "offline",
+                "CLIENT_ID": "offline",
+                "CLIENT_SECRET": "offline-placeholder",
+                "APPLICATION_MODULES": "FabricShortcuts",
+                "LAKEHOUSE_NAME": "OfflineLakehouse",
+                "WORKSPACE_NAME": "OfflineWorkspace",
+                "FABRICSHORTCUTS_CRON": "0 1 * * *",
+            },
+            audit=audit,
+        )
+        with (
+            patch.object(audit, "_Audits__setup_clients"),
+            patch.object(audit_module, "is_function_due", return_value=True) as due,
+        ):
+            self.assertTrue(await audit.run())
+        self.assertEqual(due.call_args.args[0], "0 1 * * *")
+        self.assertNotEqual(state[SHORTCUT_MODULE]["lastRun"], old)
