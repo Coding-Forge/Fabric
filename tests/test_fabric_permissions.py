@@ -4,11 +4,13 @@ import copy
 import json
 import os
 from datetime import timedelta
+from itertools import pairwise
 from unittest.mock import AsyncMock, patch
 
 from app import monitor
 from env.audit import Audits
 from env.context import utc_stamp
+from notebooks import monitor_analytics as analytics
 from tests.fabric_helpers import ROOT, WORKSPACE, CollectorTestCase, inventory, item
 
 MODULE = "fabricitemaccesspermissions"
@@ -508,6 +510,8 @@ class PermissionCycleTests(CollectorTestCase):
             {"tokens": ["different"]},
             {"evidence": ["one", "two"]},
             {"healthy": "true"},
+            {"dataflowUntyped": "true"},
+            {"dataflowUntyped": True},
         ):
             with self.subTest(changes=changes):
                 self.files[PROGRESS] = {**saved, **changes}
@@ -892,6 +896,8 @@ class TenantPermissionTests(CollectorTestCase):
             {"tokens": ["wrong"]},
             {"evidence": ["../outside/manifest.json"]},
             {"schemaVersion": True},
+            {"dataflowUntyped": "true"},
+            {"dataflowUntyped": True},
         ):
             with self.subTest(changes=changes):
                 self.files[TENANT_PROGRESS] = {**saved, **changes}
@@ -944,3 +950,264 @@ class TenantPermissionTests(CollectorTestCase):
         with self.assertRaisesRegex(ValueError, "MODE"):
             await self.permissions(ctx)
         ctx._safe_get.assert_not_awaited()
+
+
+class DataflowFallbackTests(CollectorTestCase):
+    def configure(self, mode, targets):
+        return patch.dict(
+            os.environ,
+            {
+                "FABRIC_ITEM_ACCESS_MODE": mode,
+                "FABRIC_ITEM_ACCESS_SCOPE": json.dumps(targets),
+            },
+        )
+
+    def documents(self):
+        return [
+            analytics.document(path, json.dumps(value).encode())
+            for path, value in self.files.items()
+            if len(path.split("/")) == 6
+        ]
+
+    def assert_notebook_chain(self):
+        runs = analytics.build_runs(self.documents())
+        self.assertTrue(runs)
+        self.assertTrue(all(run["valid"] for run in runs.values()), runs)
+        return analytics.transform(self.documents())
+
+    async def test_not_found_dataflow_resolves_in_a_separate_paced_slice(self):
+        for mode in ("scoped", "tenant"):
+            for code in ("EntityNotFound", "ItemNotFound"):
+                with self.subTest(mode=mode, code=code):
+                    self.files.clear()
+                    target = item(kind="Dataflow")
+                    with self.configure(mode, [target]):
+                        ctx = self.context(
+                            inventory(target),
+                            {"ERROR": "not found", "status": 404, "errorCode": code},
+                            {"accessDetails": [access("Dataflow")]},
+                        )
+                        self.assertTrue(await self.permissions(ctx))
+                    module = TENANT_MODULE if mode == "tenant" else MODULE
+                    manifests = self.manifests(module)
+                    pending = manifests[1]
+                    self.assertTrue(pending["execution"]["cycleHealthy"])
+                    self.assertTrue(pending["execution"]["deferred"])
+                    self.assertEqual(
+                        pending["execution"]["dataflowFallback"], "pending"
+                    )
+                    self.assertEqual(pending["errors"][0]["errorCode"], code)
+                    self.assertFalse(pending["resources"][0]["complete"])
+                    self.assertTrue(
+                        all(m["execution"]["attempts"] == 1 for m in manifests)
+                    )
+                    self.assertTrue(self.urls(ctx)[1].endswith("/users?type=Dataflow"))
+                    self.assertTrue(self.urls(ctx)[2].endswith("/users"))
+                    stamps = self.request_times[-3:]
+                    self.assertTrue(
+                        all((b - a).total_seconds() >= 24 for a, b in pairwise(stamps))
+                    )
+                    output = self.assert_notebook_chain()
+                    self.assertEqual(len(output["permission_grants"]), 1)
+
+    async def test_pending_fallback_survives_cooldown_and_restart_without_repeating_type(
+        self,
+    ):
+        for mode in ("scoped", "tenant"):
+            with self.subTest(mode=mode):
+                self.files.clear()
+                target = item(kind="Dataflow")
+                progress_path = TENANT_PROGRESS if mode == "tenant" else PROGRESS
+                with self.configure(mode, [target]):
+                    ctx = self.context(
+                        inventory(target),
+                        {
+                            "ERROR": "not found",
+                            "status": 404,
+                            "errorCode": "EntityNotFound",
+                        },
+                    )
+                    save = ctx.fm.save_snapshot.side_effect
+
+                    async def pause_fallback(
+                        path, name, value, save=save, progress_path=progress_path
+                    ):
+                        await save(path, name, value)
+                        if path + name == progress_path and value["dataflowUntyped"]:
+                            self.files[MODULE + "/request_gate.json"][
+                                "nextRequestUtc"
+                            ] = utc_stamp(self.now + timedelta(days=1))
+
+                    ctx.fm.save_snapshot.side_effect = pause_fallback
+                    self.assertFalse(await self.permissions(ctx))
+                    self.assertEqual(ctx._safe_get.await_count, 2)
+                    self.assertIn(MODULE, ctx.deferred_modules)
+                    self.assertTrue(self.files[progress_path]["dataflowUntyped"])
+                    self.assertTrue(self.files[progress_path]["healthy"])
+                    self.assert_notebook_chain()
+                    self.advance(86400)
+                    restarted = self.context({"accessDetails": []})
+                    self.assertTrue(await self.permissions(restarted))
+                    self.assertEqual(restarted._safe_get.await_count, 1)
+                    self.assertTrue(self.urls(restarted)[0].endswith("/users"))
+                    self.assertFalse(self.files[progress_path]["dataflowUntyped"])
+                    self.assert_notebook_chain()
+
+    async def test_failed_or_malformed_fallback_stays_failed_and_does_not_starve(self):
+        for mode in ("scoped", "tenant"):
+            for response in (
+                {
+                    "ERROR": "denied",
+                    "status": 403,
+                    "errorCode": "RequestDeniedByInboundPolicy",
+                },
+                {"ERROR": "not found", "status": 404, "errorCode": "EntityNotFound"},
+                {"accessDetails": [access("Report")]},
+            ):
+                with self.subTest(mode=mode, response=response):
+                    self.files.clear()
+                    targets = [item(kind="Dataflow"), item(11)]
+                    with self.configure(mode, targets):
+                        ctx = self.context(
+                            inventory(*targets),
+                            {
+                                "ERROR": "not found",
+                                "status": 404,
+                                "errorCode": "EntityNotFound",
+                            },
+                            response,
+                            {"accessDetails": []},
+                        )
+                        self.assertFalse(await self.permissions(ctx))
+                    self.assertEqual(ctx._safe_get.await_count, 4)
+                    self.assertNotIn(MODULE, ctx.deferred_modules)
+                    module = TENANT_MODULE if mode == "tenant" else MODULE
+                    resources = self.resources(module)
+                    self.assertFalse(resources[2]["complete"])
+                    self.assertNotIn("records", resources[2])
+                    self.assertEqual(resources[-1]["parent"], targets[-1])
+                    self.assertTrue(resources[-1]["complete"])
+                    self.assertFalse(
+                        self.assert_finished(module, False)["execution"]["cycleHealthy"]
+                    )
+                    self.assert_notebook_chain()
+
+    async def test_other_types_denials_and_unknown_errors_never_trigger_fallback(self):
+        for kind, status, code in (
+            ("Report", 404, "EntityNotFound"),
+            ("Dataflow", 403, "RequestDeniedByInboundPolicy"),
+            ("Dataflow", 404, "unknown"),
+        ):
+            with self.subTest(kind=kind, status=status):
+                self.files.clear()
+                target = item(kind=kind)
+                with self.configure("tenant", [target]):
+                    ctx = self.context(
+                        inventory(target),
+                        {"ERROR": "failed", "status": status, "errorCode": code},
+                    )
+                    self.assertFalse(await self.permissions(ctx))
+                self.assertEqual(ctx._safe_get.await_count, 2)
+                self.assert_notebook_chain()
+
+    async def test_notebooks_reject_a_forged_pending_fallback_that_hides_a_denial(self):
+        target = item(kind="Dataflow")
+        with self.configure("tenant", [target]):
+            ctx = self.context(
+                inventory(target),
+                {"ERROR": "not found", "status": 404, "errorCode": "EntityNotFound"},
+                {"accessDetails": []},
+            )
+            self.assertTrue(await self.permissions(ctx))
+        pending = self.manifests(TENANT_MODULE)[1]
+        pending["errors"][0].update(
+            status=403, errorCode="RequestDeniedByInboundPolicy"
+        )
+        output = analytics.transform(self.documents())
+        self.assertEqual(output["permission_grants"], [])
+        self.assertFalse(
+            analytics.selected_permission_cycle(output, "Tenant")["chain_valid"]
+        )
+
+    async def test_successful_fallback_does_not_heal_an_earlier_failed_target(self):
+        targets = [item(), item(11, "Dataflow")]
+        with self.configure("tenant", targets):
+            ctx = self.context(
+                inventory(*targets),
+                {"ERROR": "denied", "status": 403},
+                {"ERROR": "not found", "status": 404, "errorCode": "EntityNotFound"},
+                {"accessDetails": [access("Dataflow")]},
+            )
+            self.assertFalse(await self.permissions(ctx))
+        final = self.assert_finished(TENANT_MODULE, False)
+        self.assertFalse(final["execution"]["cycleHealthy"])
+        self.assertTrue(final["execution"]["cycleFinished"])
+        self.assertEqual(len(self.assert_notebook_chain()["permission_grants"]), 1)
+
+    async def test_fallback_progress_is_not_committed_before_its_manifest(self):
+        target = item(kind="Dataflow")
+        for mode in ("scoped", "tenant"):
+            with self.subTest(mode=mode):
+                self.files.clear()
+                with self.configure(mode, [target]):
+                    ctx = self.context(
+                        inventory(target),
+                        {
+                            "ERROR": "not found",
+                            "status": 404,
+                            "errorCode": "EntityNotFound",
+                        },
+                    )
+                    save = ctx.fm.save_snapshot.side_effect
+
+                    async def fail_pending(path, name, value, save=save):
+                        if (
+                            name == "manifest.json"
+                            and value["finished"]
+                            and value["execution"].get("dataflowFallback") == "pending"
+                        ):
+                            raise RuntimeError("Cannot commit fallback")
+                        await save(path, name, value)
+
+                    ctx.fm.save_snapshot.side_effect = fail_pending
+                    with self.assertRaisesRegex(RuntimeError, "Cannot commit fallback"):
+                        await self.permissions(ctx)
+                progress = self.files[TENANT_PROGRESS if mode == "tenant" else PROGRESS]
+                self.assertFalse(progress["dataflowUntyped"])
+                self.assertTrue(progress["healthy"])
+
+    async def test_fallback_controls_cannot_resume_from_a_denied_observation(self):
+        target = item(kind="Dataflow")
+        for mode in ("scoped", "tenant"):
+            with self.subTest(mode=mode):
+                self.files.clear()
+                progress_path = TENANT_PROGRESS if mode == "tenant" else PROGRESS
+                module = TENANT_MODULE if mode == "tenant" else MODULE
+                first_write = len(self.writes)
+                with self.configure(mode, [target]):
+                    ctx = self.context(
+                        inventory(target),
+                        {
+                            "ERROR": "not found",
+                            "status": 404,
+                            "errorCode": "EntityNotFound",
+                        },
+                        {"accessDetails": []},
+                    )
+                    self.assertTrue(await self.permissions(ctx))
+                    pending = self.manifests(module)[1]
+                    pending["errors"][0].update(
+                        status=403, errorCode="RequestDeniedByInboundPolicy"
+                    )
+                    self.files[progress_path] = copy.deepcopy(
+                        next(
+                            value
+                            for path, value in self.writes[first_write:]
+                            if path == progress_path and value["dataflowUntyped"]
+                        )
+                    )
+                    restarted = self.context()
+                    with self.assertRaisesRegex(RuntimeError, "Dataflow fallback"):
+                        await self.permissions(restarted)
+                    restarted._safe_get.assert_not_awaited()
+                    restarted.clients["tenant"].get_headers.assert_not_called()

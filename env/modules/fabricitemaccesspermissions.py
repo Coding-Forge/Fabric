@@ -31,6 +31,7 @@ class _Progress:
     inventory_complete: bool = False
     healthy: bool = True
     evidence: list[str] = field(default_factory=list)
+    dataflow_untyped: bool = False
 
     def encode(self, scope: list[dict[str, str]]) -> JsonObject:
         return {
@@ -42,6 +43,7 @@ class _Progress:
             "inventoryComplete": self.inventory_complete,
             "healthy": self.healthy,
             "evidence": list(self.evidence),
+            "dataflowUntyped": self.dataflow_untyped,
         }
 
 
@@ -66,6 +68,7 @@ def _load_progress(
         or (token is not None and (not isinstance(token, str) or not token))
         or not isinstance(saved.get("inventoryComplete"), bool)
         or not isinstance(saved.get("healthy"), bool)
+        or type(saved.get("dataflowUntyped", False)) is not bool
     ):
         raise RuntimeError("Invalid permission progress; requests blocked")
     lists: dict[str, list[str]] = {}
@@ -90,6 +93,16 @@ def _load_progress(
             if target["workspaceId"] == item["workspaceId"]
         )
         or len(lists["evidence"]) > 1
+        or (
+            saved.get("dataflowUntyped", False)
+            and (
+                kind != "access"
+                or item["type"] != "Dataflow"
+                or not saved["inventoryComplete"]
+                or item["itemId"] not in lists["discovered"]
+                or not lists["evidence"]
+            )
+        )
     ):
         raise RuntimeError("Inconsistent permission progress; requests blocked")
     return _Progress(
@@ -100,6 +113,7 @@ def _load_progress(
         inventory_complete=cast(bool, saved["inventoryComplete"]),
         healthy=cast(bool, saved["healthy"]),
         evidence=lists["evidence"],
+        dataflow_untyped=saved.get("dataflowUntyped", False),
     )
 
 
@@ -177,9 +191,11 @@ def _valid_access(records: list[JsonObject], item_type: str) -> bool:
     return True
 
 
-def _access_endpoint(item: dict[str, str]) -> str:
+def _access_endpoint(item: dict[str, str], *, untyped_dataflow: bool = False) -> str:
     endpoint = f"admin/workspaces/{item['workspaceId']}/items/{item['itemId']}/users"
-    if item["type"] in _POWER_BI_ITEM_TYPES:
+    if item["type"] in _POWER_BI_ITEM_TYPES and not (
+        item["type"] == "Dataflow" and untyped_dataflow
+    ):
         endpoint += f"?type={item['type']}"
     return endpoint
 
@@ -193,6 +209,7 @@ class _TenantProgress:
     tokens: list[str] = field(default_factory=list)
     healthy: bool = True
     evidence: list[str] = field(default_factory=list)
+    dataflow_untyped: bool = False
 
     def encode(self) -> JsonObject:
         return {
@@ -205,6 +222,7 @@ class _TenantProgress:
             "tokens": list(self.tokens),
             "healthy": self.healthy,
             "evidence": list(self.evidence),
+            "dataflowUntyped": self.dataflow_untyped,
         }
 
 
@@ -249,6 +267,7 @@ def _load_tenant_progress(saved: JsonObject | None) -> _TenantProgress:
         or not isinstance(saved.get("tokens"), list)
         or not isinstance(saved.get("evidence"), list)
         or "token" not in saved
+        or type(saved.get("dataflowUntyped", False)) is not bool
     ):
         raise RuntimeError("Invalid tenant permission progress; requests blocked")
     try:
@@ -292,6 +311,13 @@ def _load_tenant_progress(saved: JsonObject | None) -> _TenantProgress:
             for link in evidence
         )
         or ((items or tokens or saved["cursor"]) and not evidence)
+        or (
+            saved.get("dataflowUntyped", False)
+            and (
+                saved["phase"] != "access"
+                or items[saved["cursor"]]["type"] != "Dataflow"
+            )
+        )
     ):
         raise RuntimeError("Inconsistent tenant permission progress; requests blocked")
     return _TenantProgress(
@@ -302,7 +328,102 @@ def _load_tenant_progress(saved: JsonObject | None) -> _TenantProgress:
         tokens=tokens,
         healthy=saved["healthy"],
         evidence=evidence,
+        dataflow_untyped=saved.get("dataflowUntyped", False),
     )
+
+
+async def _access_slice(
+    collection: FabricCollection,
+    item: dict[str, str],
+    progress: _Progress | _TenantProgress,
+) -> tuple[str, JsonObject, list[JsonObject] | None, bool]:
+    untyped = progress.dataflow_untyped
+    if untyped:
+        link = progress.evidence[0]
+        prefix = (
+            collection.module + "_tenant"
+            if isinstance(progress, _TenantProgress)
+            else collection.module
+        )
+        if (
+            re.fullmatch(
+                rf"{prefix}/\d{{4}}/\d{{2}}/\d{{2}}/[0-9a-f]{{32}}/manifest\.json",
+                link,
+            )
+            is None
+        ):
+            raise RuntimeError("Invalid Dataflow fallback evidence; requests blocked")
+        folder, name = link.rsplit("/", 1)
+        previous = await collection.context.fm.read_snapshot(folder + "/", name)
+        execution = previous.get("execution", {}) if isinstance(previous, dict) else {}
+        resources = previous.get("resources", []) if isinstance(previous, dict) else []
+        if (
+            not isinstance(previous, dict)
+            or previous.get("finished") is not True
+            or not isinstance(execution, dict)
+            or not (
+                (
+                    execution.get("dataflowFallback") == "pending"
+                    and type(execution.get("attempts")) is int
+                    and execution["attempts"] == 1
+                    and execution.get("deferred") is True
+                    and previous.get("errors")
+                    in [
+                        [
+                            {
+                                "error": "Fabric request failed",
+                                "status": 404,
+                                "errorCode": code,
+                            }
+                        ]
+                        for code in ("EntityNotFound", "ItemNotFound")
+                    ]
+                )
+                or (
+                    execution.get("dataflowFallback") == "request"
+                    and execution.get("deferred") is True
+                    and type(execution.get("attempts")) is int
+                    and execution.get("attempts") == 0
+                )
+            )
+            or execution.get("cycleHealthy") is not progress.healthy
+            or not isinstance(resources, list)
+            or len(resources) != 1
+            or not isinstance(resources[0], dict)
+            or resources[0].get("parent") != item
+            or resources[0].get("complete") is not False
+        ):
+            raise RuntimeError("Uncommitted Dataflow fallback; requests blocked")
+    endpoint = _access_endpoint(item, untyped_dataflow=untyped)
+    response = await collection.page(endpoint, "accessDetails", paged=False)
+    fallback = (
+        item["type"] == "Dataflow"
+        and not untyped
+        and response.get("status") == 404
+        and response.get("errorCode") in ("EntityNotFound", "ItemNotFound")
+        and "ERROR" in response
+        and not response.get("deferred")
+        and not collection.pending
+        and not collection.blocked
+    )
+    if fallback:
+        progress.dataflow_untyped = True
+        # This lookup is unresolved, not a final failure of the item's access.
+        collection.failed = False
+        collection.record_deferral(
+            "Typed Dataflow lookup not found; untyped Admin lookup queued"
+        )
+        collection.execution["dataflowFallback"] = "pending"
+    elif untyped:
+        collection.execution["dataflowFallback"] = "request"
+        if not response.get("deferred") or response.get("attempted"):
+            progress.dataflow_untyped = False
+    records = None
+    if "ERROR" not in response and _valid_access(
+        response["accessDetails"], item["type"]
+    ):
+        records = response["accessDetails"]
+    return endpoint, response, records, fallback
 
 
 async def _collect_tenant_slice(
@@ -339,6 +460,7 @@ async def _collect_tenant_slice(
     parent: JsonObject = {"observationUnit": "inventoryPage"}
     records = None
     invalid_inventory = False
+    fallback = False
     if phase == "inventory":
         endpoint = "admin/items?state=active"
         request_endpoint = endpoint
@@ -368,20 +490,17 @@ async def _collect_tenant_slice(
     else:
         item = progress.items[progress.cursor]
         parent = dict(item)
-        endpoint = _access_endpoint(item)
-        response = await collection.page(endpoint, "accessDetails", paged=False)
-        if "ERROR" not in response and _valid_access(
-            response["accessDetails"], item["type"]
-        ):
-            records = response["accessDetails"]
-        if not response.get("deferred") or response.get("attempted"):
+        endpoint, response, records, fallback = await _access_slice(
+            collection, item, progress
+        )
+        if not fallback and (not response.get("deferred") or response.get("attempted")):
             progress.cursor += 1
         name = f"{item['workspaceId']}_{item['itemId']}"
     success = await collection.snapshot(name, endpoint, parent, records)
-    if not response.get("deferred") or response.get("attempted"):
+    if not fallback and (not response.get("deferred") or response.get("attempted")):
         progress.healthy = progress.healthy and success
     outcome = "succeeded" if success else "failed"
-    if response.get("deferred"):
+    if fallback or response.get("deferred"):
         outcome = "deferred"
     elif (
         response.get("errorCode") == "InvalidItemType" or response.get("status") == 501
@@ -389,12 +508,13 @@ async def _collect_tenant_slice(
         outcome = "unsupported"
     elif response.get("status") in (401, 403):
         outcome = "denied"
-    elif response.get("errorCode") == "ItemNotFound":
+    elif response.get("errorCode") in ("ItemNotFound", "EntityNotFound"):
         outcome = "not_found"
     cycle_finished = progress.phase == "access" and progress.cursor == len(
         progress.items
     )
     collection.execution = {
+        **collection.execution,
         "scopeMode": "tenant",
         "phase": phase,
         "inventoryComplete": progress.phase == "access",
@@ -404,7 +524,7 @@ async def _collect_tenant_slice(
         "cycleHealthy": progress.healthy,
         "cycleEvidence": list(progress.evidence),
         "resourceOutcome": outcome,
-        "deferred": bool(response.get("deferred")),
+        "deferred": fallback or bool(response.get("deferred")),
         "attempts": collection.attempts,
     }
     complete = cycle_finished and progress.healthy
@@ -523,6 +643,7 @@ async def _collect_slice(
     parent: JsonObject = dict(item)
     records: list[JsonObject] | None = None
     response: JsonObject = {}
+    fallback = False
     if kind == "inventory":
         endpoint = f"admin/items?workspaceId={workspace}"
         request_endpoint = endpoint
@@ -562,16 +683,14 @@ async def _collect_slice(
     else:
         endpoint = _access_endpoint(item)
         if progress.inventory_complete and item["itemId"] in progress.discovered:
-            response = await collection.page(endpoint, "accessDetails", paged=False)
-            if "ERROR" not in response:
-                records = cast(list[JsonObject], response["accessDetails"])
-                if not _valid_access(records, item["type"]):
-                    records = None
-        if not response.get("deferred") or response.get("attempted"):
+            endpoint, response, records, fallback = await _access_slice(
+                collection, item, progress
+            )
+        if not fallback and (not response.get("deferred") or response.get("attempted")):
             progress.task += 1
         name = f"{workspace}_{item['itemId']}"
     success = await collection.snapshot(name, endpoint, parent, records)
-    if not response.get("deferred") or response.get("attempted"):
+    if not fallback and (not response.get("deferred") or response.get("attempted")):
         progress.healthy = progress.healthy and success
     cycle_finished = progress.task == len(tasks)
     if (
@@ -582,11 +701,12 @@ async def _collect_slice(
         progress.discovered = []
         progress.inventory_complete = False
     collection.execution = {
+        **collection.execution,
         "cycleFinished": cycle_finished,
         "nextTask": progress.task,
         "taskCount": len(tasks),
         "cycleEvidence": list(progress.evidence),
-        "deferred": bool(response.get("deferred")),
+        "deferred": fallback or bool(response.get("deferred")),
         "attempts": collection.attempts,
         "cycleHealthy": progress.healthy,
     }

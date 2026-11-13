@@ -637,6 +637,11 @@ class StrictResponseTests(CollectorTestCase):
     async def test_http_error_codes_precedence_fallback_and_resanitization(self):
         cases = [
             ({"errorCode": "ItemNotFound"}, "ItemNotFound"),
+            ({"errorCode": "EntityNotFound"}, "EntityNotFound"),
+            (
+                {"errorCode": "RequestDeniedByInboundPolicy"},
+                "RequestDeniedByInboundPolicy",
+            ),
             ({"error": {"code": "InvalidItemType"}}, "InvalidItemType"),
             (
                 {"errorCode": PRIVATE_MARKER, "error": {"code": "ItemNotFound"}},

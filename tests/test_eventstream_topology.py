@@ -1,11 +1,17 @@
-"""Offline Eventstream evidence, provenance and notebook contracts."""
+"""Offline Eventstream topology, transport, provenance and notebook contracts."""
 
 import copy
 import json
+import os
 import unittest
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
+from env import audit as audit_module
+from env.audit import Audits
+from env.config import build_audit
+from env.modules import fabriceventstreamtopology as collector
+from env.utility import fabric_collection as gates
 from env.utility.eventstream_topology import (
     EVENTSTREAM_MODULE,
     eventstream_hash,
@@ -16,7 +22,7 @@ from notebooks import monitor_analytics as analytics
 from notebooks import monitor_validation as validation
 from notebooks import monitor_visualizations as visualizations
 from notebooks.build_monitor_notebooks import generated_notebooks
-from tests.fabric_helpers import WORKSPACE, item
+from tests.fabric_helpers import WORKSPACE, CollectorTestCase, inventory, item
 from tests.test_monitor_notebooks import run
 
 PRIVATE = "SYNTHETIC_PRIVATE_EVENTSTREAM"
@@ -375,3 +381,219 @@ class EventstreamEvidenceTests(unittest.TestCase):
                 for call in calls.call_args_list
             )
         )
+
+
+class EventstreamCollectorTests(CollectorTestCase):
+    def setUp(self):
+        super().setUp()
+        patcher = patch.dict(
+            os.environ, {"FABRIC_EVENTSTREAM_EXCLUDE_WORKSPACE_IDS": ""}
+        )
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    async def collect(self, context):
+        scheduler = SimpleNamespace(
+            **{
+                **vars(gates.asyncio),
+                "get_running_loop": lambda: SimpleNamespace(time=lambda: self.elapsed),
+                "sleep": self.sleep,
+            }
+        )
+        with (
+            patch.object(collector, "asyncio", scheduler),
+            patch.object(gates, "asyncio", scheduler),
+        ):
+            return await collector.main(context)
+
+    def documents(self):
+        return [
+            analytics.document(path, json.dumps(value).encode())
+            for path, value in self.files.items()
+            if path.startswith(EVENTSTREAM_MODULE + "/")
+            and path.rsplit("/", 1)[-1] not in {"request_gate.json", "progress.json"}
+        ]
+
+    async def test_admin_inventory_pagination_exclusions_and_object_response(self):
+        target = item(kind="Eventstream")
+        context = self.context(
+            inventory(target, token="a /+?"),
+            inventory(item(11, "Eventstream", TARGET)),
+            topology(),
+        )
+        with patch.dict(
+            os.environ, {"FABRIC_EVENTSTREAM_EXCLUDE_WORKSPACE_IDS": TARGET}
+        ):
+            self.assertTrue(await self.collect(context))
+        urls = self.urls(context)
+        self.assertTrue(urls[0].endswith("admin/items?type=Eventstream"))
+        self.assertTrue(urls[1].endswith("&continuationToken=a%20%2F%2B%3F"))
+        self.assertTrue(
+            urls[2].endswith(
+                f"workspaces/{WORKSPACE}/eventstreams/{target['itemId']}/topology"
+            )
+        )
+        self.assertEqual(len(urls), 3)
+        self.assertGreaterEqual(
+            (self.request_times[1] - self.request_times[0]).total_seconds(), 23
+        )
+        self.assertNotIn(PRIVATE, json.dumps(self.writes))
+        output = analytics.transform(
+            self.documents(), include_eventstream_topology=True
+        )
+        self.assertEqual(len(output["lineage_edges"]), 9)
+        self.assert_finished(EVENTSTREAM_MODULE, True)
+
+    async def test_denial_and_malformed_object_do_not_starve_other_items(self):
+        targets = [item(number, "Eventstream") for number in (10, 11, 12)]
+        context = self.context(
+            inventory(*targets),
+            {"ERROR": "Denied", "status": 403},
+            {},
+            {key: [] for key in ("sources", "streams", "operators", "destinations")},
+        )
+        self.assertFalse(await self.collect(context))
+        resources = self.resources(EVENTSTREAM_MODULE)[1:]
+        self.assertEqual(
+            [resource["complete"] for resource in resources], [False, False, True]
+        )
+        self.assertTrue(all("records" not in resource for resource in resources[:2]))
+        output = analytics.transform(
+            self.documents(), include_eventstream_topology=True
+        )
+        self.assertEqual(output["lineage_edges"], [])
+        self.assert_finished(EVENTSTREAM_MODULE, False)
+
+    async def test_unexpected_pagination_never_becomes_partial_success(self):
+        context = self.context(
+            inventory(item(kind="Eventstream")),
+            {**topology(), "continuationToken": "next"},
+        )
+        self.assertFalse(await self.collect(context))
+        self.assertNotIn("records", self.resources(EVENTSTREAM_MODULE)[-1])
+        self.assertEqual(len(self.urls(context)), 2)
+
+    async def test_deferred_slice_resumes_next_item_with_same_sweep(self):
+        targets = [item(number, "Eventstream") for number in (10, 11)]
+        context = self.context(inventory(*targets), topology())
+        original = context._safe_get.side_effect
+
+        async def slow_page(*args, **kwargs):
+            result = await original(*args, **kwargs)
+            if len(self.request_times) == 2:
+                self.advance(80)
+            return result
+
+        context._safe_get.side_effect = slow_page
+        self.assertFalse(await self.collect(context))
+        saved = self.files[EVENTSTREAM_MODULE + "/progress.json"]
+        self.assertEqual(saved["nextItem"], 1)
+        resumed = self.context(topology())
+        self.assertTrue(await self.collect(resumed))
+        self.assertEqual(len(self.urls(resumed)), 1)
+        modes = {
+            row["mode"]
+            for row in analytics.transform(
+                self.documents(), include_eventstream_topology=True
+            )["lineage_edges"]
+        }
+        self.assertEqual(len(modes), 1)
+        self.assertEqual(
+            self.manifests(EVENTSTREAM_MODULE)[-1]["execution"]["sweepId"],
+            saved["sweepId"],
+        )
+
+    async def test_manifest_failure_replays_uncommitted_inventory_and_topology(self):
+        target = item(kind="Eventstream")
+        context = self.context(inventory(target), topology())
+        original = context.fm.save_snapshot.side_effect
+
+        async def fail(path, name, value):
+            if name == "manifest.json" and value["finished"]:
+                raise RuntimeError("Synthetic storage failure")
+            await original(path, name, value)
+
+        context.fm.save_snapshot.side_effect = fail
+        with self.assertRaisesRegex(RuntimeError, "Synthetic storage"):
+            await self.collect(context)
+        self.assertEqual(
+            self.files[EVENTSTREAM_MODULE + "/progress.json"]["phase"], "inventory"
+        )
+        replay = self.context(inventory(target), topology())
+        self.assertTrue(await self.collect(replay))
+        self.assertEqual(len(self.urls(replay)), 2)
+
+    async def test_new_empty_sweep_gets_new_selection_scope(self):
+        self.assertTrue(
+            await self.collect(
+                self.context(inventory(item(kind="Eventstream")), topology())
+            )
+        )
+        first = self.manifests(EVENTSTREAM_MODULE)[-1]["execution"]["sweepId"]
+        self.assertTrue(await self.collect(self.context(inventory())))
+        last = self.manifests(EVENTSTREAM_MODULE)[-1]["execution"]["sweepId"]
+        self.assertNotEqual(first, last)
+        output = analytics.transform(
+            self.documents(), include_eventstream_topology=True
+        )
+        health = sorted(
+            (
+                row
+                for row in output["collection_health"]
+                if row["module"] == EVENTSTREAM_MODULE
+            ),
+            key=lambda row: row["observed_at_utc"],
+        )
+        self.assertTrue(
+            all(edge["mode"] != health[-1]["mode"] for edge in output["lineage_edges"])
+        )
+
+    async def test_invalid_exclusions_or_progress_fail_before_auth_and_writes(self):
+        for saved, exclusions in (
+            (None, PRIVATE),
+            ({}, ""),
+            ({"settings": {"excludeWorkspaceIds": []}}, ""),
+        ):
+            self.files.clear()
+            if saved is not None:
+                self.files[EVENTSTREAM_MODULE + "/progress.json"] = saved
+            context = self.context()
+            with (
+                self.subTest(saved=saved),
+                patch.dict(
+                    os.environ, {"FABRIC_EVENTSTREAM_EXCLUDE_WORKSPACE_IDS": exclusions}
+                ),
+                self.assertRaises((ValueError, TypeError)),
+            ):
+                await self.collect(context)
+            context.clients["tenant"].get_headers.assert_not_called()
+            context._safe_get.assert_not_awaited()
+            context.fm.save_snapshot.assert_not_awaited()
+
+    async def test_public_registration_cron_and_successful_checkpoint(self):
+        audit = Audits()
+        context = self.context(inventory())
+        audit.context, audit.fm = context, context.fm
+        old = "2025-12-01T00:00:00.000000Z"
+        state = {EVENTSTREAM_MODULE: {"lastRun": old}}
+        audit.fm.read = AsyncMock(return_value=state)
+        audit.fm.save = AsyncMock()
+        build_audit(
+            settings={
+                "TENANT_ID": "offline",
+                "CLIENT_ID": "offline",
+                "CLIENT_SECRET": "offline-placeholder",
+                "APPLICATION_MODULES": "FabricEventstreamTopology",
+                "LAKEHOUSE_NAME": "OfflineLakehouse",
+                "WORKSPACE_NAME": "OfflineWorkspace",
+                "FABRICEVENTSTREAMTOPOLOGY_CRON": "0 1 * * *",
+            },
+            audit=audit,
+        )
+        with (
+            patch.object(audit, "_Audits__setup_clients"),
+            patch.object(audit_module, "is_function_due", return_value=True) as due,
+        ):
+            self.assertTrue(await audit.run())
+        self.assertEqual(due.call_args.args[0], "0 1 * * *")
+        self.assertNotEqual(state[EVENTSTREAM_MODULE]["lastRun"], old)

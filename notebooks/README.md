@@ -604,15 +604,12 @@ Legacy snapshots cannot establish pagination completeness or exact collection ti
 
 ## Registered collector coverage
 
-The transformations recognize **26 module evidence contracts**, including the
-optional pipeline-activity, shortcut and Eventstream contracts. Recognition here
-does not register or enable a collector. This notebook-only change leaves
-collector/API wiring unchanged; optional evidence is processed only when its
-matching raw files are available and the relevant notebook/flag is enabled.
+Every one of the **26 registered modules** has a curated business-data path
+when its corresponding optional notebook is included.
 This matrix describes selected fields, not every raw field, successful collection
 or tenant-complete coverage. Raw JSON and controls remain unchanged.
 
-| Evidence module | Raw folder(s) | Notebook / table family | Deliberate partial coverage |
+| Registered module | Raw folder(s) | Notebook / table family | Deliberate partial coverage |
 |---|---|---|---|
 | Activity | `activity` | 07 / `activity_events` | Selected event fields; no raw identity/IP/payload |
 | Apps | `catalog/snapshots` | 12 / `apps` | Inventory only |

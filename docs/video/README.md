@@ -330,10 +330,10 @@ There are no published episode links yet.
 
 With Playwright installed, run `node --test docs/video/test_slides.cjs` from the
 repository root. Set `PLAYWRIGHT_CHROMIUM_EXECUTABLE` if using a system Chromium.
-The existing local installation can be used without installing new packages:
+The video project's own dependencies provide Playwright under
+`docs/video/node_modules`:
 
 ```bash
-NODE_PATH="$PWD/dashboard/frontend/node_modules" \
 PLAYWRIGHT_CHROMIUM_EXECUTABLE=/snap/bin/chromium \
 node --test docs/video/test_slides.cjs
 ```
