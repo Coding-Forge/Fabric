@@ -44,11 +44,14 @@ These are potential dependencies, not runtime evidence. See
 
 ### Fabric analytics notebooks
 
-The **21 numbered notebooks** in `notebooks/` define **48 managed Delta
-datasets**, with selected-field coverage for all **23 registered collectors**.
-Nineteen notebooks transform existing raw evidence; 05 visualizes core results,
-and 06 validates reruns. Missing collection is not treated as an empty successful
-estate, and historical snapshots are not automatically current state.
+The **26 numbered notebooks** in `notebooks/` support **50 managed Bronze
+datasets**, plus **17 Silver and 8 Gold snapshot tables**. The original 19
+transformation writers retain their defaults; notebook 22 is an optional
+pipeline-activity writer. Notebooks 05/06 visualize and validate, 23 investigates
+resources, 24/25 build the new medallion layers, and 26 investigates published
+Gold events. Collector/API wiring is unchanged by these notebook additions.
+Missing collection is not treated as an empty successful estate, and historical
+snapshots are not automatically current state.
 
 | Notebooks | Purpose |
 |---|---|
@@ -56,16 +59,22 @@ estate, and historical snapshots are not automatically current state.
 | 05-06 | Core visualizations and persistent rerun validation |
 | 07-11 | Activity events, estate catalog/semantic-model schema, connections, gateways and dataset refresh history |
 | 12-21 | Apps, capacity/performance, directory/licensing, workspace roles, tenant/delegated settings, domains, Git, tags, broad sharing and deployment operations |
+| 22-23 | Optional retained pipeline-activity transformations and read-only resource investigation |
+| 24-25 | Preview-first Silver normalization/correlation and Gold event cases/traces |
+| 26 | Self-contained read-only Gold queries and per-selected-event investigation |
 
 Start with the [notebook walkthrough and run order](notebooks/notebook-guide.md).
 Upload the `.ipynb` files, attach your default Lakehouse, preview, then explicitly
-enable insert-only Delta writes. No repository/helper upload or collection
+enable publication. Bronze writers remain insert-only; Silver/Gold replace only
+their owned derived snapshots. No repository/helper upload or collection
 credentials are required by these analytics notebooks. The example workspace
 and Lakehouse are **FabricMonitor / lh_monitor**.
 
 See the [technical notebook reference](notebooks/README.md) for all output
-tables, safety limits, privacy exclusions and validation scopes (10, 25 or 48
-tables). Local verification is not Fabric runtime or private-network acceptance.
+tables, safety limits, privacy exclusions and selectable validation scopes.
+See [the medallion explanation](notebooks/MEDALLION_EXPLAINED.md) for what each
+layer establishes and what remains unknown.
+Local verification is not Fabric runtime or private-network acceptance.
 The initial 01-05 execution was operator-reported successful; acceptance of the
 expanded suite remains separate.
 

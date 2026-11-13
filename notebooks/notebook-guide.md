@@ -1,9 +1,13 @@
 # Notebook walkthrough and operator runbook
 
-Use this guide to understand and run the **21 numbered Fabric analytics
+Use this guide to understand and run the **26 numbered Fabric analytics
 notebooks**. Use the [technical reference](README.md) for the full list of
-**48 managed datasets**, field/provenance contracts and the
-[23-module coverage matrix](README.md#registered-collector-coverage).
+**50 managed datasets** (including optional notebook 22), field/provenance
+contracts and the [collector coverage matrix](README.md#registered-collector-coverage).
+Notebooks 24/25 use separate owned Silver/Gold snapshot contracts; see the
+[medallion runbook](MEDALLION.md) for their 17 Silver and 8 Gold tables.
+Notebook 26 is a self-contained read-only Gold query/selected-event loop; see
+[Gold query examples](GOLD_QUERIES.md). It creates no additional persisted tables.
 
 These are analytics notebooks, not collectors. They read files that Monitor
 already collected. Running a notebook does not request new API data, enable a
@@ -26,6 +30,11 @@ Lakehouse Tables/monitor_*: curated historical observations
     +-- 05: read-only core visualizations
     +-- 06: rerun validation and optional saved metadata baseline
     +-- 07-21: domain charts alongside their transformations
+    +-- Optional 22: Data Factory pipeline activity facts and query coverage
+    +-- Optional 23: read-only resource investigation across retained evidence
+    +-- 24: preview/publish owned Silver event/artifact/execution snapshots
+           +-- 25: preview/publish Gold event cases and typed evidence traces
+                  +-- 26: read-only selected-event investigation against published Gold
     +-- Optional/future consumption: KQL access or external delivery
 ```
 
@@ -62,6 +71,12 @@ The numbering organizes the suite; it is not a requirement to execute 06 before
 07. For a full 48-table acceptance test, publish 01-04 and 07-21 first, then
 validate with 06. Do not run writers concurrently: multiple domain notebooks
 share `estate_coverage`, and same-prefix concurrent writing is unsupported.
+Notebook 22 can be added independently. Its publication, validation scope and
+serial-orchestrator inclusion are explicit opt-ins; the previous defaults remain.
+Notebook 23 reads published evidence only and is excluded from the orchestrator.
+Notebooks 24/25/26 are also excluded. Upload them into Silver/Gold workspace folders,
+create matching Lakehouse schemas, attach the same default Lakehouse and follow
+[their separate preview-first publication order](MEDALLION.md#upload-and-run).
 
 Preview still validates existing table ownership/schema/content when present.
 It does not bypass safeguards. The publication counts describe transformed
@@ -96,7 +111,7 @@ polls. It writes `job_resources` and `job_observations`. A retained ongoing job
 may be old; use its collection coverage and observation time alongside status.
 This is separate from semantic-model refresh history in 11.
 
-### 04 - Scanner and static lineage
+### 04 - Scanner, static lineage and configured associations
 
 [Open notebook](04_monitor_lineage.ipynb).
 Use it to inspect upstream/downstream relationship observations, successful
@@ -104,6 +119,21 @@ zero-edge evidence and unsupported-definition diagnostics. It writes
 `lineage_resources`, `lineage_edges` and `lineage_diagnostics`. Scanner evidence
 and static definition inference are separate; neither proves runtime I/O or
 exhaustive column-level lineage.
+
+For collected Lakehouse shortcuts, set `INCLUDE_SHORTCUTS=True` in 01-04 and 06,
+or in the serial orchestrator and 06. This adds `shortcut_configuration` evidence
+to the existing lineage tables, not new datasets. Known OneLake IDs remain
+unverified configuration; external fingerprints and unavailable target details
+are not resolved storage or access proof. Notebook 05 draws non-directional
+dashed associations. Inspect collection health before selecting the graph.
+
+For Eventstream configuration, set `INCLUDE_EVENTSTREAM_TOPOLOGY=True` in 01-04
+or the orchestrator and match it in 06. It adds sources, streams, operators,
+destinations and declared input links to the existing lineage tables. Purple
+dashed arrows mean declared inputs, gray dashed lines mean node membership and
+green dashed associations mean configured targets, never verified runtime I/O.
+Names/payloads are omitted or fingerprinted; unresolved targets and inputs stay
+diagnostic. No new tables or notebooks are required.
 
 ### 05 - Core visualizations
 
@@ -251,15 +281,79 @@ Discovery is caller-visible; history requires pipeline Admin and exposes up to
 20 recent deployments. Failed counts are null, healthy empty counts zero.
 This notebook never triggers a deployment.
 
+### 22 - Data Factory pipeline activity (optional)
+
+[Open notebook](22_monitor_pipeline_activity.ipynb).
+Use it to inspect reported activity status, timing, row/byte metrics and native
+throughput in retained `fabricpipelineactivityruns` captures. It publishes
+`pipeline_activity_resources` and `pipeline_activity_observations`, with query
+windows, mode, configured scope and source provenance.
+
+The coverage preview distinguishes inventory, job history and activity queries.
+An empty job list means no run IDs were returned; it is **not** a successful
+zero-activity query. Failed/missing/unfinished evidence has unknown counts.
+The activity preview selects the latest configured scope in each mode and the
+latest query attempt before admitting metrics, without fallback after a failed
+or empty query. `ACTIVITY_SOURCE_PATH` selects an explicit historical query.
+Do not add repeated polls, throughput rates or chained activity counts together
+as distinct end-to-end movement. Missing values stay null.
+
+No collection API calls, workload execution or permissions are added. Notebook
+03 still handles item jobs; 04 handles references; 21 handles deployments.
+To include 22 in `nb_orchestrator`, import it and set
+`INCLUDE_PIPELINE_ACTIVITY = True`; its default remains False.
+
+### 23 - Resource investigation (optional, read-only)
+
+[Open notebook](23_monitor_investigation.ipynb).
+Use it to discover a resource and investigate its retained inventory,
+observed item access, jobs, direct references/diagnostics and activity events.
+Publish 01-04 first and 07 for activity; missing table sections remain unknown
+while available sections can be read. Match the default Lakehouse/table prefix.
+
+`AUTO_DISCOVER=True` is the default: leave IDs blank and run to discover
+workspace/item pairs from retained inventory. A unique match opens automatically;
+multiple matches show numbered choices without selecting an arbitrary item.
+Narrow with `WORKSPACE_SEARCH` / `ITEM_SEARCH` name substrings, `ITEM_TYPE` or
+optional exact IDs. Alternatively choose a displayed `RESOURCE_NUMBER` and rerun.
+Numbers are specific to the current filtered list and can change; keep it at 0
+when changing filters, or use IDs for stable selection. Missing names stay
+unknown; historical label hints and candidate presence do not prove current state.
+`AUTO_DISCOVER=False` opts out and requires both explicit UUIDs.
+
+Select one `PERMISSION_MODE`. Optionally specify an exact historical
+`PERMISSION_CYCLE_ID`; otherwise permission rows span retained cycles in that
+mode and are **not a combined effective/current access list**. Each section
+keeps its own times, source versions and coverage; this is not a common snapshot
+or a current-state view. Inspect failed/empty resource outcomes alongside facts.
+
+Incoming links require explicit matching target workspace/item IDs. Missing IDs,
+transitive lineage, runtime I/O and removal impact are not inferred. Unattributed
+activity cannot be matched. `MAX_ROWS_PER_SECTION` bounds collected/displayed rows
+and labels truncation, not Spark scans or complete counts.
+
+No new API requests, permissions, managed tables or writes are introduced.
+The executing identity needs curated-table read access. Restrict access to the
+potentially sensitive results and clear outputs before sharing. Notebook 23
+changes no orchestrator or validation defaults. See the
+[technical scope and acceptance checks](README.md#optional-notebook-23-resource-investigation).
+
 ## Validate the scope you actually published
 
 | Scope in 06 | Required published writers | Table count |
 |---|---|---|
-| Both inclusion flags false | 01-04 | 10 |
+| All inclusion flags false | 01-04 | 10 |
 | `INCLUDE_ESTATE_TABLES = True`, module flag false | 01-04 and 07-11 | 25 |
 | `INCLUDE_MODULE_TABLES = True` | 01-04 and 07-21 | 48 |
+| Add `INCLUDE_PIPELINE_ACTIVITY_TABLES = True` to any scope above | Also publish 22 | Adds 2 (12, 27 or 50 total) |
 
-For the full suite, set `INCLUDE_MODULE_TABLES = True`; it implies estate tables.
+For the previous full suite, `INCLUDE_MODULE_TABLES = True` implies estate tables.
+For all 50 datasets, also enable `INCLUDE_PIPELINE_ACTIVITY_TABLES`.
+`INCLUDE_SHORTCUTS` adds raw shortcut evidence to any selected scope without
+changing table counts. Match the writers' value and use a new baseline when it
+changes; older baselines remain valid for shortcut-disabled comparisons.
+The same applies independently to `INCLUDE_EVENTSTREAM_TOPOLOGY`: match writer
+and validator values, use a new baseline after a change, and do not add datasets.
 Then perform this experiment:
 
 1. Keep collectors and other writers idle. Set `VALIDATION_ACTION = "capture"`

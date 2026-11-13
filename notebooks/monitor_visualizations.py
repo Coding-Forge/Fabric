@@ -1,5 +1,6 @@
 """Read-only, bounded visualizations of curated Monitor observations."""
 
+import json
 import math
 
 from notebooks.monitor_analytics import sha256
@@ -22,6 +23,38 @@ def graph_lineage(frame, max_edges):
     for entry in values:
         query = "item:" + entry["item_id"]
         nodes[query] = (entry["item_type"] or "Item") + ":" + entry["item_id"][:8]
+        if entry["evidence_type"] == "eventstream_configuration":
+            reference = json.loads(entry["reference"])
+            scope = "topology:" + entry["workspace_id"] + ":" + entry["item_id"] + ":"
+            relation = entry["relation_type"]
+            if relation == "topology_input":
+                source, destination = (
+                    scope + reference["fromNode"],
+                    scope + reference["toNode"],
+                )
+                nodes[source] = reference["fromType"] + ":" + reference["fromNode"][:8]
+                nodes[destination] = reference["toType"] + ":" + reference["toNode"][:8]
+            else:
+                node = scope + reference["nodeId"]
+                nodes[node] = reference["type"] + ":" + reference["nodeId"][:8]
+                if relation == "topology_node":
+                    source, destination = query, node
+                else:
+                    target = (
+                        entry["related_item_id"] or reference["connectionReference"]
+                    )
+                    destination = (
+                        "item:" + target
+                        if entry["related_item_id"]
+                        else "connection:" + target
+                    )
+                    nodes.setdefault(
+                        destination,
+                        (entry["related_type"] or "Reference") + ":" + target[:8],
+                    )
+                    source = node
+            edges.append((source, destination, relation))
+            continue
         reference = entry["related_item_id"] or entry["reference"] or "unresolved"
         related = (
             "item:" + entry["related_item_id"]
@@ -48,14 +81,32 @@ def graph_lineage(frame, max_edges):
     }
     _, axis = plt.subplots(figsize=(13, 10))
     for source, destination, evidence in edges:
+        configured = evidence in {
+            "configuration_metadata",
+            "shortcut_configuration",
+            "topology_node",
+            "topology_input",
+            "topology_target",
+        }
         axis.annotate(
             "",
             xy=positions[destination],
             xytext=positions[source],
             arrowprops={
-                "arrowstyle": "->",
+                "arrowstyle": "->"
+                if evidence == "topology_input" or not configured
+                else "-",
                 "alpha": 0.6,
-                "color": "tab:orange" if evidence == "static_inference" else "tab:blue",
+                "color": "tab:purple"
+                if evidence == "topology_input"
+                else "tab:gray"
+                if evidence == "topology_node"
+                else "tab:green"
+                if configured
+                else "tab:orange"
+                if evidence == "static_inference"
+                else "tab:blue",
+                "linestyle": "--" if configured else "-",
             },
         )
     for node, (x, y) in positions.items():
@@ -65,10 +116,32 @@ def graph_lineage(frame, max_edges):
         handles=[
             Line2D([0], [0], color="tab:blue", label="Scanner relationship"),
             Line2D([0], [0], color="tab:orange", label="Potential static reference"),
+            Line2D(
+                [0],
+                [0],
+                color="tab:green",
+                linestyle="--",
+                label="Configured Lakehouse/shortcut association (not I/O)",
+            ),
+            Line2D(
+                [0],
+                [0],
+                color="tab:purple",
+                linestyle="--",
+                label="Declared Eventstream input (not runtime)",
+            ),
+            Line2D(
+                [0],
+                [0],
+                color="tab:gray",
+                linestyle="--",
+                label="Eventstream node membership",
+            ),
         ]
     )
     axis.set_title(
-        "Selected lineage (not runtime I/O)" + ("; truncated" if truncated else "")
+        "Selected relationships (not runtime I/O)"
+        + ("; truncated" if truncated else "")
     )
     axis.set_xlim(-1.5, 1.5)
     axis.set_ylim(-1.5, 1.5)
@@ -241,8 +314,31 @@ def render(
         eligible = resources.filter(
             F.col("coverage_status").isin("success", "partial_batch")
         )
+        for configuration_module in ("fabricshortcuts", "fabriceventstreamtopology"):
+            attempt = (
+                latest_health.filter(F.col("module") == configuration_module)
+                .select("mode", "coverage_status")
+                .limit(1)
+                .collect()
+            )
+            if attempt:
+                selected = attempt[0]
+                eligible = eligible.filter(
+                    (F.col("module") != configuration_module)
+                    | (
+                        (F.col("mode") == selected["mode"])
+                        & F.lit(selected["coverage_status"] == "success")
+                    )
+                )
+            else:
+                eligible = eligible.filter(F.col("module") != configuration_module)
         uncertain = health.filter(
-            F.col("module").isin("fabricitemdefinitions", "lineage_edges")
+            F.col("module").isin(
+                "fabricitemdefinitions",
+                "lineage_edges",
+                "fabricshortcuts",
+                "fabriceventstreamtopology",
+            )
             & F.col("coverage_status").isin("invalid", "unfinished")
         )
         if uncertain.limit(1).count():

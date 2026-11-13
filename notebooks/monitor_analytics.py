@@ -7,6 +7,22 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from uuid import UUID
 
+from env.utility.eventstream_topology import (
+    EVENTSTREAM_MODULE,
+    eventstream_hash,
+    eventstream_inventory,
+    eventstream_scope,
+    validate_eventstream_topology,
+)
+from env.utility.notebook_relationships import notebook_lakehouse_relationships
+from env.utility.shortcut_relationships import (
+    SHORTCUT_MODULE,
+    shortcut_fingerprint,
+    shortcut_inventory,
+    shortcut_scope,
+    validate_shortcut_records,
+)
+
 SCHEMA_VERSION = 1
 LAKEHOUSE_FILES = "/lakehouse/default/Files"
 PERMISSIONS = {
@@ -21,6 +37,8 @@ MODULES = (
     "fabricdeploymentpipelineoperations",
 )
 CORE_SOURCE_PREFIXES = {*MODULES, "items", "workspaces", "catalog", "lineage_edges"}
+SHORTCUT_PREFIXES = {SHORTCUT_MODULE}
+EVENTSTREAM_PREFIXES = {EVENTSTREAM_MODULE}
 POWER_BI = {"Report", "Dashboard", "SemanticModel", "App", "Dataflow"}
 COMMON = {
     "schema_version": "int",
@@ -442,6 +460,42 @@ MODULE_SCHEMAS = {
     },
 }
 SCHEMAS.update(MODULE_SCHEMAS)
+MODULE_DATASETS = tuple(SCHEMAS)
+PIPELINE_ACTIVITY_MODULE = "fabricpipelineactivityruns"
+PIPELINE_ACTIVITY_PREFIXES = {PIPELINE_ACTIVITY_MODULE}
+PIPELINE_ACTIVITY_SCHEMAS = {
+    "pipeline_activity_resources": {
+        **TARGET_COLUMNS,
+        "scope_id": "string",
+        "pipeline_run_id": "string",
+        "observation_unit": "string",
+        "last_updated_after_utc": "string",
+        "last_updated_before_utc": "string",
+        "record_count": "long",
+        "issue": "string",
+    },
+    "pipeline_activity_observations": {
+        **TARGET_COLUMNS,
+        "scope_id": "string",
+        "pipeline_run_id": "string",
+        "activity_run_id": "string",
+        "activity_name": "string",
+        "activity_type": "string",
+        "status": "string",
+        "last_updated_after_utc": "string",
+        "last_updated_before_utc": "string",
+        "start_time_utc": "string",
+        "end_time_utc": "string",
+        "duration_ms": "double",
+        "rows_read": "long",
+        "rows_copied": "long",
+        "data_read": "long",
+        "data_written": "long",
+        "throughput": "double",
+        "child_pipeline_run_id": "string",
+    },
+}
+SCHEMAS.update(PIPELINE_ACTIVITY_SCHEMAS)
 
 
 def canonical(value):
@@ -533,7 +587,14 @@ def load_documents(
             "Select an existing folder inside the attached Lakehouse Files"
         )
     result, total = [], 0
-    prefixes = CORE_SOURCE_PREFIXES | ESTATE_PREFIXES | MODULE_PREFIXES
+    prefixes = (
+        CORE_SOURCE_PREFIXES
+        | ESTATE_PREFIXES
+        | MODULE_PREFIXES
+        | PIPELINE_ACTIVITY_PREFIXES
+        | SHORTCUT_PREFIXES
+        | EVENTSTREAM_PREFIXES
+    )
     if source_prefixes is not None:
         selected = set(source_prefixes)
         if not selected or not selected.issubset(prefixes):
@@ -626,6 +687,10 @@ def _validate_records(module, resource):
         and target(parent)[2] not in {"Notebook", "DataPipeline"}
     ):
         raise ValueError("Unsupported definition item")
+    elif module == SHORTCUT_MODULE and parent and target(parent)[2] != "Lakehouse":
+        raise ValueError("Unsupported shortcut parent")
+    elif module == EVENTSTREAM_MODULE and parent and target(parent)[2] != "Eventstream":
+        raise ValueError("Unsupported Eventstream parent")
     if not resource["complete"]:
         text(resource["error"])
         if "records" in resource or (inventory and parent["inventoryComplete"]):
@@ -634,6 +699,28 @@ def _validate_records(module, resource):
     if "error" in resource:
         raise ValueError("Successful resource contains an error")
     values = records(resource["records"])
+    if module == SHORTCUT_MODULE:
+        if parent:
+            validate_shortcut_records(values)
+        elif (
+            shortcut_inventory(
+                [{"id": value["itemId"], **value} for value in values], []
+            )
+            != values
+        ):
+            raise ValueError("Invalid shortcut inventory identities")
+    elif module == EVENTSTREAM_MODULE:
+        if parent:
+            if len(values) != 1:
+                raise ValueError("Missing or repeated Eventstream topology")
+            validate_eventstream_topology(values[0])
+        elif (
+            eventstream_inventory(
+                [{"id": value["itemId"], **value} for value in values], []
+            )
+            != values
+        ):
+            raise ValueError("Invalid Eventstream inventory identities")
     identities = []
     for value in values:
         if module in PERMISSIONS and inventory:
@@ -694,6 +781,10 @@ def _resource_name_endpoint(module, resource):
             return f"inventory_{workspace}.json", f"admin/items?workspaceId={workspace}"
         workspace, item, kind = target(parent)
         suffix = f"?type={kind}" if kind in POWER_BI else ""
+        if kind == "Dataflow" and resource.get("requestPath") == (
+            f"admin/workspaces/{workspace}/items/{item}/users"
+        ):
+            suffix = ""
         return (
             f"{workspace}_{item}.json",
             f"admin/workspaces/{workspace}/items/{item}/users{suffix}",
@@ -714,14 +805,32 @@ def _resource_name_endpoint(module, resource):
             else f"dataPipelines/{item}/getDefinition"
         )
         return f"{workspace}_{item}.json", f"workspaces/{workspace}/{endpoint}"
+    if module == SHORTCUT_MODULE:
+        if not parent:
+            return "inventory.json", "admin/items?type=Lakehouse"
+        workspace, item, _ = target(parent)
+        return (
+            f"{workspace}_{item}.json",
+            f"workspaces/{workspace}/items/{item}/shortcuts",
+        )
+    if module == EVENTSTREAM_MODULE:
+        if not parent:
+            return "inventory.json", "admin/items?type=Eventstream"
+        workspace, item, _ = target(parent)
+        return (
+            f"{workspace}_{item}.json",
+            f"workspaces/{workspace}/eventstreams/{item}/topology",
+        )
     return None, None
 
 
-def build_runs(documents):
+def build_runs(
+    documents, *, modules=MODULES, resource_validator=None, manifest_validator=None
+):
     grouped = {}
     for doc in documents:
         path = PurePosixPath(doc["path"])
-        if path.parts[0] in MODULES:
+        if path.parts[0] in modules:
             grouped.setdefault(str(path.parent), {})[path.name] = doc
     result = {}
     for folder, files in sorted(grouped.items()):
@@ -764,6 +873,12 @@ def build_runs(documents):
                     raise ValueError("Invalid initial manifest")
                 run["valid"] = True
                 continue
+            if manifest_validator is not None:
+                manifest_validator(manifest)
+            if module == SHORTCUT_MODULE:
+                shortcut_scope(manifest["execution"])
+            elif module == EVENTSTREAM_MODULE:
+                eventstream_scope(manifest["execution"])
             for entry in entries:
                 name = text(entry["file"])
                 if (
@@ -789,8 +904,20 @@ def build_runs(documents):
                     or utc(resource["observedAt"]) > final_time
                 ):
                     raise ValueError("Resource and manifest disagree")
-                _validate_records(module, resource)
-                expected_name, endpoint = _resource_name_endpoint(module, resource)
+                if resource_validator is not None:
+                    expected_name, endpoint = resource_validator(resource, manifest)
+                else:
+                    _validate_records(module, resource)
+                    expected_name, endpoint = _resource_name_endpoint(module, resource)
+                if module in {SHORTCUT_MODULE, EVENTSTREAM_MODULE}:
+                    excluded = manifest["execution"]["excludeWorkspaceIds"]
+                    parents = (
+                        [resource["parent"]]
+                        if resource["parent"]
+                        else resource.get("records", [])
+                    )
+                    if any(parent["workspaceId"] in excluded for parent in parents):
+                        raise ValueError("Excluded configuration workspace captured")
                 if endpoint is not None and (
                     name != expected_name or resource["requestPath"] != endpoint
                 ):
@@ -806,6 +933,45 @@ def build_runs(documents):
                 or len({target(entry["parent"]) for entry in entries}) != len(entries)
             ):
                 raise ValueError("Invalid job resource scope")
+            elif module in {SHORTCUT_MODULE, EVENTSTREAM_MODULE}:
+                execution = manifest["execution"]
+                if manifest["complete"] != (
+                    execution["sweepComplete"]
+                    and execution["sweepHealthy"]
+                    and all(entry["complete"] for entry in entries)
+                    and not manifest["errors"]
+                ):
+                    raise ValueError(
+                        "Configuration sweep outcome disagrees with resources"
+                    )
+            elif module == PIPELINE_ACTIVITY_MODULE:
+                execution = manifest.get("execution") or {}
+                if execution.get("mode") not in {"discovery", "explicit"}:
+                    raise ValueError("Invalid pipeline activity collection mode")
+                if execution["mode"] == "discovery":
+                    if (
+                        type(execution.get("sweepComplete")) is not bool
+                        or type(execution.get("sweepHealthy")) is not bool
+                    ):
+                        raise ValueError("Invalid pipeline discovery outcome")
+                    expected_complete = (
+                        execution["sweepComplete"] and execution["sweepHealthy"]
+                    )
+                    if manifest["complete"] != (
+                        expected_complete
+                        and all(entry["complete"] for entry in entries)
+                        and not manifest["errors"]
+                    ):
+                        raise ValueError(
+                            "Pipeline sweep outcome disagrees with resources"
+                        )
+                elif manifest["complete"] != (
+                    all(entry["complete"] for entry in entries)
+                    and not manifest["errors"]
+                ):
+                    raise ValueError(
+                        "Pipeline explicit outcome disagrees with resources"
+                    )
             elif manifest["complete"] != (
                 all(entry["complete"] for entry in entries) and not manifest["errors"]
             ):
@@ -831,6 +997,53 @@ def _integer(value):
     if type(value) is not int or value < 0:
         raise ValueError("Invalid nonnegative integer")
     return value
+
+
+def _permission_fallback(manifest, resource, prior):
+    e = manifest["execution"]
+    mode = e.get("dataflowFallback")
+    if mode is not None and mode not in ("pending", "request"):
+        raise ValueError("Invalid Dataflow fallback mode")
+    previous = prior["execution"] if prior is not None else {}
+    expected = previous.get("dataflowFallback") == "pending" or (
+        previous.get("dataflowFallback") == "request"
+        and previous["deferred"]
+        and previous["attempts"] == 0
+    )
+    if (mode == "request") != expected:
+        raise ValueError("Unlinked Dataflow fallback")
+    parent = resource["parent"]
+    if mode is None:
+        if parent.get("type") == "Dataflow" and not resource["requestPath"].endswith(
+            "?type=Dataflow"
+        ):
+            raise ValueError("Unmarked untyped Dataflow request")
+        return False
+    workspace, item, kind = target(parent)
+    endpoint = f"admin/workspaces/{workspace}/items/{item}/users"
+    if kind != "Dataflow" or resource["requestPath"] != (
+        endpoint + ("?type=Dataflow" if mode == "pending" else "")
+    ):
+        raise ValueError("Invalid Dataflow fallback resource")
+    pending = mode == "pending"
+    if pending and (
+        resource["complete"]
+        or e["attempts"] != 1
+        or not e["deferred"]
+        or manifest["errors"]
+        not in [
+            [
+                {
+                    "error": "Fabric request failed",
+                    "status": 404,
+                    "errorCode": code,
+                }
+            ]
+            for code in ("EntityNotFound", "ItemNotFound")
+        ]
+    ):
+        raise ValueError("Invalid Dataflow fallback admission")
+    return pending
 
 
 def permission_chain(path, runs):
@@ -869,6 +1082,7 @@ def permission_chain(path, runs):
         attempts = _integer(e["attempts"])
         if attempts > 1:
             raise ValueError("Invalid slice attempt count")
+        fallback_pending = _permission_fallback(manifest, resource, prior)
         unattempted = e["deferred"] and attempts == 0
         if resource["complete"] and (attempts != 1 or e["deferred"]):
             raise ValueError("Successful deferred or unattempted resource")
@@ -878,9 +1092,9 @@ def permission_chain(path, runs):
         ):
             raise ValueError("Invalid cycle transition")
         previous_healthy = healthy
-        healthy = healthy and (resource["complete"] or unattempted)
+        healthy = healthy and (resource["complete"] or unattempted or fallback_pending)
         if e["cycleHealthy"] != healthy or (
-            healthy and manifest["errors"] and not unattempted
+            healthy and manifest["errors"] and not unattempted and not fallback_pending
         ):
             raise ValueError("Nonmonotonic cycle health")
         if tenant:
@@ -926,7 +1140,7 @@ def permission_chain(path, runs):
                     or not e["inventoryComplete"]
                 ):
                     raise ValueError("Access outside tenant inventory order")
-                after = before + (0 if unattempted else 1)
+                after = before + (0 if unattempted or fallback_pending else 1)
             if (
                 _integer(e["discoveredItems"]) != len(selected)
                 or _integer(e["nextItem"]) != after
@@ -979,6 +1193,7 @@ def permission_chain(path, runs):
             delta = (
                 0
                 if unattempted
+                or fallback_pending
                 or (
                     inventory
                     and resource["complete"]
@@ -1048,6 +1263,11 @@ def _health(run):
         else None,
         issue=run["issue"],
         cycle_id=run["chain"]["cycle_id"] if run["chain"] else None,
+        mode=shortcut_scope(manifest["execution"])
+        if run["module"] == SHORTCUT_MODULE and valid and finished
+        else eventstream_scope(manifest["execution"])
+        if run["module"] == EVENTSTREAM_MODULE and valid and finished
+        else PERMISSIONS.get(run["module"]),
     )
 
 
@@ -1399,6 +1619,95 @@ def _scanner_tables(doc, output, *, legacy_snapshot=None):
         )
 
 
+def _notebook_configuration_tables(runs, output):
+    for run in runs.values():
+        if (
+            run["module"] != "fabricitemdefinitions"
+            or not run["valid"]
+            or not run["manifest"]["finished"]
+        ):
+            continue
+        for doc in run["resources"]:
+            resource, parent = doc["value"], doc["value"]["parent"]
+            if parent.get("type") != "Notebook":
+                continue
+            fields = target_fields(parent)
+            status, relationships, diagnostics = "failed", [], []
+            if resource["complete"]:
+                try:
+                    values = records(resource["records"])
+                    if len(values) != 1:
+                        raise ValueError("Invalid definition record count")
+                    decoded = values[0].get("decodedParts", {})
+                    if not isinstance(decoded, dict):
+                        raise TypeError("Invalid decoded definition")
+                    if "notebook-content.ipynb" not in decoded:
+                        status = "missing"
+                        diagnostics = [
+                            {
+                                "fieldPath": "/decodedParts/notebook-content.ipynb",
+                                "reason": "missing_notebook_configuration",
+                            }
+                        ]
+                    else:
+                        analysis = notebook_lakehouse_relationships(
+                            decoded["notebook-content.ipynb"]
+                        )
+                        diagnostics = analysis["diagnostics"]
+                        status = "success" if analysis["complete"] else "invalid"
+                        if analysis["complete"]:
+                            relationships = analysis["relationships"]
+                except (ValueError, KeyError, TypeError, AttributeError):
+                    status = "invalid"
+                    diagnostics = [
+                        {
+                            "fieldPath": "/decodedParts",
+                            "reason": "invalid_notebook_configuration",
+                        }
+                    ]
+            for relationship in relationships:
+                output["lineage_edges"].append(
+                    row(
+                        "lineage_edges",
+                        doc,
+                        relationship,
+                        **fields,
+                        direction="association",
+                        related_workspace_id=relationship["workspaceId"],
+                        related_item_id=relationship["itemId"],
+                        related_type="Lakehouse",
+                        relation_type=relationship["relation"],
+                        reference=relationship["itemId"],
+                        resolution="configured_id",
+                        evidence_type="configuration_metadata",
+                        runtime_verified=False,
+                    )
+                )
+            for index, diagnostic in enumerate(diagnostics):
+                output["lineage_diagnostics"].append(
+                    row(
+                        "lineage_diagnostics",
+                        doc,
+                        ["notebook_configuration", index],
+                        **fields,
+                        reason=diagnostic["reason"],
+                        location=canonical({"fieldPath": diagnostic["fieldPath"]}),
+                    )
+                )
+            output["lineage_resources"].append(
+                row(
+                    "lineage_resources",
+                    doc,
+                    "notebook_configuration",
+                    **fields,
+                    coverage_status=status,
+                    evidence_type="configuration_metadata",
+                    record_count=len(relationships) if status == "success" else None,
+                    diagnostic_count=len(diagnostics),
+                )
+            )
+
+
 def _definition_tables(runs, output):
     for run in runs.values():
         if (
@@ -1495,19 +1804,258 @@ def _definition_tables(runs, output):
             output["lineage_diagnostics"].extend(diagnostics)
 
 
+def _shortcut_tables(runs, output):
+    for run in runs.values():
+        if (
+            run["module"] != SHORTCUT_MODULE
+            or not run["valid"]
+            or not run["manifest"]["finished"]
+        ):
+            continue
+        mode = shortcut_scope(run["manifest"]["execution"])
+        for doc in run["resources"]:
+            resource, parent = doc["value"], doc["value"]["parent"]
+            fields = target_fields(parent) if parent else {}
+            values = (
+                resource.get("records", []) if parent and resource["complete"] else []
+            )
+            diagnostics = 0
+            for value in values:
+                output["lineage_edges"].append(
+                    row(
+                        "lineage_edges",
+                        doc,
+                        value["shortcutId"],
+                        **fields,
+                        mode=mode,
+                        direction="association",
+                        related_workspace_id=value["targetWorkspaceId"],
+                        related_item_id=value["targetItemId"],
+                        related_type="FabricItem"
+                        if value["targetType"] == "OneLake"
+                        else value["targetType"],
+                        relation_type="shortcut_transform_target"
+                        if value["isShortcutTransform"]
+                        else "shortcut_target",
+                        reference=value["targetReference"]
+                        or (
+                            value["targetItemId"]
+                            or "shortcut:"
+                            + shortcut_fingerprint(
+                                [
+                                    parent["workspaceId"],
+                                    parent["itemId"],
+                                    value["shortcutId"],
+                                ]
+                            )
+                        ),
+                        resolution=value["targetStatus"],
+                        evidence_type="shortcut_configuration",
+                        runtime_verified=False,
+                    )
+                )
+                if value["targetStatus"] in {"unavailable", "unsupported"}:
+                    diagnostics += 1
+                    output["lineage_diagnostics"].append(
+                        row(
+                            "lineage_diagnostics",
+                            doc,
+                            value["shortcutId"],
+                            **fields,
+                            mode=mode,
+                            reason="shortcut_target_" + value["targetStatus"],
+                            location=canonical({"shortcutId": value["shortcutId"]}),
+                        )
+                    )
+            output["lineage_resources"].append(
+                row(
+                    "lineage_resources",
+                    doc,
+                    "shortcuts" if parent else "inventory",
+                    **fields,
+                    mode=mode,
+                    evidence_type="shortcut_configuration",
+                    coverage_status="success" if resource["complete"] else "failed",
+                    record_count=len(values)
+                    if parent and resource["complete"]
+                    else None,
+                    diagnostic_count=diagnostics
+                    if parent and resource["complete"]
+                    else None,
+                )
+            )
+
+
+def _eventstream_tables(runs, output):
+    for run in runs.values():
+        if (
+            run["module"] != EVENTSTREAM_MODULE
+            or not run["valid"]
+            or not run["manifest"]["finished"]
+        ):
+            continue
+        mode = eventstream_scope(run["manifest"]["execution"])
+        for doc in run["resources"]:
+            resource, parent = doc["value"], doc["value"]["parent"]
+            fields = target_fields(parent) if parent else {}
+            graph = resource["records"][0] if parent and resource["complete"] else None
+            edge_count = 0
+            if graph is not None:
+                nodes = {node["nodeId"]: node for node in graph["nodes"]}
+
+                def edge(
+                    key,
+                    relation,
+                    reference,
+                    *,
+                    doc=doc,
+                    fields=fields,
+                    mode=mode,
+                    **related,
+                ):
+                    output["lineage_edges"].append(
+                        row(
+                            "lineage_edges",
+                            doc,
+                            key,
+                            **fields,
+                            mode=mode,
+                            direction="configured_link"
+                            if relation == "topology_input"
+                            else "association",
+                            relation_type=relation,
+                            reference=canonical(reference),
+                            evidence_type="eventstream_configuration",
+                            runtime_verified=False,
+                            **related,
+                        )
+                    )
+
+                for node in nodes.values():
+                    reference = {
+                        key: node[key]
+                        for key in (
+                            "nodeId",
+                            "role",
+                            "type",
+                            "reportedStatus",
+                            "inputsKnown",
+                        )
+                    }
+                    edge(
+                        ["node", node["nodeId"]],
+                        "topology_node",
+                        reference,
+                        related_type="EventstreamNode",
+                        resolution="configured_node",
+                    )
+                    edge_count += 1
+                    if node["targetStatus"] in {
+                        "configured_item",
+                        "connection_reference",
+                    }:
+                        edge(
+                            ["target", node["nodeId"]],
+                            "topology_target",
+                            {
+                                **reference,
+                                "connectionReference": node["connectionReference"],
+                            },
+                            related_type="FabricItem"
+                            if node["targetStatus"] == "configured_item"
+                            else "ConnectionReference",
+                            related_workspace_id=node["targetWorkspaceId"],
+                            related_item_id=node["targetItemId"],
+                            resolution=node["targetStatus"],
+                        )
+                        edge_count += 1
+                for link in graph["links"]:
+                    edge(
+                        ["input", link["fromNode"], link["toNode"]],
+                        "topology_input",
+                        {
+                            **link,
+                            "fromType": nodes[link["fromNode"]]["type"]
+                            if link["resolved"]
+                            else "Unknown",
+                            "toType": nodes[link["toNode"]]["type"],
+                        },
+                        related_type="EventstreamNode",
+                        resolution="configured_link"
+                        if link["resolved"]
+                        else "unresolved_input",
+                    )
+                    edge_count += 1
+                for diagnostic in graph["diagnostics"]:
+                    output["lineage_diagnostics"].append(
+                        row(
+                            "lineage_diagnostics",
+                            doc,
+                            eventstream_hash(diagnostic),
+                            **fields,
+                            mode=mode,
+                            reason=diagnostic["reason"],
+                            location=canonical(
+                                {
+                                    key: value
+                                    for key, value in diagnostic.items()
+                                    if key != "reason"
+                                }
+                            ),
+                        )
+                    )
+            output["lineage_resources"].append(
+                row(
+                    "lineage_resources",
+                    doc,
+                    "topology" if parent else "inventory",
+                    **fields,
+                    mode=mode,
+                    evidence_type="eventstream_configuration",
+                    coverage_status="success" if resource["complete"] else "failed",
+                    record_count=edge_count if graph is not None else None,
+                    diagnostic_count=len(graph["diagnostics"])
+                    if graph is not None
+                    else None,
+                )
+            )
+
+
 def transform(
-    documents, *, scanner_extractor=None, estate_extractor=None, module_extractor=None
+    documents,
+    *,
+    scanner_extractor=None,
+    estate_extractor=None,
+    module_extractor=None,
+    pipeline_extractor=None,
+    include_shortcuts=False,
+    include_eventstream_topology=False,
 ):
     """Return historical observations and explicit coverage, never inferred deletions."""
     documents = list(documents)
     if len({doc["path"] for doc in documents}) != len(documents):
         raise ValueError("Duplicate source path")
     output = {table: [] for table in SCHEMAS}
-    runs = build_runs(documents)
+    if (
+        type(include_shortcuts) is not bool
+        or type(include_eventstream_topology) is not bool
+    ):
+        raise TypeError("Choose boolean configuration inclusion flags")
+    modules = MODULES
+    if include_shortcuts:
+        modules += (SHORTCUT_MODULE,)
+    if include_eventstream_topology:
+        modules += (EVENTSTREAM_MODULE,)
+    runs = build_runs(documents, modules=modules)
     output["collection_health"].extend(_health(run) for run in runs.values())
     _permission_tables(runs, output)
     _job_tables(runs, output)
     _definition_tables(runs, output)
+    _notebook_configuration_tables(runs, output)
+    if include_shortcuts:
+        _shortcut_tables(runs, output)
+    if include_eventstream_topology:
+        _eventstream_tables(runs, output)
     present = {doc["path"].split("/")[0] for doc in documents}
     for doc in documents:
         module = doc["path"].split("/")[0]
@@ -1540,7 +2088,12 @@ def transform(
                         issue="invalid_raw_scanner",
                     )
                 )
-    for module in (*MODULES, "lineage_edges", "items", "workspaces"):
+    expected_modules = (*MODULES, "lineage_edges", "items", "workspaces")
+    if include_shortcuts:
+        expected_modules += (SHORTCUT_MODULE,)
+    if include_eventstream_topology:
+        expected_modules += (EVENTSTREAM_MODULE,)
+    for module in expected_modules:
         if module not in present:
             output["collection_health"].append(
                 row(
@@ -1555,6 +2108,8 @@ def transform(
         estate_extractor(documents, runs, output)
     if module_extractor is not None:
         module_extractor(documents, runs, output)
+    if pipeline_extractor is not None:
+        pipeline_extractor(documents, output)
     for table, rows in output.items():
         unique = {}
         for entry in rows:

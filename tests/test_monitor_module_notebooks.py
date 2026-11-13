@@ -4,6 +4,7 @@ import copy
 import json
 import tempfile
 import unittest
+from itertools import product
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -585,21 +586,55 @@ class ExpandedValidationScopeTests(unittest.TestCase):
                     analytics.ESTATE_DATASETS,
                     analytics.CORE_SOURCE_PREFIXES | analytics.ESTATE_PREFIXES,
                 ),
-                (False, True, analytics.SCHEMAS, None),
-                (True, True, analytics.SCHEMAS, None),
+                (
+                    False,
+                    True,
+                    analytics.MODULE_DATASETS,
+                    analytics.CORE_SOURCE_PREFIXES
+                    | analytics.ESTATE_PREFIXES
+                    | analytics.MODULE_PREFIXES,
+                ),
+                (
+                    True,
+                    True,
+                    analytics.MODULE_DATASETS,
+                    analytics.CORE_SOURCE_PREFIXES
+                    | analytics.ESTATE_PREFIXES
+                    | analytics.MODULE_PREFIXES,
+                ),
             ):
-                curated.reset_mock()
-                snapshot = validation.validate_rerun(
-                    spark,
-                    MagicMock(),
-                    raw_root=str(Path(folder) / "monitor"),
-                    prefix="monitor_",
-                    permission_mode="Scoped",
-                    action="capture",
-                    baseline_name="new.json",
-                    include_estate_tables=estate,
-                    include_module_tables=modules_enabled,
-                )
-                self.assertEqual(set(snapshot["tables"]), set(expected))
-                self.assertEqual(curated.call_count, len(expected))
-                self.assertEqual(read.call_args.kwargs["source_prefixes"], prefixes)
+                for pipeline_enabled, shortcuts_enabled, eventstream_enabled in product(
+                    (False, True), repeat=3
+                ):
+                    curated.reset_mock()
+                    snapshot = validation.validate_rerun(
+                        spark,
+                        MagicMock(),
+                        raw_root=str(Path(folder) / "monitor"),
+                        prefix="monitor_",
+                        permission_mode="Scoped",
+                        action="capture",
+                        baseline_name="new.json",
+                        include_estate_tables=estate,
+                        include_module_tables=modules_enabled,
+                        include_pipeline_activity_tables=pipeline_enabled,
+                        include_shortcuts=shortcuts_enabled,
+                        include_eventstream_topology=eventstream_enabled,
+                    )
+                    selected = set(expected) | (
+                        set(analytics.PIPELINE_ACTIVITY_SCHEMAS)
+                        if pipeline_enabled
+                        else set()
+                    )
+                    sources = prefixes | (
+                        analytics.PIPELINE_ACTIVITY_PREFIXES
+                        if pipeline_enabled
+                        else set()
+                    )
+                    if shortcuts_enabled:
+                        sources = sources | analytics.SHORTCUT_PREFIXES
+                    if eventstream_enabled:
+                        sources = sources | analytics.EVENTSTREAM_PREFIXES
+                    self.assertEqual(set(snapshot["tables"]), selected)
+                    self.assertEqual(curated.call_count, len(selected))
+                    self.assertEqual(read.call_args.kwargs["source_prefixes"], sources)

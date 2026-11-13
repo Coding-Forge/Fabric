@@ -1,11 +1,10 @@
 # Understanding the Monitor notebook outputs
 
-This guide explains the **21 numbered Monitor notebooks**: what their outputs
+This guide explains the **22 numbered Monitor notebooks**: what their outputs
 mean, what you should learn from them, and how they relate to each other.
 It describes the implemented outputs, not a review of your latest live results.
 The older `activity.ipynb`, `catalog.ipynb`, `Deconstruct.ipynb` and `nbk.ipynb`
-are preserved in [archive/](archive/). They are experiments, not additional steps
-in this suite.
+are experiments, not additional steps in this suite.
 
 ## 1. The main idea: different views of the same estate
 
@@ -46,7 +45,7 @@ Raw JSON files in Lakehouse Files
 ```
 
 **07-21 do not depend on running each preceding notebook.** Each transforms its
-own raw sources. Notebook 05 is not an all-21-notebook dashboard; the additional
+own raw sources. Notebook 05 is not an all-22-notebook dashboard; the additional
 domains have their own displays.
 
 ## 2. How to read any notebook result
@@ -184,14 +183,14 @@ different from a failed poll. Missing or inverted timing leaves duration unknown
 what a pipeline may depend on, but a successful job does not verify each lineage
 edge. Notebook 11 covers semantic-model refreshes separately.
 
-### 04 - Scanner and static lineage
+### 04 - Scanner, static lineage and configured Lakehouses
 
 **Question:** What upstream/downstream relationships were reported or inferred?
 
 | Table | Meaning |
 |---|---|
 | `lineage_resources` | Which items/evidence were inspected, including successful zero-edge observations. |
-| `lineage_edges` | Directional relationships and their evidence/resolution details. |
+| `lineage_edges` | Directional references or configured associations, with evidence/resolution details. |
 | `lineage_diagnostics` | Reasons some static references could not be resolved or supported. |
 
 The preview groups resources by evidence/coverage, edges by evidence/direction/
@@ -202,6 +201,34 @@ different evidence types. A pipeline definition referencing a notebook is
 configuration evidence, not proof it executed that notebook. Dynamic expressions
 can remain unresolved rather than becoming guessed edges. No edges without
 successful coverage is not proof of no dependencies.
+
+`configuration_metadata` separately records default/known Lakehouse declarations
+from retained notebook definitions. These are associations, not reads or writes,
+and do not prove existence, access or runtime use. Related workspace IDs remain
+unknown unless explicitly declared. Missing decoded content is missing evidence;
+available content with no declared attachments is a successful zero. Invalid
+declarations are diagnosed separately from static code references.
+
+With `INCLUDE_SHORTCUTS=True`, 01-04 also read retained `FabricShortcuts`
+captures. `shortcut_configuration` identifies configured OneLake target IDs or
+unresolved external targets. Missing target details are not zero shortcuts.
+External references and shortcut identities are fingerprinted; names, paths and
+URLs are not exposed. A transform flag does not prove execution. The graph uses
+the latest collection scope/attempt, suppresses failed or empty latest evidence
+instead of reusing old edges, and draws non-directional dashed associations.
+This does not test target access or establish actual data movement.
+
+With `INCLUDE_EVENTSTREAM_TOPOLOGY=True`, `eventstream_configuration` adds
+sources, streams, processing operators, destinations and declared input links.
+`topology_node` records membership, `topology_input` records declared connections,
+and `topology_target` records selected configured item/connection references.
+Their total is a graph-record count, not event volume or executions. Node names
+are fingerprinted; connector payloads, expressions and schemas are omitted.
+`Running` is a reported node status, not verified delivery. Subscription item
+scope is not necessarily a data dependency. Missing inputs and unresolved targets
+remain diagnostics. Purple dashed arrows in 05 indicate declared inputs; gray
+lines indicate membership and green lines configured targets. A newer empty or
+incomplete sweep does not fall back to older selected topology.
 
 The curated output contains normalized references and diagnostics, **not copies
 of notebook code or pipeline JSON**. Exported definitions remain raw evidence.
@@ -221,7 +248,7 @@ observations; 05 draws a bounded graph from selected lineage evidence.
 | Retained coverage and inventory charts | Distribution of historical observations, not current unique inventory. |
 | Selected permission-cycle coverage and assignments | Which item targets were inspected and which permission values were observed in the selected mode/cycle. |
 | Latest retained job statuses/durations and poll coverage | What was last seen for each job, alongside whether item polling succeeded. |
-| Lineage coverage, evidence, diagnostics and directed graph | Selected relationships and uncertainty, not runtime data flow. |
+| Lineage coverage, evidence, diagnostics and relationship graph | Selected references and uncertainty; dashed green associations are configured Lakehouses, not runtime data flow. |
 
 **What to understand:** Start with health, then interpret the charts. The
 default permission selection is the latest attempt, not a silent fallback to
@@ -236,7 +263,7 @@ unfinished lineage evidence can block automatic selection; an explicitly chosen
 historical source is a historical view, not a current graph.
 
 **Connection:** This is the core presentation layer, not a dashboard for all
-48 datasets. Use 07-21 for their additional domain displays.
+50 datasets. Use 07-21 and optional 22 for their additional domain displays.
 
 ### 06 - Persistent rerun validation
 
@@ -269,6 +296,12 @@ Delta history needed for comparison.
 **Connection:** Default scope is the 10 core tables. Enabling
 `INCLUDE_ESTATE_TABLES` covers 25 tables after 07-11 are published.
 `INCLUDE_MODULE_TABLES` covers all 48 after 07-21 are published.
+Optional `INCLUDE_PIPELINE_ACTIVITY_TABLES` adds 22's two datasets to the selected
+scope. It is False by default; changing scope requires a new baseline name.
+`INCLUDE_SHORTCUTS` must match 01-04. It adds shortcut raw evidence, not tables;
+changing it is NOT_COMPARABLE even when no shortcut files have arrived yet.
+`INCLUDE_EVENTSTREAM_TOPOLOGY` follows the same rule independently and also adds
+raw evidence without adding tables.
 
 ### 07 - Activity and audit events
 
@@ -562,6 +595,35 @@ data-processing pipelines. Data Factory pipeline jobs belong with 03; static
 Data Factory definition references belong with 04. This notebook does not trigger
 deployments or provide a complete deployed-item/stage-to-workspace mapping.
 
+### 22 - Data Factory pipeline activity (optional)
+
+**Question:** Which activity status, timing and native row/byte/throughput metrics
+were returned, and which activity queries actually succeeded?
+
+**Tables:** `pipeline_activity_resources`, `pipeline_activity_observations`.
+
+Coverage separates the collection attempt, pipeline inventory, job-history
+requests and activity queries. Successful empty job history means no run IDs
+were returned; it does not mean an activity query succeeded with zero rows.
+Failed, missing, invalid and unfinished evidence retains unknown counts.
+
+Each activity fact belongs to one query observation, with mode, scope, UTC
+last-updated window and source provenance. The preview selects the latest scope
+in each mode, then the latest query attempt per workspace/run before admitting
+metrics. Empty or failed latest queries do not reuse older facts. Exact historical
+selection is available through `ACTIVITY_SOURCE_PATH`.
+
+**What to understand:** Null means unreported/unknown; explicit zero stays zero.
+Throughput units depend on the activity/engine. Do not sum rates, repeated polls,
+or chained activity counts as distinct pipeline movement. Last-updated windows
+are not execution-duration measurements or complete lifetime-history guarantees.
+An unknown-time/unfinished/invalid attempt can block automatic selection.
+
+**Connection:** Match workspace/item/run identities with 03's job evidence only
+when the execution identity is confirmed. Explicit captures may have no owning
+item ID; none is inferred. Notebook 04 references and 21 deployment operations
+remain separate. This notebook does not establish runtime lineage.
+
 ## 4. How to relate the outputs without creating misleading totals
 
 ### Shared identifiers are the connecting tissue
@@ -579,6 +641,7 @@ keys or a prebuilt semantic model.
 | `gateway_id` / `datasource_id` | 09 connections to 10 gateways; datasource detail to status within 10 | Does not establish every consuming item or live connectivity. |
 | `domain_id` | Domains, workspace associations, domain settings and tag scope | Tag scope does not mean an item has that tag. |
 | `pipeline_id` + `operation_id` | Deployment history outcomes and operation observations in 21 | Not a Data Factory pipeline/job identity. |
+| `workspace_id` + `pipeline_run_id` + `activity_run_id` | Activity-query observations in optional 22; confirmed job ID in 03 | Preserve mode, scope, query window and selected source. Repeated polls are not additive executions. |
 | `source_path`, run/cycle IDs and observation time | Trace a curated fact back to its evidence and collection context | An observation ID identifies a particular observation, not the business object across time. |
 
 **Select the relevant history before joining.** Joining all catalog snapshots to
@@ -597,7 +660,7 @@ This is an illustrative investigation, not a statement about your latest data.
 1. **01 and the relevant coverage outputs:** establish which evidence is usable
    and how old it is.
 2. **08:** identify the workspace and pipeline item.
-3. **03:** inspect the latest retained job status, timing and item-poll outcome.
+3. **03 and optional 22:** inspect retained job status/item-poll outcome, then activity-query coverage and reported activity metrics when available.
 4. **04:** inspect saved definition references, such as a notebook the pipeline
    is configured to invoke. Keep unresolved expressions visible.
 5. **13:** inspect capacity evidence for an applicable time window, if collected.
@@ -629,6 +692,9 @@ resource permission.
 |---|---|
 | Item definition references used by 04 | Definitions come from non-Admin export APIs requiring item read/write access, commonly workspace Contributor or higher. Discovery visibility alone is insufficient. Supported static parsing is not exhaustive runtime lineage. |
 | Fabric item job history in 03 | Non-Admin resource history requires resource access and configured collection targets. It is bounded recent history, not every historical tenant job. |
+| Pipeline activity in optional 22 | Admin discovery followed by non-Admin job/activity queries, with workspace opt-outs, resource authorization, query windows and bounded recent history. Empty job lists do not establish zero activity. |
+| Optional shortcut evidence in 01/04 | Admin Lakehouse discovery followed by non-Admin shortcut listing requiring item Read. Workspace opt-outs apply to owners; targets are never followed or access-tested. |
+| Optional Eventstream topology in 01/04 | Admin Eventstream discovery followed by non-Admin topology GET requiring Eventstream Read. Declared inputs and selected target references, not events, runtime I/O or target-access proof. |
 | Connections in 09 | Non-Admin caller-visible connection inventory, not tenant-wide Admin inventory. |
 | Gateway evidence in 10 | Resource/caller visibility does not establish tenant completeness or guaranteed VNet gateway coverage. |
 | Directory/licensing in 14 | Microsoft Graph evidence has its own consent, visibility and optional/capped membership collection; it is not Power BI/Fabric Admin inventory. |

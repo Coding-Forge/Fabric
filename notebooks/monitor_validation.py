@@ -12,10 +12,16 @@ from notebooks.monitor_analytics import (
     CORE_SOURCE_PREFIXES,
     ESTATE_DATASETS,
     ESTATE_PREFIXES,
+    EVENTSTREAM_PREFIXES,
     LAKEHOUSE_FILES,
+    MODULE_DATASETS,
+    MODULE_PREFIXES,
     PERMISSIONS,
+    PIPELINE_ACTIVITY_PREFIXES,
+    PIPELINE_ACTIVITY_SCHEMAS,
     SCHEMA_VERSION,
     SCHEMAS,
+    SHORTCUT_PREFIXES,
     canonical,
     load_documents,
     sha256,
@@ -110,6 +116,8 @@ def validation_load_baseline(path):
             or not isinstance(snapshot["tables"], dict)
             or not snapshot["tables"]
             or not set(snapshot["tables"]).issubset(SCHEMAS)
+            or type(snapshot.get("include_shortcuts", False)) is not bool
+            or type(snapshot.get("include_eventstream_topology", False)) is not bool
         ):
             raise ValueError
         table_name(snapshot["prefix"], "inventory")
@@ -186,6 +194,26 @@ def validation_table_metrics(frame):
 
 
 def validation_compare(spark_session, current, frames, baseline):
+    if baseline.get("include_eventstream_topology", False) != current.get(
+        "include_eventstream_topology", False
+    ):
+        return [
+            {
+                "check": "eventstream_evidence_scope",
+                "status": "NOT_COMPARABLE",
+                "detail": "Eventstream evidence scope changed; capture a new baseline",
+            }
+        ]
+    if baseline.get("include_shortcuts", False) != current.get(
+        "include_shortcuts", False
+    ):
+        return [
+            {
+                "check": "shortcut_evidence_scope",
+                "status": "NOT_COMPARABLE",
+                "detail": "Shortcut evidence scope changed; capture a new baseline",
+            }
+        ]
     if set(current["tables"]) != set(baseline["tables"]):
         return [
             {
@@ -322,6 +350,16 @@ def validation_reports(spark_session, display_frame, frames, mode, threshold, no
             .orderBy("analysis", "coverage_status")
             .limit(200)
         )
+    if "pipeline_activity_resources" in frames:
+        print(
+            "Pipeline activity coverage: absent queries are not zero activity metrics."
+        )
+        display_frame(
+            frames["pipeline_activity_resources"]
+            .groupBy("mode", "observation_unit", "coverage_status")
+            .count()
+            .limit(200)
+        )
 
 
 def validate_rerun(
@@ -339,6 +377,9 @@ def validate_rerun(
     max_file_bytes=8 * 1024 * 1024,
     include_estate_tables=False,
     include_module_tables=False,
+    include_pipeline_activity_tables=False,
+    include_shortcuts=False,
+    include_eventstream_topology=False,
 ):
     if permission_mode not in {"Scoped", "Tenant"} or action not in {
         "capture",
@@ -348,10 +389,11 @@ def validate_rerun(
     if (
         type(include_estate_tables) is not bool
         or type(include_module_tables) is not bool
+        or type(include_pipeline_activity_tables) is not bool
+        or type(include_shortcuts) is not bool
+        or type(include_eventstream_topology) is not bool
     ):
-        raise TypeError(
-            "Choose boolean include_estate_tables/include_module_tables flags"
-        )
+        raise TypeError("Choose boolean table-scope inclusion flags")
     now = datetime.now(timezone.utc).isoformat()
     validation_freshness(None, now, stale_after_hours)
     path = validation_baseline_path(baseline_name, raw_root)
@@ -362,19 +404,27 @@ def validate_rerun(
     baseline = validation_load_baseline(path) if action == "compare" else None
     spark_session.conf.set("spark.sql.session.timeZone", "UTC")
 
+    source_prefixes = (
+        CORE_SOURCE_PREFIXES | ESTATE_PREFIXES | MODULE_PREFIXES
+        if include_module_tables
+        else CORE_SOURCE_PREFIXES | ESTATE_PREFIXES
+        if include_estate_tables
+        else CORE_SOURCE_PREFIXES
+    )
+    if include_pipeline_activity_tables:
+        source_prefixes = source_prefixes | PIPELINE_ACTIVITY_PREFIXES
+    if include_shortcuts:
+        source_prefixes = source_prefixes | SHORTCUT_PREFIXES
+    if include_eventstream_topology:
+        source_prefixes = source_prefixes | EVENTSTREAM_PREFIXES
+
     def read_raw():
         return load_documents(
             raw_root,
             max_files=max_files,
             max_bytes=max_bytes,
             max_file_bytes=max_file_bytes,
-            source_prefixes=(
-                None
-                if include_module_tables
-                else CORE_SOURCE_PREFIXES | ESTATE_PREFIXES
-                if include_estate_tables
-                else CORE_SOURCE_PREFIXES
-            ),
+            source_prefixes=source_prefixes,
         )
 
     snapshot = {
@@ -387,17 +437,21 @@ def validate_rerun(
         .relative_to(Path(LAKEHOUSE_FILES).resolve())
         .as_posix(),
         "permission_mode": permission_mode,
+        "include_shortcuts": include_shortcuts,
+        "include_eventstream_topology": include_eventstream_topology,
         "raw": validation_raw_digest(read_raw()),
         "tables": {},
     }
     frames = {}
     datasets = (
-        SCHEMAS
+        MODULE_DATASETS
         if include_module_tables
         else ESTATE_DATASETS
         if include_estate_tables
         else CORE_DATASETS
     )
+    if include_pipeline_activity_tables:
+        datasets = (*datasets, *PIPELINE_ACTIVITY_SCHEMAS)
     for dataset in datasets:
         columns = SCHEMAS[dataset]
         name = table_name(prefix, dataset)
