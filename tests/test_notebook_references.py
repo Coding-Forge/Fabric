@@ -4,6 +4,7 @@ import unittest
 from unittest.mock import patch
 
 from env.utility.notebook_references import notebook_references
+from env.utility.notebook_relationships import notebook_lakehouse_relationships
 
 
 def notebook(*sources):
@@ -151,6 +152,105 @@ class NotebookReferenceTests(unittest.TestCase):
         self.assertEqual(result["references"], [])
         self.assertGreaterEqual(len(result["diagnostics"]), 2)
         self.assertNotIn("SYNTHETIC_PRIVATE_PATH", str(log.call_args_list))
+
+
+class NotebookRelationshipTests(unittest.TestCase):
+    def test_declared_lakehouses_are_deduplicated_without_inventing_workspace_or_io(
+        self,
+    ):
+        default = "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"
+        other = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+        workspace = "cccccccc-cccc-cccc-cccc-cccccccccccc"
+        doc = notebook('spark.table("db.input")')
+        doc["metadata"] = {
+            "dependencies": {
+                "lakehouse": {
+                    "default_lakehouse": default,
+                    "default_lakehouse_name": "SYNTHETIC_PRIVATE_NAME",
+                    "known_lakehouses": [
+                        {"id": default.lower()},
+                        {"id": other, "workspaceId": workspace},
+                        {"id": other, "workspaceId": workspace},
+                    ],
+                }
+            }
+        }
+        result = notebook_lakehouse_relationships(doc)
+        self.assertTrue(result["complete"])
+        self.assertEqual(
+            result["relationships"],
+            [
+                {
+                    "relation": "default_lakehouse",
+                    "itemId": default.lower(),
+                    "workspaceId": None,
+                },
+                {
+                    "relation": "known_lakehouse",
+                    "itemId": other,
+                    "workspaceId": workspace,
+                },
+            ],
+        )
+        self.assertNotIn("SYNTHETIC_PRIVATE_NAME", str(result))
+        self.assertEqual(
+            refs(notebook_references(doc)), {("read", "table", "db.input")}
+        )
+        self.assertEqual(
+            doc["metadata"]["dependencies"]["lakehouse"]["default_lakehouse"], default
+        )
+
+    def test_absent_declarations_are_empty_but_malformed_metadata_is_not_success(self):
+        for doc in ({}, {"metadata": {}}, {"metadata": {"dependencies": None}}):
+            with self.subTest(doc=doc):
+                result = notebook_lakehouse_relationships(doc)
+                self.assertTrue(result["complete"])
+                self.assertEqual(result["relationships"], [])
+        for value in (
+            {"default_lakehouse": "SYNTHETIC_PRIVATE_INVALID_ID"},
+            {"known_lakehouses": {}},
+            {"known_lakehouses": ["SYNTHETIC_PRIVATE_INVALID_ENTRY"]},
+            {"known_lakehouses": [{"id": None}]},
+            {
+                "default_lakehouse": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "default_lakehouse_workspace_id": "SYNTHETIC_PRIVATE_INVALID_ID",
+            },
+        ):
+            with self.subTest(value=value):
+                result = notebook_lakehouse_relationships(
+                    {"metadata": {"dependencies": {"lakehouse": value}}}
+                )
+                self.assertFalse(result["complete"])
+                self.assertTrue(result["diagnostics"])
+                self.assertNotIn("SYNTHETIC_PRIVATE", str(result))
+        for doc in (None, {"metadata": []}, {"metadata": {"dependencies": []}}):
+            with self.subTest(doc=doc):
+                self.assertFalse(notebook_lakehouse_relationships(doc)["complete"])
+
+    def test_conflicting_workspace_declarations_are_diagnosed(self):
+        lakehouse = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        result = notebook_lakehouse_relationships(
+            {
+                "metadata": {
+                    "dependencies": {
+                        "lakehouse": {
+                            "default_lakehouse": lakehouse,
+                            "default_lakehouse_workspace_id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                            "known_lakehouses": [
+                                {
+                                    "id": lakehouse,
+                                    "workspaceId": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+                                }
+                            ],
+                        }
+                    }
+                }
+            }
+        )
+        self.assertFalse(result["complete"])
+        self.assertEqual(
+            result["diagnostics"][0]["reason"], "conflicting_configured_workspace"
+        )
 
 
 if __name__ == "__main__":

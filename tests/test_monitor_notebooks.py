@@ -13,10 +13,12 @@ from unittest.mock import MagicMock, patch
 
 from env.modules import fabricconnections as connection_collector
 from env.utility.lineage_edges import scan_snapshot
+from env.utility.notebook_references import notebook_references
 from notebooks import monitor_analytics as analytics
 from notebooks import monitor_estate_analytics as estate
 from notebooks import monitor_fabric_runtime as runtime
 from notebooks import monitor_validation as validation
+from notebooks import monitor_visualizations as visualizations
 from notebooks.build_monitor_notebooks import ROOT, generated_notebooks
 from tests.fabric_helpers import CollectorTestCase, inventory, item
 
@@ -503,7 +505,21 @@ class ObservationTests(unittest.TestCase):
         values = [
             {
                 "notebookReferences": refs,
-                "decodedParts": {"secret": "never-export-this"},
+                "decodedParts": {
+                    "secret": "never-export-this",
+                    "notebook-content.ipynb": {
+                        "cells": [],
+                        "metadata": {
+                            "dependencies": {
+                                "lakehouse": {
+                                    "default_lakehouse": OTHER,
+                                    "default_lakehouse_workspace_id": WORKSPACE,
+                                    "default_lakehouse_name": "never-export-this",
+                                }
+                            }
+                        },
+                    },
+                },
             }
         ]
         output = analytics.transform(run("fabricitemdefinitions", 1, PARENT, values))
@@ -512,6 +528,94 @@ class ObservationTests(unittest.TestCase):
         )
         self.assertEqual(len(output["lineage_diagnostics"]), 1)
         self.assertNotIn("never-export-this", json.dumps(output))
+        configured = next(
+            edge
+            for edge in output["lineage_edges"]
+            if edge["evidence_type"] == "configuration_metadata"
+        )
+        self.assertEqual(configured["related_item_id"], OTHER)
+        self.assertEqual(configured["related_workspace_id"], WORKSPACE)
+        self.assertEqual(configured["relation_type"], "default_lakehouse")
+        self.assertEqual(configured["direction"], "association")
+        self.assertEqual(configured["resolution"], "configured_id")
+        self.assertFalse(configured["runtime_verified"])
+
+    def test_notebook_configuration_distinguishes_empty_missing_and_failed_coverage(
+        self,
+    ):
+        raw = {"cells": []}
+        record = {"notebookReferences": notebook_references(raw)}
+        for kind, expected, count in (
+            ("empty", "success", 0),
+            ("missing", "missing", None),
+            ("failed", "failed", None),
+        ):
+            with self.subTest(kind=kind):
+                value = copy.deepcopy(record)
+                if kind != "missing":
+                    value["decodedParts"] = {"notebook-content.ipynb": raw}
+                documents = run(
+                    "fabricitemdefinitions",
+                    1,
+                    PARENT,
+                    [value],
+                    success=kind != "failed",
+                    complete=kind != "failed",
+                )
+                output = analytics.transform(documents)
+                coverage = next(
+                    row
+                    for row in output["lineage_resources"]
+                    if row["evidence_type"] == "configuration_metadata"
+                )
+                self.assertEqual(coverage["coverage_status"], expected)
+                self.assertEqual(coverage["record_count"], count)
+                self.assertEqual(output["lineage_edges"], [])
+                self.assertEqual(output, analytics.transform(documents))
+                manifest = copy.deepcopy(documents[1]["value"])
+                manifest["finished"] = False
+                unfinished = [documents[0], doc(documents[1]["path"], manifest)]
+                self.assertEqual(
+                    analytics.transform(unfinished)["lineage_resources"], []
+                )
+
+    def test_invalid_configuration_does_not_discard_independent_static_references(self):
+        raw = {
+            "cells": [{"cell_type": "code", "source": 'spark.table("db.input")'}],
+            "metadata": {
+                "dependencies": {
+                    "lakehouse": {"default_lakehouse": "SYNTHETIC_PRIVATE_INVALID_ID"}
+                }
+            },
+        }
+        documents = run(
+            "fabricitemdefinitions",
+            1,
+            PARENT,
+            [
+                {
+                    "notebookReferences": notebook_references(raw),
+                    "decodedParts": {"notebook-content.ipynb": raw},
+                }
+            ],
+        )
+        output = analytics.transform(documents)
+        self.assertEqual(
+            [edge["evidence_type"] for edge in output["lineage_edges"]],
+            ["static_inference"],
+        )
+        coverage = next(
+            row
+            for row in output["lineage_resources"]
+            if row["evidence_type"] == "configuration_metadata"
+        )
+        self.assertEqual(coverage["coverage_status"], "invalid")
+        self.assertIsNone(coverage["record_count"])
+        self.assertEqual(
+            output["lineage_diagnostics"][0]["reason"],
+            "invalid_configured_identifier",
+        )
+        self.assertNotIn("SYNTHETIC_PRIVATE", json.dumps(output))
 
     def test_legacy_inventory_does_not_claim_successful_snapshot(self):
         path = "items/2026/01/01/fabricitems_00001.json"
@@ -557,6 +661,60 @@ class ObservationTests(unittest.TestCase):
                 )
         with self.assertRaises(ValueError):
             analytics.load_documents("/tmp/not-a-lakehouse")
+
+
+class RelationshipVisualizationTests(unittest.TestCase):
+    def test_configured_associations_are_not_drawn_as_dataflow_arrows(self):
+        entries = [
+            {
+                "item_id": ITEM,
+                "item_type": "Notebook",
+                "related_item_id": OTHER,
+                "related_type": "Lakehouse",
+                "reference": OTHER,
+                "direction": "association",
+                "evidence_type": "configuration_metadata",
+            },
+            {
+                "item_id": ITEM,
+                "item_type": "Notebook",
+                "related_item_id": None,
+                "related_type": "table",
+                "reference": "db.input",
+                "direction": "upstream",
+                "evidence_type": "static_inference",
+            },
+            {
+                "item_id": ITEM,
+                "item_type": "Lakehouse",
+                "related_item_id": OTHER,
+                "related_type": "FabricItem",
+                "reference": OTHER,
+                "direction": "association",
+                "evidence_type": "shortcut_configuration",
+            },
+        ]
+        frame, pyplot, axis = MagicMock(), MagicMock(), MagicMock()
+        frame.orderBy.return_value.limit.return_value.collect.return_value = entries
+        pyplot.subplots.return_value = (None, axis)
+        with patch.dict(
+            "sys.modules",
+            {
+                "matplotlib": SimpleNamespace(pyplot=pyplot),
+                "matplotlib.pyplot": pyplot,
+                "matplotlib.lines": SimpleNamespace(Line2D=MagicMock()),
+            },
+        ):
+            visualizations.graph_lineage(frame, 10)
+        configured, static, shortcut = [
+            call.kwargs["arrowprops"] for call in axis.annotate.call_args_list
+        ]
+        self.assertEqual(configured["arrowstyle"], "-")
+        self.assertEqual(configured["linestyle"], "--")
+        self.assertEqual(configured["color"], "tab:green")
+        self.assertEqual(static["arrowstyle"], "->")
+        self.assertEqual(static["color"], "tab:orange")
+        self.assertEqual(shortcut, configured)
 
 
 class PersistenceTests(unittest.TestCase):
@@ -1424,7 +1582,9 @@ class ValidationNotebookTests(unittest.TestCase):
 
 
 class UploadableNotebookTests(unittest.TestCase):
-    def orchestrator_namespace(self, run, names=None):
+    def orchestrator_namespace(
+        self, run, names=None, *, include_pipeline_activity=False
+    ):
         notebook = generated_notebooks()["nb_orchestrator.ipynb"]
         namespace = {
             "notebookutils": SimpleNamespace(notebook=SimpleNamespace(run=run)),
@@ -1436,6 +1596,10 @@ class UploadableNotebookTests(unittest.TestCase):
             for cell in notebook["cells"]
             if cell["cell_type"] == "code"
         ]
+        if include_pipeline_activity:
+            config = config.replace(
+                "INCLUDE_PIPELINE_ACTIVITY = False", "INCLUDE_PIPELINE_ACTIVITY = True"
+            )
         exec(compile(config, "orchestrator_parameters", "exec"), namespace)  # noqa: S102 - Trusted generated cell.
         if names is not None:
             namespace["NOTEBOOKS"] = names
@@ -1447,7 +1611,8 @@ class UploadableNotebookTests(unittest.TestCase):
         writers = {
             name.removesuffix(".ipynb")
             for name in generated_notebooks()
-            if name[:2] not in {"05", "06"} and name != "nb_orchestrator.ipynb"
+            if name[:2] not in {"05", "06", "22", "23", "24", "25", "26"}
+            and name != "nb_orchestrator.ipynb"
         }
         self.assertEqual(set(namespace["NOTEBOOKS"]), writers)
         self.assertEqual(len(namespace["NOTEBOOKS"]), 19)
@@ -1464,12 +1629,33 @@ class UploadableNotebookTests(unittest.TestCase):
                     "TABLE_PREFIX": "monitor_",
                     "WRITE_TABLES": False,
                     "PERMISSION_MODE": "Scoped",
+                    "INCLUDE_SHORTCUTS": False,
+                    "INCLUDE_EVENTSTREAM_TOPOLOGY": False,
                 },
             )
         self.assertTrue(
             all(result["status"] == "Succeeded" for result in namespace["results"])
         )
         namespace["display"].assert_called_once()
+
+    def test_pipeline_activity_writer_requires_explicit_orchestrator_opt_in(self):
+        run = MagicMock(return_value="")
+        namespace, execute = self.orchestrator_namespace(
+            run, include_pipeline_activity=True
+        )
+        exec(compile(execute, "orchestrator_execution", "exec"), namespace)  # noqa: S102 - Trusted generated cell with mocked Fabric APIs.
+        self.assertEqual(run.call_count, 20)
+        self.assertEqual(run.call_args.args[0], "22_monitor_pipeline_activity")
+
+    def test_shortcut_opt_in_reaches_existing_writers_without_adding_children(self):
+        run = MagicMock(return_value="")
+        namespace, execute = self.orchestrator_namespace(run)
+        namespace["INCLUDE_SHORTCUTS"] = True
+        exec(compile(execute, "shortcut_orchestration", "exec"), namespace)  # noqa: S102 - Trusted generated code with mocked Fabric calls.
+        self.assertEqual(run.call_count, 19)
+        self.assertTrue(
+            all(call.args[2]["INCLUDE_SHORTCUTS"] for call in run.call_args_list)
+        )
 
     def test_orchestrator_reports_named_failures_after_attempting_remaining_children(
         self,
@@ -1541,6 +1727,10 @@ class UploadableNotebookTests(unittest.TestCase):
                     ):
                         exec(compile(tree, name, "exec"), namespace)  # noqa: S102 - Trusted generated library cells only.
                 if name == "nb_orchestrator.ipynb":
+                    continue
+                if name.startswith("26"):
+                    self.assertIn("open_gold_query_views", namespace)
+                    self.assertIn("run_gold_event_queries", namespace)
                     continue
                 self.assertIn("transform", namespace)
                 if name.startswith("06"):

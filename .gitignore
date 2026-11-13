@@ -28,11 +28,12 @@ config.json
 !notebooks/19_monitor_tags.ipynb
 !notebooks/20_monitor_broad_sharing.ipynb
 !notebooks/21_monitor_deployment_pipelines.ipynb
+!notebooks/22_monitor_pipeline_activity.ipynb
+!notebooks/23_monitor_investigation.ipynb
+!notebooks/24_monitor_silver_events.ipynb
+!notebooks/25_monitor_gold_event_cases.ipynb
+!notebooks/26_monitor_gold_investigation.ipynb
 !notebooks/nb_orchestrator.ipynb
-!notebooks/archive/activity.ipynb
-!notebooks/archive/catalog.ipynb
-!notebooks/archive/Deconstruct.ipynb
-!notebooks/archive/nbk.ipynb
 
 
 **/__pycache__/
@@ -57,3 +58,4 @@ capacity_data/
 !pbip-local/**/*.json
 **/.pbi/
 *:sec.endpointdlp
+/dashboard/
