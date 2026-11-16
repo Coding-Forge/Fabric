@@ -5,6 +5,10 @@ using Python API collectors. It preserves raw JSON in local files, Blob Storage
 or a Fabric Lakehouse, with Power BI reports and a separate Fabric notebook
 analytics layer for exploring that evidence.
 
+**Explore the [Fabric Monitor site](https://coding-forge.github.io/Fabric/)** for
+the solution overview, demo video, guided setup, documentation library and a
+synthetic evidence-first investigation.
+
 | Layer | Purpose | Guide |
 |---|---|---|
 | Collection | Run explicitly enabled modules against authorized APIs and preserve raw observations | [Configuration and API boundaries](docs/configuration-reference.md), [local operation](docs/local-development.md) |

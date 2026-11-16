@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "test": "node --test test_slides.cjs test_episode.cjs",
+    "test:site": "node --test test_site.cjs",
     "verify:pilot": "node verify_episode.cjs 01"
   },
   "devDependencies": {

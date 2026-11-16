@@ -260,12 +260,12 @@ Local does not mean offline. Configure credentials privately and approve the col
   </nav>
   <aside class="review">
     <h2>Review draft / voice audition</h2>
-    <p>This is the Episode 1 slide deck, not a finished video. The short audio sample auditions the offline Microsoft Zira voice; it is not synchronized to the slides. Use the arrow keys or navigation buttons to review.</p>
-    <audio controls preload="none" src="output/narration-preview.wav" aria-label="Offline Zira narration audition"></audio>
+    <p>This is the Episode 1 slide deck, not a finished video. Use the arrow keys or navigation buttons to review. A short offline Microsoft Zira voice audition is available only in local checkouts with generated output; it is not published or synchronized to the slides.</p>
+    <audio controls preload="none" data-local-src="output/narration-preview.wav" aria-label="Offline Zira narration audition" hidden></audio>
     <div id="notes" class="notes" hidden></div>
-    <p>Source: <a href="../configuration-reference.md">API scope and configuration</a> /
-      <a href="../../notebooks/notebook-guide.md">Analytics notebook runbook</a> /
-      <a href="storyboard.md">Series storyboard</a>.</p>
+    <p>Source: <a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/configuration-reference.md">API scope and configuration</a> /
+      <a href="https://github.com/Coding-Forge/Fabric/blob/main/notebooks/notebook-guide.md">Analytics notebook runbook</a> /
+      <a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/video/storyboard.md">Series storyboard</a>.</p>
   </aside>
   <script>
     const slides = Array.from(document.querySelectorAll(".slide"));
@@ -276,6 +276,11 @@ Local does not mean offline. Configure credentials privately and approve the col
     const announcement = document.querySelector("#announcement");
     const counter = document.querySelector("#counter");
     const parameters = new URLSearchParams(location.search);
+    if (location.protocol === "file:") {
+      const audition = document.querySelector("audio[data-local-src]");
+      audition.src = audition.dataset.localSrc;
+      audition.hidden = false;
+    }
     let active = 0;
 
     function showSlide(index) {

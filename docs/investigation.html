@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101f2a">
+  <title>From an event to the evidence | Fabric Monitor</title>
+  <meta name="description" content="A synthetic Fabric Monitor investigation: follow an audit event through retained evidence, exact scoped correlation and Gold traces without turning gaps into certainty.">
+  <link rel="icon" href="assets/site/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site/site.css">
+  <script src="assets/site/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><nav class="container nav" aria-label="Main navigation"><a class="brand" href="./" aria-label="Fabric Monitor home"><img src="assets/site/mark.svg" width="34" height="34" alt="">Fabric<span>Monitor</span></a><button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" hidden>Menu <span aria-hidden="true">+</span></button><div class="nav-links" id="nav-links"><a href="./#why-monitor">Why Monitor</a><a href="./#architecture">How it works</a><a href="./#demo">Watch</a><a href="learn.html">Documentation</a><a class="nav-github" href="https://github.com/Coding-Forge/Fabric">GitHub <span aria-hidden="true">&#8599;</span></a></div></nav></header>
+  <main class="container" id="main">
+    <div class="page-hero"><p class="breadcrumbs"><a href="./">Home</a> / <a href="learn.html">Learn</a> / Guided investigation</p><p class="eyebrow">A synthetic, evidence-first walkthrough</p><h1>An event is a starting point.<br>Not the whole story.</h1><p class="lead">An audit operation references a pipeline. Can we connect it to a run, inspect retained activities, and explain what remains unknown?</p><aside class="note"><strong>Fictional example.</strong> E1, P1, C1, R1, A1 and all values below are illustrative shorthand, not tenant observations or executable sample input. This describes the implemented evidence model, not a claim that your environment contains these records.</aside></div>
+    <div class="reading-layout">
+      <aside class="toc" aria-label="On this page"><h2>The investigation</h2><a href="#question">1. Frame the question</a><a href="#bronze">2. Check Bronze</a><a href="#silver">3. Establish the links</a><a href="#gold">4. Follow the trace</a><a href="#gaps">5. Handle missing evidence</a><a href="#limits">6. State the conclusion</a><a href="#try-it">Try the workflow</a></aside>
+      <div class="reading-content">
+        <section id="question"><h2>1. Ask a question the evidence can answer.</h2><p>Our fictional audit event <strong>E1</strong> reports pipeline <strong>P1</strong> and correlation value <strong>C1</strong>. We want to know whether retained job evidence contains a compatible run, and what activity observations exist for that run.</p><p>We are <strong>not</strong> starting with the assumption that an audit actor caused a physical data transfer or that every downstream dependency is known. Those are different claims requiring different evidence.</p></section>
+        <section id="bronze"><h2>2. Check the retained evidence first.</h2><p>Bronze is the collected evidence and the existing historical <code>monitor_*</code> tables. A collector poll is not a pipeline execution.</p>
+          <div class="table-wrap"><table class="evidence-table"><caption>Fictional records available for this example</caption><thead><tr><th>Evidence</th><th>Retained observation</th><th>Interpretation</th></tr></thead><tbody>
+            <tr><td>Audit record E1</td><td>References P1; reports correlation C1.</td><td>The provider reported the operation and identifiers.</td></tr>
+            <tr><td>Job record R1</td><td>Belongs to P1; reports root correlation C1.</td><td>A candidate observed execution, subject to exact identifier and scope checks.</td></tr>
+            <tr><td>Activity record A1</td><td>References parent R1; reports 42,000 copied rows.</td><td>A retained activity metric, not independently verified end-to-end movement.</td></tr>
+            <tr><td>Resource outcomes</td><td>Job/activity polling coverage and timestamps.</td><td>Context for what was attempted, what succeeded and how old observations are.</td></tr>
+          </tbody></table></div>
+          <p>Job and pipeline-activity collection use <strong>non-Admin workspace/item Fabric APIs</strong>; Admin discovery alone does not grant resource access. Polling gaps, limited history, unsupported resources and denied access can prevent these records from being retained. The analytics notebooks cannot recover missing API history.</p>
+        </section>
+        <section id="silver"><h2>3. Connect identifiers. Don't guess by name.</h2><p>Silver normalizes the evidence into scoped identities and links. An item named <code>Daily Load</code> in two workspaces is not the same item. Tenant, workspace and item identifiers matter.</p>
+          <ol><li>Normalize and deduplicate E1 while retaining its source-file references. Conflicting records are quarantined rather than arbitrarily resolved.</li><li>Retain the explicit artifact reference to P1. Use historical inventory labels as context, not proof of the artifact's exact event-time state.</li><li>Compare the audit <code>ActivityId</code> or <code>RequestId</code> to the job's <code>root_activity_id</code>. Require compatible explicit artifact scope.</li><li>Accept E1-to-R1 only when the exact-ID match is unambiguous and artifact-compatible. Nearby timestamps and matching names are not fallback evidence.</li><li>Retain A1 at its activity grain. Repeated polls of the same activity do not become additional copied rows.</li></ol>
+          <p>Reported identity/IP values are suppressed by default in Silver. Keys do not verify a human identity. Redacted audit locations remain references; they are not relabelled as physical pipeline endpoints.</p>
+        </section>
+        <section id="gold"><h2>4. Follow the trace, with its limits attached.</h2><p>Gold organizes published, ready Silver evidence into event cases, typed trace edges and separate execution/activity facts.</p>
+          <pre aria-label="Fictional evidence trace"><code>Audit event E1
+  |
+  +-- references --------&gt; Pipeline P1
+  |
+  +-- exact correlation &gt; Observed run R1
+                              |
+                              +-- activity &gt; A1
+                                             Reported rows: 42,000
+                                             Physical source: unknown
+                                             Physical destination: unknown</code></pre>
+          <p>The trace supports inspection, not an automatically complete impact graph. Child-run traversal is cycle-safe and depth-capped; a capped result is flagged. If several events link to the same run, its activity metric must not be summed once per event.</p>
+          <div class="result-box"><h3>A defensible finding</h3><p>&ldquo;E1 is exactly correlated with this observed run under compatible artifact scope. That run has a retained activity reporting 42,000 copied rows. The physical source and destination are not established by this evidence.&rdquo;</p></div>
+        </section>
+        <section id="gaps"><h2>5. What if the run or activity is missing?</h2><p>Keep the event. Keep the unresolved reference. Investigate the collection boundary rather than inventing the missing edge.</p>
+          <div class="table-wrap"><table class="evidence-table"><caption>Different gaps require different next steps</caption><thead><tr><th>Situation</th><th>What to do</th><th>Do not conclude</th></tr></thead><tbody>
+            <tr><td>No job observations</td><td>Check job resource outcomes, permissions, supported item types, history windows and polling cadence.</td><td>&ldquo;The pipeline did not run.&rdquo;</td></tr>
+            <tr><td>Several compatible candidates</td><td>Preserve the ambiguity. Review scope and source identifiers.</td><td>&ldquo;Pick the nearest timestamp.&rdquo;</td></tr>
+            <tr><td>Activity has no metric</td><td>Keep the metric null and examine available coverage.</td><td>&ldquo;Zero rows moved.&rdquo;</td></tr>
+            <tr><td>New Silver preview; older published Silver</td><td>Check build IDs and publication readiness before Gold processing.</td><td>&ldquo;Gold must reflect the latest preview.&rdquo;</td></tr>
+          </tbody></table></div>
+          <p>A ready build means publication consistency checks passed. It does <strong>not</strong> mean complete collection. A valid snapshot can correctly contain no execution observations and explicit gaps.</p>
+        </section>
+        <section id="limits"><h2>6. State what is known&mdash;and stop there.</h2><ul class="checklist"><li><strong>Supported:</strong> retained provider events, explicit artifact references, qualifying exact correlations, retained run/activity metrics and evidence gaps.</li><li><strong>Not proven:</strong> human causality, physical source/destination, current state from old snapshots, complete effective access or distinct end-to-end row movement.</li><li><strong>Still separate work:</strong> comprehensive dependency-impact closure and a new Silver/Gold semantic-model/report experience. Existing report projects do not automatically consume these investigation tables.</li></ul><p>This is the value of an evidence-first monitoring system: a useful answer includes its confidence boundary, not just another number on a dashboard.</p></section>
+        <section id="try-it"><h2>Try this workflow with your own retained evidence.</h2><p>Start with the <a href="get-started.html">collection guide</a> if evidence is not already available. For the optional Fabric analytics path, publish the required Bronze inputs, then preview and deliberately publish Silver (24), Gold (25), and investigate published Gold read-only with notebook 26.</p><p>Use the <a href="https://github.com/Coding-Forge/Fabric/blob/main/notebooks/MEDALLION.md">publication runbook</a>, <a href="https://github.com/Coding-Forge/Fabric/blob/main/notebooks/GOLD_QUERIES.md">Gold query guide</a> and <a href="https://github.com/Coding-Forge/Fabric/blob/main/notebooks/MEDALLION_EXPLAINED.md">evidence-model explanation</a> as the technical references. Validate identity, capacity, network and Spark/Delta behavior in your workspace; the walkthrough is not runtime acceptance.</p><a class="button primary" href="learn.html">Find the relevant guides &#8594;</a></section>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><a class="brand" href="./"><img src="assets/site/mark.svg" width="28" height="28" alt="">Fabric<span>Monitor</span></a><p>Illustrative investigations. Traceable evidence. Explicit gaps.<br>Not a Microsoft product or hosted service.</p><div><a href="learn.html">Documentation</a><a href="https://github.com/Coding-Forge/Fabric">Source</a><a href="https://github.com/Coding-Forge/Fabric/issues">Feedback</a></div></div></footer>
+</body>
+</html>

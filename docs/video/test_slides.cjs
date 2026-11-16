@@ -67,7 +67,11 @@ for (const [episode, count] of [["02", 10], ["03", 9], ["04", 9], ["05", 11], ["
       }
       const fs = require("node:fs");
       for (const href of await page.locator("a").evaluateAll(links => links.map(link => link.getAttribute("href")))) {
-        assert(fs.existsSync(path.resolve(__dirname, href)), `Missing source link: ${href}`);
+        const githubSource = "https://github.com/Coding-Forge/Fabric/blob/main/";
+        const target = href.startsWith(githubSource)
+          ? path.resolve(__dirname, "../..", decodeURIComponent(href.slice(githubSource.length)))
+          : path.resolve(__dirname, href);
+        assert(fs.existsSync(target), `Missing source link: ${href}`);
       }
     } finally { await page.close(); }
   });
