@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101f2a">
+  <title>Get started | Fabric Monitor</title>
+  <meta name="description" content="Choose a local, container or Azure Functions collection path for Fabric Monitor. Understand permissions, storage, schedules and the optional Fabric analytics handoff.">
+  <link rel="icon" href="assets/site/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/site/site.css">
+  <script src="assets/site/site.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><nav class="container nav" aria-label="Main navigation">
+    <a class="brand" href="./" aria-label="Fabric Monitor home"><img src="assets/site/mark.svg" width="34" height="34" alt="">Fabric<span>Monitor</span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-links" hidden>Menu <span aria-hidden="true">+</span></button>
+    <div class="nav-links" id="nav-links"><a href="./#why-monitor">Why Monitor</a><a href="./#architecture">How it works</a><a href="./#demo">Watch</a><a href="learn.html">Documentation</a><a class="nav-github" href="https://github.com/Coding-Forge/Fabric">GitHub <span aria-hidden="true">&#8599;</span></a></div>
+  </nav></header>
+  <main class="container" id="main">
+    <div class="page-hero"><p class="breadcrumbs"><a href="./">Home</a> / Get started</p><p class="eyebrow">A deliberate first deployment</p><h1>Start with a question.<br>Not a notebook.</h1><p class="lead">Choose where collection runs, authorize only the signals you need, and verify the evidence before building a bigger monitoring experience.</p></div>
+    <div class="reading-layout">
+      <aside class="toc" aria-label="On this page"><h2>On this page</h2><a href="#choose-runtime">1. Choose a runtime</a><a href="#permissions">2. Set the boundaries</a><a href="#local-poc">3. Try local collection</a><a href="#verify">4. Verify the evidence</a><a href="#production">5. Plan production</a><a href="#analytics">6. Add optional analytics</a></aside>
+      <div class="reading-content">
+        <section id="choose-runtime"><h2>1. Choose your collection runtime.</h2><p>The same collection solution offers multiple execution paths. <strong>Local Python and Azure Functions collection to local/Blob storage do not require a Fabric notebook.</strong> Containers are another packaging option; assess their scheduling and operational fit for your environment.</p>
+          <div class="grid three">
+            <article class="card"><span class="topic">EXPLORE</span><h3>Local Python</h3><p>Start with a controlled proof of concept on Windows or Linux. Write to a dedicated local output folder and review the retained files.</p><a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/local-development.md#local-folder-poc-mode">Local operating guide &#8599;</a></article>
+            <article class="card"><span class="topic">PACKAGE</span><h3>Container</h3><p>Use the repository's container definitions as a starting point. Review entry points, credential delivery, persistent state and scheduling before deployment.</p><a href="https://github.com/Coding-Forge/Fabric/tree/main/containers">Container sources &#8599;</a></article>
+            <article class="card"><span class="topic">HOST</span><h3>Azure Functions</h3><p>Use a timer-hosted Python deployment with controlled storage and operational ownership. Validate trigger timing and startup behavior.</p><a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/deployment.md">Azure deployment guide &#8599;</a></article>
+          </div>
+          <aside class="note">Notebook-hosted collection is also available for teams that prefer it. The <a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/azure-synapse-notebooks.md">collector notebook guide</a> describes that separate path. It is not a prerequisite for external collection.</aside>
+        </section>
+        <section id="permissions"><h2>2. Set the boundaries before the credentials.</h2><p>Choose the monitoring questions and modules first. Then review each module's scope and required permissions. <strong>Fabric Monitor is not Admin-API-only.</strong></p>
+          <div class="table-wrap"><table class="evidence-table"><caption>Authorization families are independent; one grant does not supply the others.</caption><thead><tr><th>Boundary</th><th>What to review</th></tr></thead><tbody>
+            <tr><td>Admin discovery and metadata</td><td>Endpoint-specific Admin authorization, service-principal tenant settings and supported scanner metadata.</td></tr>
+            <tr><td>Non-Admin resource access</td><td>Job history requires item/job access; definition exports require item read/write access. A read-only collector can still require a role capable of modification. Admin discovery does not grant these rights.</td></tr>
+            <tr><td>Microsoft Graph</td><td>Separate application permissions and admin consent for selected directory/licensing data; group expansion is separately enabled and bounded.</td></tr>
+            <tr><td>Output storage</td><td>Independent local filesystem or Azure storage authorization. API access does not authorize storage writes.</td></tr>
+          </tbody></table></div>
+          <p>For an Admin-only trial, deliberately choose modules in the Admin row of the <a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/configuration-reference.md#api-scope-and-authorization-boundaries">API scope matrix</a>. The default module list is not an Admin-only configuration. Keep secrets in private configuration; never put them in the site, a notebook example or a recording.</p>
+        </section>
+        <section id="local-poc"><h2>3. Try a small, local collection.</h2><p>Use an approved Python environment and follow the platform-specific <a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/local-development.md">setup instructions</a>. From the repository root, install the declared dependencies:</p>
+          <pre><code>python -m pip install -r requirements.txt</code></pre>
+          <p>Prepare a private <code>.env</code> with the required <code>TENANT_ID</code>, <code>CLIENT_ID</code> and <code>CLIENT_SECRET</code> values. Set <code>LOCAL_OUTPUT_PATH</code> to a dedicated writable folder <strong>outside the repository</strong>. Select <code>CLOUD_ENVIRONMENT</code> and configure only the approved modules.</p>
+          <p>For example, after authorizing Activity and Catalog:</p>
+          <pre><code>python -m app.monitor --env-file .env --modules Activity,Catalog</code></pre>
+          <p>This invokes the selected modules subject to their scheduling and checkpoint rules. It is not a command to force every resource to refresh. <code>LOCAL_OUTPUT_PATH</code> takes precedence over Blob and Lakehouse output settings.</p>
+          <aside class="note"><strong>Local does not mean offline.</strong> This calls real authorized APIs. Keep all monitored capacities on for accurate collection and assessment. Local output isolates the storage destination, not the tenant being queried. Do not rely on <code>DRY_RUN</code> as an API or permission safety boundary.</aside>
+        </section>
+        <section id="verify"><h2>4. Verify what was actually retained.</h2><ul class="checklist">
+          <li><strong>Invocation:</strong> did the intended host run, and were the selected modules eligible?</li>
+          <li><strong>Authorization:</strong> did each API accept the intended identity? A successful token is not proof of resource access.</li>
+          <li><strong>Output:</strong> did files and state land in the expected folder, not an old storage target?</li>
+          <li><strong>Coverage:</strong> distinguish successful empty results, failed requests, unsupported resources and uncollected scope.</li>
+          <li><strong>Time:</strong> check observation times, UTC folders, API history windows and retained state. A folder date is not always an exact observation timestamp.</li>
+        </ul><p>A successful process exit does not establish a complete estate. Use the <a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/local-development.md#operating-the-four-fabric-collectors">collector operations guidance</a> for request gates, recovery and resumable progress.</p></section>
+        <section id="production"><h2>5. Promote the operation, not just the code.</h2><p>For hosted collection, establish an owner for runtime health, identity, network access, scheduling, storage, retention and recovery. Use the <a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/enterprise-deployment-best-practices.md">enterprise checklist</a> alongside the deployment guide.</p>
+          <ul><li>The Function host timer and per-module cron checks serve different purposes. A module cron does not create another host trigger; the current Function also runs on startup.</li><li>Managed identity for Blob Storage or Key Vault is separate from the configured API identity. It does not automatically grant tenant or workspace access.</li><li>Use one scheduler against a given output/state root. Preserve checkpoints and resource progress rather than guessing a reset.</li><li>Retention must account for evidence, module-local controls and validation history. Do not apply a blanket delete policy without reviewing the documented implications.</li><li>External collection avoids the Spark notebook runtime for that path, not host, storage, API or optional analytics costs.</li></ul>
+          <p>Read <a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/managed-identity.md">managed identity and RBAC</a> and <a href="https://github.com/Coding-Forge/Fabric/blob/main/docs/updating.md">updating safely</a> before operational rollout.</p>
+        </section>
+        <section id="analytics"><h2>6. Add Fabric analytics when it adds value.</h2><p>External collection can stop at retained JSON. If you choose the Lakehouse analytics path, first arrange an explicit handoff of the collected evidence into the expected Lakehouse Files root. Blob output is not automatically a Lakehouse mount.</p>
+          <ol><li>Follow the <a href="https://github.com/Coding-Forge/Fabric/blob/main/notebooks/notebook-guide.md">numbered notebook walkthrough</a>. Import the self-contained notebooks and attach the intended default Lakehouse.</li><li>Preview the relevant Bronze transformations with <code>WRITE_TABLES = False</code>, inspect coverage and destination, then deliberately publish.</li><li>For event investigations, follow the separate <a href="https://github.com/Coding-Forge/Fabric/blob/main/notebooks/MEDALLION.md">Silver/Gold publication runbook</a>. Gold consumes published, ready Silver&mdash;not an unpersisted preview.</li><li>Use notebook 26 for read-only selected-event investigation against published Gold. Report/model integration is a separate step, not an automatic side effect of publication.</li></ol>
+          <div class="result-box"><h3>The right first milestone</h3><p>A small, authorized collection with known scope, correctly retained evidence and understood gaps. Add more collectors or analytics only when they help answer the next question.</p><a class="text-link" href="investigation.html">Next: follow a synthetic event through the evidence &#8594;</a></div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><a class="brand" href="./"><img src="assets/site/mark.svg" width="28" height="28" alt="">Fabric<span>Monitor</span></a><p>Customer-deployed monitoring. Explicit evidence boundaries.<br>Not a Microsoft product or hosted service.</p><div><a href="learn.html">Documentation</a><a href="https://github.com/Coding-Forge/Fabric">Source</a><a href="https://github.com/Coding-Forge/Fabric/issues">Feedback</a></div></div></footer>
+</body>
+</html>
