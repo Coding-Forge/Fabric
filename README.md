@@ -1,5 +1,7 @@
 # Fabric Monitor
 
+[![Fabric Monitor: a clear view of your connected data estate, monitored independently. Activity, inventory, access and lineage.](images/fabric-monitor-readme-banner.png)](https://coding-forge.github.io/Fabric/)
+
 Fabric Monitor collects selected Power BI, Fabric and Microsoft Graph metadata
 using Python API collectors. It preserves raw JSON in local files, Blob Storage
 or a Fabric Lakehouse, with Power BI reports and a separate Fabric notebook

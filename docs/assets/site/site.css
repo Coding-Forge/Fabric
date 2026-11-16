@@ -153,6 +153,9 @@ figcaption { font-size: .71rem; color: var(--muted); margin-top: 12px; }
 .final-cta h2 { font-size: clamp(1.9rem, 3vw, 2.8rem); }
 .final-cta p:last-child { color: var(--muted); font-size: .86rem; margin: 18px 0 0; }
 .final-cta .actions { max-width: 240px; margin: 0; }
+.final-cta.branded-cta { display: block; padding: 0; overflow: hidden; }
+.brand-banner { display: block; width: 100%; height: auto; }
+.branded-cta-content { display: flex; justify-content: space-between; align-items: center; gap: 32px; padding: 40px 48px; }
 .site-footer { border-top: 1px solid var(--line); background: #f0f3ee; padding-block: 36px; }
 .footer-inner { display: flex; justify-content: space-between; align-items: start; gap: 32px; }
 .footer-inner p { color: var(--muted); font-size: .7rem; margin: 0; }
@@ -256,6 +259,7 @@ pre code { color: inherit; background: none; padding: 0; font-size: inherit; whi
   .report-layout > div { max-width: 650px; }
   .final-cta { flex-direction: column; align-items: start; padding: 36px; }
   .final-cta .actions { max-width: none; }
+  .branded-cta-content { flex-direction: column; align-items: start; padding: 32px 36px; }
   .footer-inner { flex-wrap: wrap; }
   .reading-layout { grid-template-columns: 1fr; gap: 30px; }
   .toc { position: static; display: flex; flex-wrap: wrap; gap: 8px 20px; padding-block: 16px; border-bottom: 1px solid var(--line); }
@@ -296,6 +300,7 @@ pre code { color: inherit; background: none; padding: 0; font-size: inherit; whi
   .architecture-flow p { margin-bottom: 16px; }
   .split-callout { padding: 20px; }
   .final-cta { padding: 28px 24px; margin-bottom: 54px; }
+  .branded-cta-content { padding: 28px 24px; }
   .footer-inner { flex-direction: column; gap: 22px; }
   .page-hero { padding-block: 40px 32px; }
   .page-hero h1 { font-size: 2.6rem; }

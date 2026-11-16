@@ -12,7 +12,7 @@ const pages = ["index.html", "get-started.html", "learn.html", "investigation.ht
 const sourcePrefix = "https://github.com/Coding-Forge/Fabric/blob/main/";
 const treePrefix = "https://github.com/Coding-Forge/Fabric/tree/main/";
 const tracked = new Set(execFileSync("git", ["ls-files", "-z"], { cwd: repo, encoding: "utf8" }).split("\0"));
-const mime = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".svg": "image/svg+xml", ".png": "image/png", ".mp4": "video/mp4" };
+const mime = { ".html": "text/html", ".css": "text/css", ".js": "text/javascript", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp", ".jpg": "image/jpeg", ".mp4": "video/mp4" };
 let server;
 let browser;
 let origin;
@@ -82,13 +82,14 @@ test("New pages work at the project-site prefix on desktop and narrow screens", 
         });
         assert.deepEqual(duplicates, [], `${name}: duplicate anchor IDs`);
         if (name === "index.html") {
-          const preview = page.locator(".report-preview img");
-          await preview.evaluate(async image => { image.loading = "eager"; await image.decode(); });
-          const dimensions = await preview.evaluate(image => ({
-            displayed: image.clientWidth / image.clientHeight,
-            natural: image.naturalWidth / image.naturalHeight,
-          }));
-          assert(Math.abs(dimensions.displayed - dimensions.natural) < 0.02, "Report preview must retain its aspect ratio");
+          for (const image of await page.locator(".report-preview img, .brand-banner").all()) {
+            await image.evaluate(async element => { element.loading = "eager"; await element.decode(); });
+            const dimensions = await image.evaluate(element => ({
+              displayed: element.clientWidth / element.clientHeight,
+              natural: element.naturalWidth / element.naturalHeight,
+            }));
+            assert(Math.abs(dimensions.displayed - dimensions.natural) < 0.02, "Report and brand images must retain their aspect ratios");
+          }
         }
         if (process.env.SITE_SCREENSHOT_DIR && name === "index.html" && [1440, 390].includes(width)) {
           fs.mkdirSync(process.env.SITE_SCREENSHOT_DIR, { recursive: true });
@@ -131,6 +132,49 @@ test("Project-site links, anchors, assets and canonical source targets resolve",
           }
           await response.dispose();
         }
+      }
+    }
+  } finally { await page.close(); }
+});
+
+test("Branding and shared previews decode from published assets, including nested pages", async () => {
+  const page = await browser.newPage();
+  const documents = [...pages, "catalog-pbip.html", "blog/fabric-monitor-solution.html", "demo/index.html"];
+  try {
+    for (const name of documents) {
+      await page.goto(`${origin}/Fabric/${name}`);
+      for (const image of await page.locator(".brand-icon").all()) {
+        await image.evaluate(element => element.decode());
+        assert.equal(await image.evaluate(element => element.naturalWidth > 0 && element.clientWidth === element.clientHeight), true, `${name}: brand icon failed to load or was distorted`);
+      }
+      const favicon = new URL(await page.locator("link[rel='icon']").getAttribute("href"), page.url());
+      const touchIcon = new URL(await page.locator("link[rel='apple-touch-icon']").getAttribute("href"), page.url());
+      const social = new URL(await page.locator("meta[property='og:image']").getAttribute("content"));
+      assert.equal(social.origin, "https://coding-forge.github.io");
+      for (const url of [favicon, touchIcon, social]) {
+        assert(url.pathname.startsWith("/Fabric/"), `${name}: brand asset escapes the published root`);
+        const dimensions = await page.evaluate(async src => {
+          const image = new Image();
+          image.src = src;
+          await image.decode();
+          return [image.naturalWidth, image.naturalHeight];
+        }, `${origin}${url.pathname}`);
+        assert(dimensions.every(value => value > 0), `${name}: undecodable brand asset`);
+        if (url === social) {
+          assert(dimensions[0] / dimensions[1] > 1.8 && dimensions[0] / dimensions[1] < 2, "Social artwork should be a landscape preview");
+        }
+      }
+    }
+    for (const width of [1440, 390, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      for (const name of documents.slice(pages.length)) {
+        await page.goto(`${origin}/Fabric/${name}`);
+        const logo = page.locator(".brand-identity");
+        assert.equal(await logo.isVisible(), true);
+        assert.equal(await logo.evaluate(element => {
+          const box = element.getBoundingClientRect();
+          return box.left >= 0 && box.right <= innerWidth;
+        }), true, `${name}: branding overflows at ${width}px`);
       }
     }
   } finally { await page.close(); }
