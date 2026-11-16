@@ -14,7 +14,7 @@ or tenant connection is used by this static site.
 | `get-started.html` | Guided runtime, authorization, collection and analytics path |
 | `investigation.html` | Synthetic event-to-evidence walkthrough and explicit limits |
 | `learn.html` | Searchable guide library and draft learning decks |
-| `assets/site/` | Shared local CSS, progressive-enhancement JavaScript and brand mark |
+| `assets/site/` | Shared local CSS, progressive-enhancement JavaScript and generated brand assets |
 | `catalog-pbip.html`, `blog/`, `demo/` | Existing report guide, earlier story and demo |
 
 Technical Markdown remains canonical in GitHub's rendered reader. Link to it
@@ -28,6 +28,38 @@ For a new library guide, copy one `data-resource` article in `learn.html`.
 Set `data-category` to one of the existing select values and add optional
 `data-keywords`. The count and filtering derive from the articles. Without
 JavaScript, all guide links and the full navigation remain available.
+
+## Brand artwork
+
+The supplied originals live in `images/fabric-monitor-brand-icon.png` and
+`images/fabric-monitor-readme-banner.png`. Keep them unchanged; the root README
+uses the original banner. Public pages use generated assets under `docs/`
+because the repository's root `images/` directory is not published by Pages.
+
+The official icon appears in site navigation/footer branding, favicons and
+touch icons. The banner appears in the homepage's closing call to action.
+Pages and draft decks advertise the same 1200x630 social-preview image. That
+image fits the entire banner into a navy canvas without cropping its text.
+The WebP banner retains the source aspect ratio and is lazy-loaded; neither
+original is downloaded by the site.
+
+Regenerate the derivatives using the existing browser tooling:
+
+```bash
+PLAYWRIGHT_CHROMIUM_EXECUTABLE=/snap/bin/chromium \
+  npm run build:brand --prefix docs/video
+```
+
+The generator uses Chromium's Canvas encoder, requires no new image packages,
+and does not edit the source artwork. It emits a 256px navigation PNG, a 32px
+favicon, a 180px touch icon, a WebP banner and a JPEG social preview. Commit
+the derivatives together with their source updates. Review the small icon,
+desktop/mobile layouts and social preview after regeneration.
+
+The social metadata controls shared website links. GitHub's repository
+social-preview setting is separate and is not changed by HTML metadata; the
+generated `social-preview.jpg` can be uploaded there manually if desired.
+Recorded video content and posters remain unchanged.
 
 ## Add videos
 

@@ -4,6 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Fabric Monitor Demo</title>
+  <meta property="og:image" content="https://coding-forge.github.io/Fabric/assets/site/social-preview.jpg">
+  <meta property="og:image:alt" content="Fabric Monitor: a clear view of your connected data estate, monitored independently.">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="../assets/site/favicon.png" type="image/png" sizes="32x32">
+  <link rel="apple-touch-icon" href="../assets/site/apple-touch-icon.png" sizes="180x180">
+  <link rel="stylesheet" href="../assets/site/branding.css">
   <style>
     :root {
       color-scheme: light;
@@ -91,6 +97,7 @@
 <body>
   <main>
     <section class="hero">
+      <a class="brand-identity" href="../index.html"><img class="brand-icon" src="../assets/site/brand-icon.png" width="44" height="44" alt="">Fabric Monitor home</a>
       <div class="eyebrow">Microsoft Fabric + Power BI monitoring</div>
       <h1>Fabric Monitor Demo</h1>
       <p>Fabric Monitor is a Python-based monitoring accelerator for Microsoft Fabric and Power BI. It uses a service principal or managed identity pattern to collect tenant, catalog, activity, refresh, gateway, capacity, app, role, and Microsoft Graph signals, then writes raw output to local files, Blob Storage, ADLS Gen2, or Fabric Lakehouse paths for downstream curation. The included PBIP projects turn that telemetry into audit, governance, and catalog reporting pages for activity trends, workspace and artifact inventory, users and access, semantic model schema, datasource usage, refresh schedules, risk anomalies, and drill-through investigation.</p>
